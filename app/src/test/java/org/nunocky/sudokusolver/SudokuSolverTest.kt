@@ -3,6 +3,7 @@ package org.nunocky.sudokusolver
 import junit.framework.TestCase.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.nunocky.sudokusolver.solver.Cell
 import org.nunocky.sudokusolver.solver.SudokuSolver
 
 class SudokuSolverTest {
@@ -10,7 +11,7 @@ class SudokuSolverTest {
     private lateinit var solver: SudokuSolver
 
     private val solverCallback = object : SudokuSolver.ProgressCallback {
-        override fun onProgress(numbers: IntArray) {
+        override fun onProgress(cells: List<Cell>) {
             val sb = StringBuffer()
 
             sb.appendLine("----")
@@ -18,15 +19,15 @@ class SudokuSolverTest {
                 sb.appendLine(
                     String.format(
                         "%d %d %d %d %d %d %d %d %d",
-                        numbers[9 * y + 0],
-                        numbers[9 * y + 1],
-                        numbers[9 * y + 2],
-                        numbers[9 * y + 3],
-                        numbers[9 * y + 4],
-                        numbers[9 * y + 5],
-                        numbers[9 * y + 6],
-                        numbers[9 * y + 7],
-                        numbers[9 * y + 8],
+                        cells[9 * y + 0].value,
+                        cells[9 * y + 1].value,
+                        cells[9 * y + 2].value,
+                        cells[9 * y + 3].value,
+                        cells[9 * y + 4].value,
+                        cells[9 * y + 5].value,
+                        cells[9 * y + 6].value,
+                        cells[9 * y + 7].value,
+                        cells[9 * y + 8].value,
                     )
                 )
             }
@@ -90,7 +91,7 @@ class SudokuSolverTest {
 //    }
 
     companion object {
-        private val targetEasy = arrayOf(
+        private val targetEasy = listOf(
             0, 0, 1, 0, 3, 7, 0, 2, 0,
             0, 0, 6, 0, 9, 0, 5, 3, 0,
             0, 9, 2, 0, 0, 0, 1, 7, 0,
@@ -102,7 +103,7 @@ class SudokuSolverTest {
             0, 6, 0, 3, 8, 0, 4, 0, 0
         )
 
-        private val targetMedium = arrayOf(
+        private val targetMedium = listOf(
             0, 0, 0, 0, 0, 8, 5, 0, 0,
             0, 0, 0, 6, 0, 9, 0, 1, 2,
             6, 7, 0, 1, 0, 0, 0, 4, 0,
@@ -114,7 +115,7 @@ class SudokuSolverTest {
             0, 0, 6, 3, 0, 0, 0, 0, 0
         )
 
-        private val targetHard = arrayOf(
+        private val targetHard = listOf(
             0, 0, 6, 0, 3, 8, 0, 7, 5,
             0, 0, 0, 0, 4, 0, 0, 0, 0,
             0, 0, 0, 7, 9, 0, 2, 0, 0,

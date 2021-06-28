@@ -3,7 +3,7 @@ package org.nunocky.sudokusolver.solver
 class SudokuSolver {
 
     interface ProgressCallback {
-        fun onProgress(numbers: IntArray)
+        fun onProgress(cells: List<Cell>)
     }
 
     var callback: ProgressCallback? = null
@@ -84,7 +84,7 @@ class SudokuSolver {
      * @param numbers 各セルのあたい。未確定は0、確定していたら1~9
      * @throws IllegalArgumentException 0~9以外の数字を指定しようとすると発生
      */
-    fun setup(numbers: Array<Int>) {
+    fun setup(numbers: List<Int>) {
         if (numbers.size != cells.size) {
             throw IllegalArgumentException()
         }
@@ -134,7 +134,7 @@ class SudokuSolver {
             valueChanged = valueChanged or filterOneCandidate(cell)
         }
 
-        callback?.onProgress(getNumArray())
+        callback?.onProgress(cells)
         return valueChanged
     }
 
