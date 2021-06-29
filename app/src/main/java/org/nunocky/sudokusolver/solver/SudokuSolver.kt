@@ -7,7 +7,7 @@ class SudokuSolver {
     }
 
     var callback: ProgressCallback? = null
-    private val cells = ArrayList<Cell>()
+    val cells = ArrayList<Cell>()
     private val groups = ArrayList<Group>()
 
     init {

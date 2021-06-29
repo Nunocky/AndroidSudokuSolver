@@ -10,6 +10,8 @@ import android.util.AttributeSet
 import android.view.View
 import kotlinx.android.parcel.Parcelize
 
+// TODO fixedNum の色
+//      上下左右の枠線の太さ NONE, NORMAL, BOLD
 class NumberCellView : View {
     var fixedNum = 0
         set(value) {
