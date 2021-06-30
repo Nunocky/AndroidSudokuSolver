@@ -28,7 +28,7 @@ class SudokuBoardView : ConstraintLayout {
         setupSudokuBase(context, this, acttrs, defStyle)
     }
 
-    private val cellViews = ArrayList<NumberCellView>()
+    val cellViews = ArrayList<NumberCellView>()
 
     private fun setupSudokuBase(
         context: Context,
@@ -51,6 +51,7 @@ class SudokuBoardView : ConstraintLayout {
                 cell.id = View.generateViewId()
                 base.addView(cell)
                 cellViews.add(cell)
+                cell.index = row * rows + col
 
                 // test
                 //cell.fixedNum = ((col + row) % 9) + 1
