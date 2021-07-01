@@ -5,8 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import org.nunocky.sudokusolver.MyApplication
+import org.nunocky.sudokusolver.SudokuRepository
+import org.nunocky.sudokusolver.adapter.SudokuListAdapter
 import org.nunocky.sudokusolver.databinding.FragmentSudokuListBinding
-import org.nunocky.sudokusolver.solver.SudokuSolver
 
 /**
  * 登録した問題一覧
@@ -14,33 +20,44 @@ import org.nunocky.sudokusolver.solver.SudokuSolver
 class SudokuListFragment : Fragment() {
     private lateinit var binding: FragmentSudokuListBinding
 
+    private val viewModel: SudokuListViewModel by viewModels {
+        val app = (requireActivity().application as MyApplication)
+        val appDatabase = app.appDatabase
+        SudokuListViewModel.Factory(SudokuRepository(appDatabase))
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentSudokuListBinding.inflate(inflater, container, false)
+        //binding.viewModel = viewModel
+        binding.lifecycleOwner = this
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val targetEasy = listOf(
-            0, 0, 1, 0, 3, 7, 0, 2, 0,
-            0, 0, 6, 0, 9, 0, 5, 3, 0,
-            0, 9, 2, 0, 0, 0, 1, 7, 0,
-            0, 0, 0, 6, 0, 3, 0, 8, 2,
-            0, 0, 0, 9, 7, 8, 0, 0, 0,
-            9, 8, 0, 2, 0, 1, 0, 0, 0,
-            0, 1, 4, 0, 0, 0, 0, 8, 6,
-            0, 3, 8, 0, 1, 0, 2, 0, 0,
-            0, 6, 0, 3, 8, 0, 4, 0, 0
-        )
+        val adapter = SudokuListAdapter(emptyList())
+        binding.recyclerView.layoutManager =
+            GridLayoutManager(requireActivity(), 2, RecyclerView.VERTICAL, false)
 
-        val solver = SudokuSolver()
-        solver.setup(targetEasy)
+        binding.recyclerView.adapter = adapter
 
-        binding.board.updateCells(solver.cells)
+        adapter.listener = object : SudokuListAdapter.OnItemClickListener {
+            override fun onItemClicked(view: View, position: Int) {
+                val entity = adapter.list[position]
+                val action =
+                    SudokuListFragmentDirections.actionSudokuListFragmentToEditFragment(entity.id)
+                findNavController().navigate(action)
+            }
+        }
 
+        binding.floatingActionButton.setOnClickListener {
+            val action = SudokuListFragmentDirections.actionSudokuListFragmentToEditFragment(0)
+            findNavController().navigate(action)
+        }
     }
 }
+
