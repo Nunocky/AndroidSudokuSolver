@@ -6,13 +6,16 @@ import androidx.room.*
 @Dao
 interface SudokuDAO {
     @Insert
-    fun insert(entity: SudokuEntity) : Long
+    fun insert(entity: SudokuEntity): Long
 
     @Delete
     fun delete(entity: SudokuEntity)
 
     @Update
     fun update(entity: SudokuEntity)
+
+    @Query("select * from sudoku where id=:id")
+    fun findById(id: Long): SudokuEntity?
 
     @Query("select * from sudoku order by createdAt")
     fun findAll(): LiveData<List<SudokuEntity>>

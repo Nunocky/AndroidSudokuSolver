@@ -31,7 +31,7 @@ class SudokuListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentSudokuListBinding.inflate(inflater, container, false)
-        //binding.viewModel = viewModel
+        binding.viewModel = viewModel
         binding.lifecycleOwner = this
         return binding.root
     }
