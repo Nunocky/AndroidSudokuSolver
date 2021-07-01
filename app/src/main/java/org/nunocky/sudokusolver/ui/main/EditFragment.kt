@@ -2,13 +2,16 @@ package org.nunocky.sudokusolver.ui.main
 
 import android.graphics.Color
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.CompoundButton
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.navArgs
+import org.nunocky.sudokusolver.MyApplication
+import org.nunocky.sudokusolver.R
+import org.nunocky.sudokusolver.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentEditBinding
+import org.nunocky.sudokusolver.solver.Cell
 import org.nunocky.sudokusolver.view.NumberCellView
 
 /**
@@ -17,13 +20,21 @@ import org.nunocky.sudokusolver.view.NumberCellView
  * create an instance of this fragment.
  */
 class EditFragment : Fragment() {
+    private val args: EditFragmentArgs by navArgs()
     private lateinit var binding: FragmentEditBinding
-    private val viewModel: EditViewModel by viewModels()
+
+    //    private val viewModel: EditViewModel by viewModels()
+    private val viewModel: EditViewModel by viewModels {
+        val app = (requireActivity().application as MyApplication)
+        val appDatabase = app.appDatabase
+        EditViewModel.Factory(SudokuRepository(appDatabase))
+    }
 
     private var currentCell: NumberCellView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
@@ -56,6 +67,26 @@ class EditFragment : Fragment() {
 
         viewModel.currentValue.observe(requireActivity()) {
             currentCell?.fixedNum = it
+        }
+
+        if (args.entityId == 0L) {
+            // new Item
+            viewModel.setNewSudoku()
+        } else {
+            viewModel.loadSudoku(args.entityId)
+        }
+
+        viewModel.entity.observe(requireActivity()) {
+            it?.cells?.let { cells ->
+                val cellList = ArrayList<Cell>()
+                cells.toCharArray().forEach {
+                    val cell = Cell().apply {
+                        value = it - '0'
+                    }
+                    cellList.add(cell)
+                }
+                binding.sudokuBoardView.updateCells(cellList)
+            }
         }
     }
 
@@ -112,4 +143,19 @@ class EditFragment : Fragment() {
                 }
             }
         }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_edit, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.action_save) {
+            val cells =
+                binding.sudokuBoardView.cellViews.joinToString("") { it.fixedNum.toString() }
+            viewModel.saveSudoku(cells)
+        }
+
+        return super.onOptionsItemSelected(item)
+    }
 }

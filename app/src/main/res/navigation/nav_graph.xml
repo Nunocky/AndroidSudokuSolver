@@ -19,6 +19,9 @@
         <action
             android:id="@+id/action_editFragment_to_solverFragment"
             app:destination="@id/solverFragment" />
+        <argument
+            android:name="entityId"
+            app:argType="long" />
     </fragment>
     <fragment
         android:id="@+id/solverFragment"
