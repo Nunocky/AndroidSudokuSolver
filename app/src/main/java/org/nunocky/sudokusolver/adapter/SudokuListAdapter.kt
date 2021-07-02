@@ -42,7 +42,7 @@ class SudokuListAdapter(var list: List<SudokuEntity>) :
 
     override fun onBindViewHolder(holder: SudokuListAdapterViewHolder, position: Int) {
         val entity = list[position]
-        val text = entity.cells // TODO 81文字の文字列を Cellsに変換する
+        val text = entity.cells
         val cellList = ArrayList<Cell>()
         text.toCharArray().forEach {
             val cell = Cell().apply {
