@@ -1,6 +1,5 @@
 package org.nunocky.sudokusolver.ui.main
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.*
 import android.widget.CompoundButton
@@ -101,43 +100,41 @@ class EditFragment : Fragment() {
     private val cellClickedListener = View.OnClickListener {
         val currentSelectedCellIndex = (it as NumberCellView).index
         currentCell = binding.sudokuBoardView.cellViews[currentSelectedCellIndex]
+        currentCell?.onFocus = true
 
         binding.sudokuBoardView.cellViews.forEachIndexed { n, numberCellView ->
             if (n == currentSelectedCellIndex) {
-                // TODO 選択・非選択状態の色をアトリビュートで設定、 selected= true/falseで色を変える
-                numberCellView.setBackgroundColor(Color.parseColor("#ffffb0"))
                 viewModel.currentValue.value = numberCellView.fixedNum
             } else {
-                numberCellView.setBackgroundColor(Color.WHITE)
+                numberCellView.onFocus = false
             }
         }
     }
 
-    private val tbListener =
-        CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
-            val buttonIndex = when (buttonView.id) {
-                binding.tb1.id -> 1
-                binding.tb2.id -> 2
-                binding.tb3.id -> 3
-                binding.tb4.id -> 4
-                binding.tb5.id -> 5
-                binding.tb6.id -> 6
-                binding.tb7.id -> 7
-                binding.tb8.id -> 8
-                binding.tb9.id -> 9
-                else -> 0
-            }
-
-            if (!isChecked) {
-                if (currentCell != null && currentCell?.fixedNum == buttonIndex) {
-                    viewModel.currentValue.value = 0
-                }
-
-                return@OnCheckedChangeListener
-            }
-
-            viewModel.currentValue.value = buttonIndex
+    private val tbListener = CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
+        val buttonIndex = when (buttonView.id) {
+            binding.tb1.id -> 1
+            binding.tb2.id -> 2
+            binding.tb3.id -> 3
+            binding.tb4.id -> 4
+            binding.tb5.id -> 5
+            binding.tb6.id -> 6
+            binding.tb7.id -> 7
+            binding.tb8.id -> 8
+            binding.tb9.id -> 9
+            else -> 0
         }
+
+        if (!isChecked) {
+            if (currentCell != null && currentCell?.fixedNum == buttonIndex) {
+                viewModel.currentValue.value = 0
+            }
+
+            return@OnCheckedChangeListener
+        }
+
+        viewModel.currentValue.value = buttonIndex
+    }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater);

@@ -11,8 +11,6 @@ import android.view.View
 import kotlinx.android.parcel.Parcelize
 import org.nunocky.sudokusolver.R
 
-// TODO fixedNum の色
-//      上下左右の枠線の太さ NONE, NORMAL, BOLD
 class NumberCellView : View {
     private var canvasWidth: Float = 0f
     private var canvasHeight: Float = 0f
@@ -94,22 +92,8 @@ class NumberCellView : View {
         canvasWidth = w.toFloat()
         canvasHeight = h.toFloat()
 
-        // change text size
         determineFinedNumberTextSize()
         determineCandidatesTextSize()
-
-//        // Account for padding
-//        var xpad = (paddingLeft + paddingRight).toFloat()
-//        val ypad = (paddingTop + paddingBottom).toFloat()
-//
-//        // Account for the label
-//        //if (showText) xpad += textWidth
-//
-//        val ww = w.toFloat() - xpad
-//        val hh = h.toFloat() - ypad
-//
-//        // Figure out how big we can make the pie.
-//        //val diameter = Math.min(ww, hh)
     }
 
     private fun determineFinedNumberTextSize() {
@@ -120,13 +104,6 @@ class NumberCellView : View {
     private fun determineCandidatesTextSize() {
         val targetHeight = canvasHeight / 3f * 0.75f
         candidatesPaint.textSize = targetHeight
-
-//        var textSize: Float
-//        do {
-//            candidatesPaint.textSize += 10f
-//            val fontMetrics = candidatesPaint.fontMetrics
-//            textSize = (-fontMetrics.ascent + fontMetrics.descent)
-//        } while (textSize < canvasHeight / 3f * 0.75f)
     }
 
     override fun draw(canvas: Canvas?) {
@@ -294,6 +271,21 @@ class NumberCellView : View {
     var leftBorderStyle = BorderStyle.NORMAL
         set(value) {
             field = value
+            invalidate()
+        }
+
+    // setSelectedの overrideではうまく動かなかった
+    var onFocus = false
+        set(value) {
+            field = value
+            setBackgroundColor(
+                if (value) {
+                    // TODO 選択・非選択状態の色をアトリビュートで設定
+                    Color.parseColor("#ffffb0")
+                } else {
+                    Color.WHITE
+                }
+            )
             invalidate()
         }
 
