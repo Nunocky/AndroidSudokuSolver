@@ -9,10 +9,14 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
 import kotlinx.android.parcel.Parcelize
+import org.nunocky.sudokusolver.R
 
 // TODO fixedNum の色
 //      上下左右の枠線の太さ NONE, NORMAL, BOLD
 class NumberCellView : View {
+    private var canvasWidth: Float = 0f
+    private var canvasHeight: Float = 0f
+
     var index = 0
     var fixedNum = 0
         set(value) {
@@ -26,43 +30,28 @@ class NumberCellView : View {
             invalidate()
         }
 
-    //    private val paint = Paint()
     private val textPaint = Paint(ANTI_ALIAS_FLAG).apply {
         color = Color.BLACK
-//        color = textColor
-//        if (textHeight == 0f) {
-//            textHeight = textSize
-//        } else {
-//            textSize = textHeight
-//        }
     }
+
+    private val updatedTextPaint = Paint(ANTI_ALIAS_FLAG).apply {
+        color = Color.BLACK
+    }
+
     private val candidatesPaint = Paint(ANTI_ALIAS_FLAG).apply {
         color = Color.LTGRAY
         textSize = 10f
-//        color = textColor
-//        if (textHeight == 0f) {
-//            textHeight = textSize
-//        } else {
-//            textSize = textHeight
-//        }
     }
 
     private val linePaint = Paint().apply {
         strokeWidth = 2f
         color = Color.BLACK
-        //style = Paint.Style.FILL
-        //textSize = textHeight
     }
 
-    private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val borderPaint = Paint(ANTI_ALIAS_FLAG).apply {
         strokeWidth = 8f
         color = Color.RED
-        //style = Paint.Style.FILL
-        //textSize = textHeight
     }
-
-    private var canvasWidth: Float = 0f
-    private var canvasHeight: Float = 0f
 
     constructor(context: Context) : super(context) {
         init(null, 0)
@@ -82,6 +71,22 @@ class NumberCellView : View {
 
     private fun init(attrs: AttributeSet?, defStyle: Int) {
 
+        context.theme.obtainStyledAttributes(attrs, R.styleable.NumberCellView, defStyle, 0)
+            .apply {
+                try {
+                    borderColor =
+                        getColor(R.styleable.NumberCellView_borderColor, Color.BLACK)
+                    textColor = getColor(R.styleable.NumberCellView_textColor, Color.BLACK)
+                    updatedTextColor =
+                        getColor(R.styleable.NumberCellView_updatedTextColor, Color.RED)
+                    showCandidates =
+                        getBoolean(R.styleable.NumberCellView_showCandidates, true)
+                    candidateColor =
+                        getColor(R.styleable.NumberCellView_candidateColor, Color.LTGRAY)
+                } finally {
+                    recycle()
+                }
+            }
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -127,31 +132,56 @@ class NumberCellView : View {
     override fun draw(canvas: Canvas?) {
         super.draw(canvas)
 
-        // draw cell lines
-        // vertical
-        for (lx in 0..2) {
-            canvas?.drawLine(
-                canvasWidth / 3f * lx, 0f,
-                canvasWidth / 3f * lx, canvasHeight,
-                linePaint
-            )
-        }
-
-        // horizontal
-        for (ly in 0..2) {
-            canvas?.drawLine(
-                0f, canvasHeight / 3f * ly,
-                canvasWidth, canvasHeight / 3f * ly,
-                linePaint
-            )
-        }
-
         // draw borders
-        // TODO 上下左右のボーダースタイルの定義(NORMAL, BOLD)
+        borderPaint.strokeWidth = calcBorderWidth(topBorderStyle, canvasWidth)
         canvas?.drawLine(0f, 0f, canvasWidth, 0f, borderPaint)
+
+        borderPaint.strokeWidth = calcBorderWidth(rightBorderStyle, canvasHeight)
         canvas?.drawLine(canvasWidth, 0f, canvasWidth, canvasHeight, borderPaint)
+
+        borderPaint.strokeWidth = calcBorderWidth(bottomBorderStyle, canvasHeight)
         canvas?.drawLine(0f, canvasHeight, canvasWidth, canvasHeight, borderPaint)
+
+        borderPaint.strokeWidth = calcBorderWidth(leftBorderStyle, canvasHeight)
         canvas?.drawLine(0f, 0f, 0f, canvasHeight, borderPaint)
+
+        if (showCandidates) {
+            // draw cell lines
+            // vertical
+            for (lx in 0..2) {
+                canvas?.drawLine(
+                    canvasWidth / 3f * lx, 0f,
+                    canvasWidth / 3f * lx, canvasHeight,
+                    linePaint
+                )
+            }
+
+            // horizontal
+            for (ly in 0..2) {
+                canvas?.drawLine(
+                    0f, canvasHeight / 3f * ly,
+                    canvasWidth, canvasHeight / 3f * ly,
+                    linePaint
+                )
+            }
+
+            candidates.forEach { v ->
+                if (v in 1..9) {
+
+                    val cellX = ((v - 1) % 3) * (canvasWidth / 3f)
+                    val cellY = ((v - 1) / 3) * (canvasHeight / 3f)
+
+                    val centerX = cellX + canvasWidth / 3f / 2f
+                    val centerY = cellY + canvasHeight / 3f / 2f
+                    val fontMetrics = candidatesPaint.fontMetrics
+                    val textWidth = candidatesPaint.measureText("$v")
+                    val baseX = centerX - textWidth / 2f
+                    val baseY = centerY - (fontMetrics.ascent + fontMetrics.descent) / 2f
+
+                    canvas?.drawText("$v", baseX, baseY, candidatesPaint)
+                }
+            }
+        }
 
         // draw fixedNum
         if (fixedNum != 0) {
@@ -165,26 +195,6 @@ class NumberCellView : View {
 
             canvas?.drawText(text, baseX, baseY, textPaint)
         }
-        // TODO 本来は elseでつなぐ (値が確定していたら候補は表示しない)
-
-        // draw candidates
-        candidates.forEach { v ->
-            if (v in 1..9) {
-
-                val cellX = ((v - 1) % 3) * (canvasWidth / 3f)
-                val cellY = ((v - 1) / 3) * (canvasHeight / 3f)
-
-                val centerX = cellX + canvasWidth / 3f / 2f
-                val centerY = cellY + canvasHeight / 3f / 2f
-                val fontMetrics = candidatesPaint.fontMetrics
-                val textWidth = candidatesPaint.measureText("$v")
-                val baseX = centerX - textWidth / 2f
-                val baseY = centerY - (fontMetrics.ascent + fontMetrics.descent) / 2f
-
-                canvas?.drawText("$v", baseX, baseY, candidatesPaint)
-            }
-        }
-
     }
 
 
@@ -228,6 +238,76 @@ class NumberCellView : View {
             result = 31 * result + fixedNum
             result = 31 * result + candidates.contentHashCode()
             return result
+        }
+    }
+
+    var borderColor: Int
+        get() = borderPaint.color
+        set(value) {
+            borderPaint.color = value
+        }
+
+    var textColor: Int
+        get() = textPaint.color
+        set(newValue) {
+            textPaint.color = newValue
+            invalidate()
+        }
+
+    var updatedTextColor: Int
+        get() = updatedTextPaint.color
+        set(newValue) {
+            updatedTextPaint.color = newValue
+            invalidate()
+        }
+
+    var showCandidates: Boolean = true
+        set(value) {
+            field = value
+            invalidate()
+        }
+    var candidateColor: Int
+        get() = candidatesPaint.color
+        set(newValue) {
+            candidatesPaint.color = newValue
+            invalidate()
+        }
+
+    var topBorderStyle = BorderStyle.NORMAL
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    var rightBorderStyle = BorderStyle.NORMAL
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    var bottomBorderStyle = BorderStyle.NORMAL
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    var leftBorderStyle = BorderStyle.NORMAL
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    private fun calcBorderWidth(style: Int, maxLength: Float): Float {
+        return when (style) {
+            1 -> {
+                (maxLength * 0.01f).coerceAtLeast(1f).coerceAtMost(4f)
+            }
+            2 -> {
+                (maxLength * 0.08f).coerceAtLeast(1f).coerceAtMost(8f)
+            }
+            else -> {
+                0f
+            }
         }
     }
 }

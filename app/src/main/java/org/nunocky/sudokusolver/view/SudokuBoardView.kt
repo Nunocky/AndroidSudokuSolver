@@ -1,13 +1,17 @@
 package org.nunocky.sudokusolver.view
 
 import android.content.Context
+import android.graphics.Color
 import android.util.AttributeSet
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.CHAIN_PACKED
+import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.solver.Cell
 
 class SudokuBoardView : ConstraintLayout {
+    val cellViews = ArrayList<NumberCellView>()
+
     constructor(context: Context) : super(context) {
         init(context, null, 0)
     }
@@ -24,18 +28,29 @@ class SudokuBoardView : ConstraintLayout {
         init(context, attrs, defStyle)
     }
 
-    private fun init(context: Context, acttrs: AttributeSet?, defStyle: Int) {
-        setupSudokuBase(context, this, acttrs, defStyle)
+    private fun init(context: Context, attrs: AttributeSet?, defStyle: Int) {
+        setupSudokuBase(context, this)
+        setCellStyles()
+
+        context.theme.obtainStyledAttributes(attrs, R.styleable.SudokuBoardView, defStyle, 0)
+            .apply {
+                try {
+                    borderColor =
+                        getColor(R.styleable.SudokuBoardView_borderColor, Color.BLACK)
+                    textColor = getColor(R.styleable.SudokuBoardView_textColor, Color.BLACK)
+                    updatedTextColor =
+                        getColor(R.styleable.SudokuBoardView_updatedTextColor, Color.RED)
+                    showCandidates =
+                        getBoolean(R.styleable.SudokuBoardView_showCandidates, true)
+                    candidateColor =
+                        getColor(R.styleable.SudokuBoardView_candidateColor, Color.LTGRAY)
+                } finally {
+                    recycle()
+                }
+            }
     }
 
-    val cellViews = ArrayList<NumberCellView>()
-
-    private fun setupSudokuBase(
-        context: Context,
-        base: ConstraintLayout,
-        acttrs: AttributeSet?,
-        defStyle: Int
-    ) {
+    private fun setupSudokuBase(context: Context, base: ConstraintLayout) {
         val rows = 9
         val cols = 9
 
@@ -126,6 +141,53 @@ class SudokuBoardView : ConstraintLayout {
         }
     }
 
+    private fun setCellStyles() {
+        cellViews.forEach { cellView ->
+            cellView.topBorderStyle = BorderStyle.NORMAL
+            cellView.rightBorderStyle = BorderStyle.NORMAL
+            cellView.bottomBorderStyle = BorderStyle.NORMAL
+            cellView.leftBorderStyle = BorderStyle.NORMAL
+
+            // 1行目
+            if (cellView.index / 9 == 0) {
+                cellView.topBorderStyle = BorderStyle.BOLD
+            }
+
+            // 左端
+            if (cellView.index % 9 == 0) {
+                cellView.leftBorderStyle = BorderStyle.BOLD
+            }
+
+            // 右端
+            if (cellView.index % 9 == 8) {
+                cellView.rightBorderStyle = BorderStyle.BOLD
+            }
+
+            // 3, 6行目
+            if ((cellView.index % 9 == 2) || (cellView.index % 9 == 5)) {
+                cellView.rightBorderStyle = BorderStyle.BOLD
+            }
+
+            // 3, 6列目
+            if ((cellView.index % 9 == 3) || (cellView.index % 9 == 6)) {
+                cellView.rightBorderStyle = BorderStyle.NONE
+            }
+
+            if ((cellView.index in 18..26) || (cellView.index in 45..53)) {
+                cellView.bottomBorderStyle = BorderStyle.BOLD
+            }
+
+            if ((cellView.index in 27..35) || (cellView.index in 54..62)) {
+                cellView.topBorderStyle = BorderStyle.NONE
+            }
+
+            // 8行目
+            if (cellView.index / 9 == 8) {
+                cellView.bottomBorderStyle = BorderStyle.BOLD
+            }
+        }
+    }
+
     fun updateCells(cells: List<Cell>) {
         cellViews.forEachIndexed { n, cellView ->
             cellView.fixedNum = cells[n].value
@@ -133,4 +195,44 @@ class SudokuBoardView : ConstraintLayout {
         }
         invalidate()
     }
+
+    var borderColor: Int = Color.BLACK
+        set(newValue) {
+            field = newValue
+            cellViews.forEach {
+                it.borderColor = newValue
+            }
+        }
+
+    var textColor: Int = Color.BLACK
+        set(newValue) {
+            field = newValue
+            cellViews.forEach {
+                it.textColor = newValue
+            }
+        }
+
+    var updatedTextColor: Int = Color.RED
+        set(newValue) {
+            field = newValue
+            cellViews.forEach {
+                it.updatedTextColor = newValue
+            }
+        }
+
+    var showCandidates: Boolean = true
+        set(value) {
+            field = value
+            cellViews.forEach {
+                it.showCandidates = value
+            }
+        }
+
+    var candidateColor: Int = Color.LTGRAY
+        set(newValue) {
+            field = newValue
+            cellViews.forEach {
+                it.candidateColor = newValue
+            }
+        }
 }
