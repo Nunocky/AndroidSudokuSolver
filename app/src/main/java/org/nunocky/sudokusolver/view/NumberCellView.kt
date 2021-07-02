@@ -14,6 +14,9 @@ import org.nunocky.sudokusolver.R
 // TODO fixedNum の色
 //      上下左右の枠線の太さ NONE, NORMAL, BOLD
 class NumberCellView : View {
+    private var canvasWidth: Float = 0f
+    private var canvasHeight: Float = 0f
+
     var index = 0
     var fixedNum = 0
         set(value) {
@@ -27,15 +30,8 @@ class NumberCellView : View {
             invalidate()
         }
 
-    //    private val paint = Paint()
     private val textPaint = Paint(ANTI_ALIAS_FLAG).apply {
         color = Color.BLACK
-//        color = textColor
-//        if (textHeight == 0f) {
-//            textHeight = textSize
-//        } else {
-//            textSize = textHeight
-//        }
     }
 
     private val updatedTextPaint = Paint(ANTI_ALIAS_FLAG).apply {
@@ -45,30 +41,17 @@ class NumberCellView : View {
     private val candidatesPaint = Paint(ANTI_ALIAS_FLAG).apply {
         color = Color.LTGRAY
         textSize = 10f
-//        color = textColor
-//        if (textHeight == 0f) {
-//            textHeight = textSize
-//        } else {
-//            textSize = textHeight
-//        }
     }
 
     private val linePaint = Paint().apply {
         strokeWidth = 2f
         color = Color.BLACK
-        //style = Paint.Style.FILL
-        //textSize = textHeight
     }
 
-    private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val borderPaint = Paint(ANTI_ALIAS_FLAG).apply {
         strokeWidth = 8f
         color = Color.RED
-        //style = Paint.Style.FILL
-        //textSize = textHeight
     }
-
-    private var canvasWidth: Float = 0f
-    private var canvasHeight: Float = 0f
 
     constructor(context: Context) : super(context) {
         init(null, 0)
@@ -150,10 +133,16 @@ class NumberCellView : View {
         super.draw(canvas)
 
         // draw borders
-        // TODO 上下左右のボーダースタイルの定義(NORMAL, BOLD)
+        borderPaint.strokeWidth = calcBorderWidth(topBorderStyle, canvasWidth)
         canvas?.drawLine(0f, 0f, canvasWidth, 0f, borderPaint)
+
+        borderPaint.strokeWidth = calcBorderWidth(rightBorderStyle, canvasHeight)
         canvas?.drawLine(canvasWidth, 0f, canvasWidth, canvasHeight, borderPaint)
+
+        borderPaint.strokeWidth = calcBorderWidth(bottomBorderStyle, canvasHeight)
         canvas?.drawLine(0f, canvasHeight, canvasWidth, canvasHeight, borderPaint)
+
+        borderPaint.strokeWidth = calcBorderWidth(leftBorderStyle, canvasHeight)
         canvas?.drawLine(0f, 0f, 0f, canvasHeight, borderPaint)
 
         if (showCandidates) {
@@ -283,4 +272,42 @@ class NumberCellView : View {
             candidatesPaint.color = newValue
             invalidate()
         }
+
+    var topBorderStyle = BorderStyle.NORMAL
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    var rightBorderStyle = BorderStyle.NORMAL
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    var bottomBorderStyle = BorderStyle.NORMAL
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    var leftBorderStyle = BorderStyle.NORMAL
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    private fun calcBorderWidth(style: Int, maxLength: Float): Float {
+        return when (style) {
+            1 -> {
+                (maxLength * 0.01f).coerceAtLeast(1f).coerceAtMost(4f)
+            }
+            2 -> {
+                (maxLength * 0.08f).coerceAtLeast(1f).coerceAtMost(8f)
+            }
+            else -> {
+                0f
+            }
+        }
+    }
 }

@@ -50,7 +50,7 @@ class EditFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.sudokuBoardView.borderColor = Color.BLUE
+        // binding.sudokuBoardView.borderColor = Color.BLUE
         binding.sudokuBoardView.showCandidates = false
 
         binding.sudokuBoardView.cellViews.forEach { cellView ->

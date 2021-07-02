@@ -14,6 +14,7 @@ import org.nunocky.sudokusolver.SudokuRepository
 import org.nunocky.sudokusolver.adapter.SudokuListAdapter
 import org.nunocky.sudokusolver.databinding.FragmentSudokuListBinding
 
+
 /**
  * 登録した問題一覧
  */
@@ -39,10 +40,13 @@ class SudokuListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = SudokuListAdapter(emptyList())
         binding.recyclerView.layoutManager =
             GridLayoutManager(requireActivity(), 2, RecyclerView.VERTICAL, false)
 
+        // TODO 間に適切な間を開ける
+        //binding.recyclerView.addItemDecoration(SpacesItemDecoration(24))
+
+        val adapter = SudokuListAdapter(emptyList())
         binding.recyclerView.adapter = adapter
 
         adapter.listener = object : SudokuListAdapter.OnItemClickListener {
@@ -60,4 +64,3 @@ class SudokuListFragment : Fragment() {
         }
     }
 }
-

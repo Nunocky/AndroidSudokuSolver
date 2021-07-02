@@ -10,6 +10,8 @@ import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.solver.Cell
 
 class SudokuBoardView : ConstraintLayout {
+    val cellViews = ArrayList<NumberCellView>()
+
     constructor(context: Context) : super(context) {
         init(context, null, 0)
     }
@@ -28,6 +30,7 @@ class SudokuBoardView : ConstraintLayout {
 
     private fun init(context: Context, attrs: AttributeSet?, defStyle: Int) {
         setupSudokuBase(context, this)
+        setCellStyles()
 
         context.theme.obtainStyledAttributes(attrs, R.styleable.SudokuBoardView, defStyle, 0)
             .apply {
@@ -46,8 +49,6 @@ class SudokuBoardView : ConstraintLayout {
                 }
             }
     }
-
-    val cellViews = ArrayList<NumberCellView>()
 
     private fun setupSudokuBase(context: Context, base: ConstraintLayout) {
         val rows = 9
@@ -137,6 +138,53 @@ class SudokuBoardView : ConstraintLayout {
             }
 
             upperCellArray = lineArray
+        }
+    }
+
+    private fun setCellStyles() {
+        cellViews.forEach { cellView ->
+            cellView.topBorderStyle = BorderStyle.NORMAL
+            cellView.rightBorderStyle = BorderStyle.NORMAL
+            cellView.bottomBorderStyle = BorderStyle.NORMAL
+            cellView.leftBorderStyle = BorderStyle.NORMAL
+
+            // 1行目
+            if (cellView.index / 9 == 0) {
+                cellView.topBorderStyle = BorderStyle.BOLD
+            }
+
+            // 左端
+            if (cellView.index % 9 == 0) {
+                cellView.leftBorderStyle = BorderStyle.BOLD
+            }
+
+            // 右端
+            if (cellView.index % 9 == 8) {
+                cellView.rightBorderStyle = BorderStyle.BOLD
+            }
+
+            // 3, 6行目
+            if ((cellView.index % 9 == 2) || (cellView.index % 9 == 5)) {
+                cellView.rightBorderStyle = BorderStyle.BOLD
+            }
+
+            // 3, 6列目
+            if ((cellView.index % 9 == 3) || (cellView.index % 9 == 6)) {
+                cellView.rightBorderStyle = BorderStyle.NONE
+            }
+
+            if ((cellView.index in 18..26) || (cellView.index in 45..53)) {
+                cellView.bottomBorderStyle = BorderStyle.BOLD
+            }
+
+            if ((cellView.index in 27..35) || (cellView.index in 54..62)) {
+                cellView.topBorderStyle = BorderStyle.NONE
+            }
+
+            // 8行目
+            if (cellView.index / 9 == 8) {
+                cellView.bottomBorderStyle = BorderStyle.BOLD
+            }
         }
     }
 
