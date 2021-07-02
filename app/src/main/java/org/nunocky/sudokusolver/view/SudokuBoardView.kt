@@ -62,15 +62,14 @@ class SudokuBoardView : ConstraintLayout {
                 val leftCell: NumberCellView? =
                     if (lineArray.isNotEmpty()) lineArray[col - 1] else null
 
-                val cell = NumberCellView(context)
-                cell.id = View.generateViewId()
+                val cell = NumberCellView(context).apply {
+                    id = View.generateViewId()
+                    index = row * rows + col
+                    fixedNum = 0
+                    candidates = arrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9).toIntArray()
+                }
                 base.addView(cell)
                 cellViews.add(cell)
-                cell.index = row * rows + col
-
-                // test
-                //cell.fixedNum = ((col + row) % 9) + 1
-                cell.candidates = arrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9).toIntArray()
 
                 val params = cell.layoutParams as LayoutParams
                 val leftParams = leftCell?.layoutParams as LayoutParams?

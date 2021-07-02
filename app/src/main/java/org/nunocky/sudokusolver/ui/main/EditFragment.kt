@@ -70,6 +70,12 @@ class EditFragment : Fragment() {
 
         viewModel.currentValue.observe(requireActivity()) {
             currentCell?.fixedNum = it
+            // TODO 通知
+            //      SudokuBoardViewに sudokuSolverをもたせる?
+            val list = binding.sudokuBoardView.cellViews.map {
+                it.fixedNum.toChar().code
+            }
+            viewModel.sudokuSolver.setup(list)
         }
 
         if (args.entityId == 0L) {

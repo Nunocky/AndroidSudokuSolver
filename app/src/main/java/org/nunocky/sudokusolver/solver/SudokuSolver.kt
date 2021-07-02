@@ -1,5 +1,8 @@
 package org.nunocky.sudokusolver.solver
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+
 class SudokuSolver {
 
     interface ProgressCallback {
@@ -70,11 +73,14 @@ class SudokuSolver {
             }
         }
 
-        // cellにグループを関連付ける
         cells.forEach { cell ->
+            // cellにグループを関連付ける
             cell.groups = groups.filter { group ->
                 group.cells.contains(cell)
             }.toSet()
+
+            // cellに自分自身を関連付ける
+            cell.parent = this
         }
     }
 
@@ -90,8 +96,14 @@ class SudokuSolver {
         }
 
         for (n in 0 until cells.size) {
+            if (numbers[n] !in 0..9) {
+                return
+            }
             cells[n].value = numbers[n]
         }
+
+        _isValid.value = calcIsValid()
+        // TODO 個別の cellが更新されたときも再計算したい
     }
 
     /**
@@ -329,14 +341,40 @@ class SudokuSolver {
 //        return true
 //    }
 
-    /**
-     * すべてのセルの値を返す
-     */
-    private fun getNumArray(): IntArray {
-        return cells.map {
-            it.value
-        }.toIntArray()
+    // 数の配置が正しいか
+    private val _isValid = MutableLiveData(false)
+    val isValid: LiveData<Boolean> = _isValid
+
+    private fun calcIsValid(): Boolean {
+        groups.forEach { group ->
+            val numbers = mutableSetOf<Int>()
+            group.cells.forEach { cell ->
+                if (cell.value != 0 && numbers.contains(cell.value)) {
+                    return false
+                }
+                numbers.add(cell.value)
+            }
+        }
+
+        return true
     }
+
+    /**
+     * cellからのデータ変更通知を受ける
+     */
+    internal fun notifyDataChanged() {
+        calcIsValid()
+    }
+
+//    /**
+//     * すべてのセルの値を返す
+//     */
+//    private fun getNumArray(): IntArray {
+//        return cells.map {
+//            it.value
+//        }.toIntArray()
+//    }
+
 }
 
 //fun <T> clone(original: Set<T>): Set<T> {

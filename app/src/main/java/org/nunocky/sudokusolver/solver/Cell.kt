@@ -14,10 +14,12 @@ class Cell {
                 candidates = mutableSetOf()
             }
             field = value
+            parent?.notifyDataChanged()
         }
 
     var candidates: MutableSet<Int> = mutableSetOf(1, 2, 3, 4, 5, 6, 7, 8, 9)
     var groups: Set<Group> = emptySet()
+    var parent: SudokuSolver? = null
 
     val isFixed: Boolean
         get() = (0 < value)
