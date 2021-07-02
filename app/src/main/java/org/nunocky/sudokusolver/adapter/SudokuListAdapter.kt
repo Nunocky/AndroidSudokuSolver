@@ -51,7 +51,10 @@ class SudokuListAdapter(var list: List<SudokuEntity>) :
             cellList.add(cell)
         }
 
-        holder.binding.sudokuBoardView.updateCells(cellList)
+        holder.binding.sudokuBoardView.apply {
+            showCandidates = false
+            updateCells(cellList)
+        }
 
         holder.itemView.setOnClickListener {
             listener?.onItemClicked(holder.binding.root, position)

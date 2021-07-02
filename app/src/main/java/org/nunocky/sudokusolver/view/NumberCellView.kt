@@ -9,6 +9,7 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
 import kotlinx.android.parcel.Parcelize
+import org.nunocky.sudokusolver.R
 
 // TODO fixedNum の色
 //      上下左右の枠線の太さ NONE, NORMAL, BOLD
@@ -36,6 +37,11 @@ class NumberCellView : View {
 //            textSize = textHeight
 //        }
     }
+
+    private val updatedTextPaint = Paint(ANTI_ALIAS_FLAG).apply {
+        color = Color.BLACK
+    }
+
     private val candidatesPaint = Paint(ANTI_ALIAS_FLAG).apply {
         color = Color.LTGRAY
         textSize = 10f
@@ -82,6 +88,22 @@ class NumberCellView : View {
 
     private fun init(attrs: AttributeSet?, defStyle: Int) {
 
+        context.theme.obtainStyledAttributes(attrs, R.styleable.NumberCellView, defStyle, 0)
+            .apply {
+                try {
+                    borderColor =
+                        getColor(R.styleable.NumberCellView_borderColor, Color.BLACK)
+                    textColor = getColor(R.styleable.NumberCellView_textColor, Color.BLACK)
+                    updatedTextColor =
+                        getColor(R.styleable.NumberCellView_updatedTextColor, Color.RED)
+                    showCandidates =
+                        getBoolean(R.styleable.NumberCellView_showCandidates, true)
+                    candidateColor =
+                        getColor(R.styleable.NumberCellView_candidateColor, Color.LTGRAY)
+                } finally {
+                    recycle()
+                }
+            }
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -127,31 +149,50 @@ class NumberCellView : View {
     override fun draw(canvas: Canvas?) {
         super.draw(canvas)
 
-        // draw cell lines
-        // vertical
-        for (lx in 0..2) {
-            canvas?.drawLine(
-                canvasWidth / 3f * lx, 0f,
-                canvasWidth / 3f * lx, canvasHeight,
-                linePaint
-            )
-        }
-
-        // horizontal
-        for (ly in 0..2) {
-            canvas?.drawLine(
-                0f, canvasHeight / 3f * ly,
-                canvasWidth, canvasHeight / 3f * ly,
-                linePaint
-            )
-        }
-
         // draw borders
         // TODO 上下左右のボーダースタイルの定義(NORMAL, BOLD)
         canvas?.drawLine(0f, 0f, canvasWidth, 0f, borderPaint)
         canvas?.drawLine(canvasWidth, 0f, canvasWidth, canvasHeight, borderPaint)
         canvas?.drawLine(0f, canvasHeight, canvasWidth, canvasHeight, borderPaint)
         canvas?.drawLine(0f, 0f, 0f, canvasHeight, borderPaint)
+
+        if (showCandidates) {
+            // draw cell lines
+            // vertical
+            for (lx in 0..2) {
+                canvas?.drawLine(
+                    canvasWidth / 3f * lx, 0f,
+                    canvasWidth / 3f * lx, canvasHeight,
+                    linePaint
+                )
+            }
+
+            // horizontal
+            for (ly in 0..2) {
+                canvas?.drawLine(
+                    0f, canvasHeight / 3f * ly,
+                    canvasWidth, canvasHeight / 3f * ly,
+                    linePaint
+                )
+            }
+
+            candidates.forEach { v ->
+                if (v in 1..9) {
+
+                    val cellX = ((v - 1) % 3) * (canvasWidth / 3f)
+                    val cellY = ((v - 1) / 3) * (canvasHeight / 3f)
+
+                    val centerX = cellX + canvasWidth / 3f / 2f
+                    val centerY = cellY + canvasHeight / 3f / 2f
+                    val fontMetrics = candidatesPaint.fontMetrics
+                    val textWidth = candidatesPaint.measureText("$v")
+                    val baseX = centerX - textWidth / 2f
+                    val baseY = centerY - (fontMetrics.ascent + fontMetrics.descent) / 2f
+
+                    canvas?.drawText("$v", baseX, baseY, candidatesPaint)
+                }
+            }
+        }
 
         // draw fixedNum
         if (fixedNum != 0) {
@@ -165,26 +206,6 @@ class NumberCellView : View {
 
             canvas?.drawText(text, baseX, baseY, textPaint)
         }
-        // TODO 本来は elseでつなぐ (値が確定していたら候補は表示しない)
-
-        // draw candidates
-        candidates.forEach { v ->
-            if (v in 1..9) {
-
-                val cellX = ((v - 1) % 3) * (canvasWidth / 3f)
-                val cellY = ((v - 1) / 3) * (canvasHeight / 3f)
-
-                val centerX = cellX + canvasWidth / 3f / 2f
-                val centerY = cellY + canvasHeight / 3f / 2f
-                val fontMetrics = candidatesPaint.fontMetrics
-                val textWidth = candidatesPaint.measureText("$v")
-                val baseX = centerX - textWidth / 2f
-                val baseY = centerY - (fontMetrics.ascent + fontMetrics.descent) / 2f
-
-                canvas?.drawText("$v", baseX, baseY, candidatesPaint)
-            }
-        }
-
     }
 
 
@@ -230,4 +251,36 @@ class NumberCellView : View {
             return result
         }
     }
+
+    var borderColor: Int
+        get() = borderPaint.color
+        set(value) {
+            borderPaint.color = value
+        }
+
+    var textColor: Int
+        get() = textPaint.color
+        set(newValue) {
+            textPaint.color = newValue
+            invalidate()
+        }
+
+    var updatedTextColor: Int
+        get() = updatedTextPaint.color
+        set(newValue) {
+            updatedTextPaint.color = newValue
+            invalidate()
+        }
+
+    var showCandidates: Boolean = true
+        set(value) {
+            field = value
+            invalidate()
+        }
+    var candidateColor: Int
+        get() = candidatesPaint.color
+        set(newValue) {
+            candidatesPaint.color = newValue
+            invalidate()
+        }
 }
