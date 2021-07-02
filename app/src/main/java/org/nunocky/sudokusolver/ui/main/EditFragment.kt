@@ -70,10 +70,9 @@ class EditFragment : Fragment() {
 
         viewModel.currentValue.observe(requireActivity()) {
             currentCell?.fixedNum = it
-            // TODO 通知
-            //      SudokuBoardViewに sudokuSolverをもたせる?
-            val list = binding.sudokuBoardView.cellViews.map {
-                it.fixedNum.toChar().code
+            // 通知
+            val list = binding.sudokuBoardView.cellViews.map { cellView ->
+                cellView.fixedNum.toChar().code
             }
             viewModel.sudokuSolver.setup(list)
         }
@@ -101,11 +100,12 @@ class EditFragment : Fragment() {
 
     private val cellClickedListener = View.OnClickListener {
         val currentSelectedCellIndex = (it as NumberCellView).index
+        currentCell = binding.sudokuBoardView.cellViews[currentSelectedCellIndex]
 
         binding.sudokuBoardView.cellViews.forEachIndexed { n, numberCellView ->
             if (n == currentSelectedCellIndex) {
+                // TODO 選択・非選択状態の色をアトリビュートで設定、 selected= true/falseで色を変える
                 numberCellView.setBackgroundColor(Color.parseColor("#ffffb0"))
-                currentCell = numberCellView
                 viewModel.currentValue.value = numberCellView.fixedNum
             } else {
                 numberCellView.setBackgroundColor(Color.WHITE)
@@ -115,42 +115,28 @@ class EditFragment : Fragment() {
 
     private val tbListener =
         CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
+            val buttonIndex = when (buttonView.id) {
+                binding.tb1.id -> 1
+                binding.tb2.id -> 2
+                binding.tb3.id -> 3
+                binding.tb4.id -> 4
+                binding.tb5.id -> 5
+                binding.tb6.id -> 6
+                binding.tb7.id -> 7
+                binding.tb8.id -> 8
+                binding.tb9.id -> 9
+                else -> 0
+            }
+
             if (!isChecked) {
+                if (currentCell != null && currentCell?.fixedNum == buttonIndex) {
+                    viewModel.currentValue.value = 0
+                }
+
                 return@OnCheckedChangeListener
             }
 
-            when (buttonView?.id) {
-                binding.tb0.id -> {
-                    viewModel.currentValue.value = 0
-                }
-                binding.tb1.id -> {
-                    viewModel.currentValue.value = 1
-                }
-                binding.tb2.id -> {
-                    viewModel.currentValue.value = 2
-                }
-                binding.tb3.id -> {
-                    viewModel.currentValue.value = 3
-                }
-                binding.tb4.id -> {
-                    viewModel.currentValue.value = 4
-                }
-                binding.tb5.id -> {
-                    viewModel.currentValue.value = 5
-                }
-                binding.tb6.id -> {
-                    viewModel.currentValue.value = 6
-                }
-                binding.tb7.id -> {
-                    viewModel.currentValue.value = 7
-                }
-                binding.tb8.id -> {
-                    viewModel.currentValue.value = 8
-                }
-                binding.tb9.id -> {
-                    viewModel.currentValue.value = 9
-                }
-            }
+            viewModel.currentValue.value = buttonIndex
         }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
