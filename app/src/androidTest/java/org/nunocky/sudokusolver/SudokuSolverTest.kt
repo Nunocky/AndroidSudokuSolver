@@ -127,9 +127,14 @@ class SudokuSolverTest {
 
             val streamReader = BufferedReader(InputStreamReader(iStream))
 
-            var line: String
+            var done = false
+            var line: String?
             do {
-                line = streamReader.readLine() ?: ""
+                line = streamReader.readLine()
+                if (line == null) {
+                    done = true
+                    continue
+                }
 
                 if (line.startsWith("#") || line.isBlank()) {
                     // #で始まる行はコメント -> スキップ
@@ -147,28 +152,37 @@ class SudokuSolverTest {
                 // 問題が間違っている可能性もある
                 assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
 
-                // val solved = solver.trySolve()
+                val sw = true // 自動で解くかステップ実行するか
 
-                while (!solver.isSolved()) {
-                    val valueChanged = solver.execStep()
-                    if (!valueChanged) {
-                        break
+                if (sw) {
+                    solver.trySolve()
+                } else {
+                    while (!solver.isSolved()) {
+                        val valueChanged = solver.execStep()
+                        if (!valueChanged) {
+                            break
+                        }
+
+                        assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
                     }
 
-                    assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
+                    if (!solver.isSolved()) {
+                        // 深さ優先探索
+                        solver.depthFirstSearch()
+                    }
                 }
 
                 // 解決した、かつ配置が正当であることを確認
                 assertTrue(solver.isSolved())
                 assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
-            } while (line.isNotEmpty())
-
+            } while (!done)
         }
     }
 
     companion object {
         private const val TAG = "SudokuSolverTest"
-        private const val targetEasy = "001037020006090530092000170000603082000978000980201000014000860038010200060380400"
+        private const val targetEasy =
+            "001037020006090530092000170000603082000978000980201000014000860038010200060380400"
 
         private const val targetMedium =
             "000008500" +

@@ -7,11 +7,11 @@ class SudokuSolver {
 
     interface ProgressCallback {
         fun onProgress(cells: List<Cell>)
-        fun onSelectGroup(groupId: Int) {}
-        fun onUnselectGroup(groupId: Int) {}
         fun onCellFocused(cellId: Int) {}
         fun onCellUnfocused(cellId: Int) {}
-        fun onCellUpdated(cellId: Int, num: Int?, candidates: List<Int>?) {}
+        //fun onSelectGroup(groupId: Int) {}
+        //fun onUnselectGroup(groupId: Int) {}
+        //fun onCellUpdated(cellId: Int, num: Int?, candidates: List<Int>?) {}
     }
 
     var callback: ProgressCallback? = null
@@ -109,7 +109,6 @@ class SudokuSolver {
         }
 
         _isValid.postValue(calcIsValid())
-        // TODO 個別の cellが更新されたときも再計算したい
     }
 
     /**
@@ -138,6 +137,11 @@ class SudokuSolver {
             }
         }
 
+        if (!isSolved()) {
+            // 深さ優先探索
+            depthFirstSearch()
+        }
+
         return isSolved()
     }
 
@@ -151,14 +155,17 @@ class SudokuSolver {
         valueChanged = valueChanged or filter0()
 
         groups.forEach { g ->
-            valueChanged = valueChanged or filterCombination(g, 2)
-            valueChanged = valueChanged or filterCombination(g, 3)
+            for (n in 2..8) {
+                valueChanged = valueChanged or filterCombination(g, n)
+            }
+            //valueChanged = valueChanged or filterCombination(g, 2)
+            //valueChanged = valueChanged or filterCombination(g, 3)
             valueChanged = valueChanged or filterLastOne(g)
         }
 
-//        groups.forEach { g ->
-//            valueChanged = valueChanged or filterLastOne(g)
-//        }
+        groups.forEach { g ->
+            valueChanged = valueChanged or filterLastOne(g)
+        }
 
         cells.forEach { cell ->
             valueChanged = valueChanged or filterOneCandidate(cell)
@@ -299,71 +306,49 @@ class SudokuSolver {
         return valueChanged
     }
 
-//    /**
-//     * 深さ優先探索による解決を試みる
-//     *
-//     * これちゃんと動かないだろう・・・ nは何だ
-//     */
-//    fun depthFirstSearch(n: Int = 0): Boolean {
-//
-//        // すべての Cellが fixed なら解決
-//        if (cells.filter { it.isFixed }.size == cells.size) {
-//            return true
-//        }
-//
-//        val cell = cells[n]
-//        val candidatesBak = clone(cell.candidates)
-//
-//        // fixedなら進む
-//        if (cell.isFixed) {
-//            callback?.onProgress(getNumArray())
-//            return depthFirstSearch(n + 1)
-//        }
-//
-//        // 候補を置いてみて矛盾がなければ進む
-//        for (v in cell.candidates) {
-//            cell.value = v
-//            if (isBoardValid()) {
-//                callback?.onProgress(getNumArray())
-//                val solved = depthFirstSearch(n + 1)
-//                if (solved) {
-//                    callback?.onProgress(getNumArray())
-//                    return true
-//                }
-//            }
-//        }
-//
-//        // どの候補も当てはまらなかったので状態を元に戻してfalseを返す
-//        cell.value = 0
-//        cell.candidates = candidatesBak.toMutableSet()
-//        return false
-//    }
-//
-//    /**
-//     * fixされた内容に矛盾がなければ trueを返す
-//     */
-//    private fun isBoardValid(): Boolean {
-//        for (group in groups) {
-//            val ary = ArrayList<Int>()
-//            for (cell in group.cells) {
-//                if (!cell.isFixed) {
-//                    continue
-//                }
-//                if (ary.contains(cell.value)) {
-//                    return false
-//                }
-//                ary.add(cell.value)
-//            }
-//        }
-//
-//        return true
-//    }
+    /**
+     * 深さ優先探索による解決を試みる
+     */
+    fun depthFirstSearch(n: Int = 0): Boolean {
+
+        // すべての Cellが fixed なら解決
+        if (cells.filter { it.isFixed }.size == cells.size) {
+            return true
+        }
+
+        val cell = cells[n]
+        val candidatesBak = cell.candidates.toSet()
+
+        // fixedなら進む
+        if (cell.isFixed) {
+            callback?.onProgress(cells)
+            return depthFirstSearch(n + 1)
+        }
+
+        // 候補を置いてみて矛盾がなければ進む
+        for (v in cell.candidates) {
+            cell.value = v
+            if (calcIsValid()) {
+                callback?.onProgress(cells)
+                val solved = depthFirstSearch(n + 1)
+                if (solved) {
+                    callback?.onProgress(cells)
+                    return true
+                }
+            }
+        }
+
+        // どの候補も当てはまらなかったので状態を元に戻してfalseを返す
+        cell.value = 0
+        cell.candidates = candidatesBak.toMutableSet()
+        return false
+    }
 
     // 数の配置が正しいか
     private val _isValid = MutableLiveData(false)
     val isValid: LiveData<Boolean> = _isValid
 
-    internal fun calcIsValid(): Boolean {
+    private fun calcIsValid(): Boolean {
         groups.forEach { group ->
             val numbers = mutableSetOf<Int>()
             group.cells.forEach { cell ->
@@ -381,20 +366,6 @@ class SudokuSolver {
      * cellからのデータ変更通知を受ける
      */
     internal fun notifyDataChanged() {
-        calcIsValid()
+        _isValid.postValue(calcIsValid())
     }
-
-//    /**
-//     * すべてのセルの値を返す
-//     */
-//    private fun getNumArray(): IntArray {
-//        return cells.map {
-//            it.value
-//        }.toIntArray()
-//    }
-
 }
-
-//fun <T> clone(original: Set<T>): Set<T> {
-//    return HashSet(original)
-//}
