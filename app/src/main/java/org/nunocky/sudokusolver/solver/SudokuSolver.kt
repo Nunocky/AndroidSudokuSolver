@@ -7,6 +7,11 @@ class SudokuSolver {
 
     interface ProgressCallback {
         fun onProgress(cells: List<Cell>)
+        fun onSelectGroup(groupId: Int) {}
+        fun onUnselectGroup(groupId: Int) {}
+        fun onCellFocused(cellId: Int) {}
+        fun onCellUnfocused(cellId: Int) {}
+        fun onCellUpdated(cellId: Int, num: Int?, candidates: List<Int>?) {}
     }
 
     var callback: ProgressCallback? = null
@@ -100,10 +105,23 @@ class SudokuSolver {
                 return
             }
             cells[n].value = numbers[n]
+            cells[n].candidates = mutableSetOf(1, 2, 3, 4, 5, 6, 7, 8, 9)
         }
 
-        _isValid.value = calcIsValid()
+        _isValid.postValue(calcIsValid())
         // TODO 個別の cellが更新されたときも再計算したい
+    }
+
+    /**
+     * 数字の文字列から問題をセット
+     * @param numbersStr 0~9の数字からなる 81文字の文字列
+     */
+    fun setup(numbersStr: String) {
+        val list = numbersStr.toCharArray().map { c -> c.code - '0'.code }
+        if (list.size != 81) {
+            throw IllegalArgumentException("format error")
+        }
+        setup(list)
     }
 
     /**
@@ -345,7 +363,7 @@ class SudokuSolver {
     private val _isValid = MutableLiveData(false)
     val isValid: LiveData<Boolean> = _isValid
 
-    private fun calcIsValid(): Boolean {
+    internal fun calcIsValid(): Boolean {
         groups.forEach { group ->
             val numbers = mutableSetOf<Int>()
             group.cells.forEach { cell ->
