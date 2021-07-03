@@ -5,7 +5,10 @@ import android.view.*
 import android.widget.CompoundButton
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import kotlinx.coroutines.launch
 import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.SudokuRepository
@@ -13,11 +16,6 @@ import org.nunocky.sudokusolver.databinding.FragmentEditBinding
 import org.nunocky.sudokusolver.solver.Cell
 import org.nunocky.sudokusolver.view.NumberCellView
 
-/**
- * A simple [Fragment] subclass.
- * Use the [EditFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class EditFragment : Fragment() {
     private val args: EditFragmentArgs by navArgs()
     private lateinit var binding: FragmentEditBinding
@@ -49,7 +47,6 @@ class EditFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // binding.sudokuBoardView.borderColor = Color.BLUE
         binding.sudokuBoardView.showCandidates = false
 
         binding.sudokuBoardView.cellViews.forEach { cellView ->
@@ -66,6 +63,10 @@ class EditFragment : Fragment() {
         binding.tb7.setOnCheckedChangeListener(tbListener)
         binding.tb8.setOnCheckedChangeListener(tbListener)
         binding.tb9.setOnCheckedChangeListener(tbListener)
+
+        binding.btnSolve.setOnClickListener {
+            saveEntityAndMoveToSolveFragment()
+        }
 
         viewModel.currentValue.observe(requireActivity()) {
             currentCell?.fixedNum = it
@@ -143,11 +144,26 @@ class EditFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_save) {
-            val cells =
-                binding.sudokuBoardView.cellViews.joinToString("") { it.fixedNum.toString() }
-            viewModel.saveSudoku(cells)
+            saveSudoku()
+//            val cells =
+//                binding.sudokuBoardView.cellViews.joinToString("") { it.fixedNum.toString() }
+//            viewModel.saveSudoku(cells)
         }
 
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun saveSudoku() = lifecycleScope.launch {
+        val cells =
+            binding.sudokuBoardView.cellViews.joinToString("") { it.fixedNum.toString() }
+        viewModel.saveSudoku(cells)
+    }
+
+    private fun saveEntityAndMoveToSolveFragment() = lifecycleScope.launch {
+        viewModel.entity.value?.let { entity ->
+            saveSudoku().join()
+            val action = EditFragmentDirections.actionEditFragmentToSolverFragment(entity.id)
+            findNavController().navigate(action)
+        }
     }
 }

@@ -6,11 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
+import androidx.navigation.fragment.navArgs
 import kotlinx.coroutines.launch
+import org.nunocky.sudokusolver.MyApplication
+import org.nunocky.sudokusolver.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentSolverBinding
 import org.nunocky.sudokusolver.solver.Cell
 import org.nunocky.sudokusolver.solver.SudokuSolver
@@ -21,7 +21,15 @@ import org.nunocky.sudokusolver.solver.SudokuSolver
  *
  */
 class SolverFragment : Fragment() {
-    private val viewModel: SolverViewModel by viewModels()
+    private val args: SolverFragmentArgs by navArgs()
+
+    //    private val viewModel: SolverViewModel by viewModels()
+    private val viewModel: SolverViewModel by viewModels {
+        val app = (requireActivity().application as MyApplication)
+        val appDatabase = app.appDatabase
+        SolverViewModel.Factory(SudokuRepository(appDatabase))
+    }
+
     private lateinit var binding: FragmentSolverBinding
 
     override fun onCreateView(
@@ -32,58 +40,43 @@ class SolverFragment : Fragment() {
         binding.viewModel = viewModel
         binding.lifecycleOwner = this
 
-        binding.btnStart.setOnClickListener {
-
-            lifecycleScope.launch {
-                // TODO 前の画面から受け取る
-                val targetEasy = listOf(
-                    0, 0, 1, 0, 3, 7, 0, 2, 0,
-                    0, 0, 6, 0, 9, 0, 5, 3, 0,
-                    0, 9, 2, 0, 0, 0, 1, 7, 0,
-                    0, 0, 0, 6, 0, 3, 0, 8, 2,
-                    0, 0, 0, 9, 7, 8, 0, 0, 0,
-                    9, 8, 0, 2, 0, 1, 0, 0, 0,
-                    0, 1, 4, 0, 0, 0, 0, 8, 6,
-                    0, 3, 8, 0, 1, 0, 2, 0, 0,
-                    0, 6, 0, 3, 8, 0, 4, 0, 0
-                )
-
-                viewModel.startSolve(targetEasy).join()
-            }
-        }
-
-        viewModel.cells.observe(requireActivity()) {
-            // cellを CellViewに渡し、 CellViewの中で cell.value, cell.candidatesを反映させる
-        }
         return binding.root
     }
-}
 
-class SolverViewModel : ViewModel() {
-    val inProgress = MutableLiveData(false)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-    val cells = MutableLiveData<List<Cell>>()
+        loadSudoku()
 
-    fun startSolve(ary: List<Int>) = viewModelScope.launch {
-        inProgress.postValue(true)
+        binding.btnStart.setOnClickListener {
+            startSolve()
+        }
+    }
 
-        val solver = SudokuSolver().apply {
-            this.callback = object : SudokuSolver.ProgressCallback {
-                override fun onProgress(cells: List<Cell>) {
-                    this@SolverViewModel.cells.postValue(cells)
-                }
+    private fun loadSudoku() = lifecycleScope.launch {
+        viewModel.loadSudoku(args.entityId).join()
+
+        binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
+            cellView.fixedNum = viewModel.solver.cells[n].value
+            if (cellView.fixedNum != 0) {
+                cellView.candidates = IntArray(0)
+                cellView.showCandidates = false
             }
         }
+    }
 
-        solver.setup(ary)
+    private fun startSolve() = lifecycleScope.launch {
+        viewModel.startSolve(callback)
+    }
 
-        while (!solver.isSolved()) {
-            val valueChanged = solver.execStep()
-            if (!valueChanged) {
-                break
+    private val callback = object : SudokuSolver.ProgressCallback {
+        override fun onProgress(cells: List<Cell>) {
+            binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
+                //cellView.updated = false // TODO 属性追加
+                cellView.fixedNum = cells[n].value
+                cellView.candidates = cells[n].candidates.toIntArray()
             }
         }
-
-        inProgress.postValue(false)
     }
 }
+

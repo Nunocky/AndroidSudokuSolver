@@ -26,5 +26,9 @@
     <fragment
         android:id="@+id/solverFragment"
         android:name="org.nunocky.sudokusolver.ui.main.SolverFragment"
-        android:label="SolverFragment" />
+        android:label="SolverFragment" >
+        <argument
+            android:name="entityId"
+            app:argType="long" />
+    </fragment>
 </navigation>
