@@ -234,4 +234,12 @@ class SudokuBoardView : ConstraintLayout {
                 it.candidateColor = newValue
             }
         }
+
+    var updated: Boolean = false
+        set(value) {
+            cellViews.forEach { cellView ->
+                cellView.updated = value
+            }
+           field = value
+        }
 }

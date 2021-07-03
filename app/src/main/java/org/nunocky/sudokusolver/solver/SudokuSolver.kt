@@ -7,8 +7,10 @@ class SudokuSolver {
 
     interface ProgressCallback {
         fun onProgress(cells: List<Cell>)
-        fun onCellFocused(cellId: Int) {}
-        fun onCellUnfocused(cellId: Int) {}
+        fun onFocusGroup(groupIndex: Int) {}
+        fun onUnfocusGroup(groupIndex: Int) {}
+        //fun onCellFocused(cellId: Int) {}
+        //fun onCellUnfocused(cellId: Int) {}
         //fun onSelectGroup(groupId: Int) {}
         //fun onUnselectGroup(groupId: Int) {}
         //fun onCellUpdated(cellId: Int, num: Int?, candidates: List<Int>?) {}
@@ -102,10 +104,10 @@ class SudokuSolver {
 
         for (n in 0 until cells.size) {
             if (numbers[n] !in 0..9) {
-                return
+                throw IllegalArgumentException()
             }
-            cells[n].value = numbers[n]
             cells[n].candidates = mutableSetOf(1, 2, 3, 4, 5, 6, 7, 8, 9)
+            cells[n].value = numbers[n] // 1~9なら candidatesは空集合にセットされる
         }
 
         _isValid.postValue(calcIsValid())
@@ -154,13 +156,14 @@ class SudokuSolver {
         // 基本フィルタ (確定候補をもとにふるい落とす)
         valueChanged = valueChanged or filter0()
 
-        groups.forEach { g ->
-            for (n in 2..8) {
+        // TODO onFocusGroup, onUnfocusGroupの実装。 フォーカス時の背景色設定
+        groups.forEachIndexed() { index, g ->
+//            callback?.onFocusGroup(index)
+            for (n in 2..4) {
                 valueChanged = valueChanged or filterCombination(g, n)
             }
-            //valueChanged = valueChanged or filterCombination(g, 2)
-            //valueChanged = valueChanged or filterCombination(g, 3)
             valueChanged = valueChanged or filterLastOne(g)
+//            callback?.onUnfocusGroup(index)
         }
 
         groups.forEach { g ->
@@ -205,9 +208,10 @@ class SudokuSolver {
                         continue
                     }
 
-                    if (cell.candidates.contains(c.value)) {
-                        cell.candidates.remove(c.value)
-                    }
+                    // TODO このif文の判定はなくても良いかも。直接 removeで良くない?
+//                    if (cell.candidates.contains(c.value)) {
+                    cell.candidates.remove(c.value)
+//                    }
                 }
             }
 
