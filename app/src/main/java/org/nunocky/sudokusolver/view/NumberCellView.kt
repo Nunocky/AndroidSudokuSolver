@@ -136,7 +136,7 @@ class NumberCellView : View {
                 canvas?.drawLine(
                     canvasWidth / 3f * lx, 0f,
                     canvasWidth / 3f * lx, canvasHeight,
-                    linePaint
+                    candidatesPaint
                 )
             }
 
@@ -145,7 +145,7 @@ class NumberCellView : View {
                 canvas?.drawLine(
                     0f, canvasHeight / 3f * ly,
                     canvasWidth, canvasHeight / 3f * ly,
-                    linePaint
+                    candidatesPaint
                 )
             }
 
@@ -257,11 +257,13 @@ class NumberCellView : View {
             invalidate()
         }
 
-    var candidateColor: Int
-        get() = candidatesPaint.color
-        set(newValue) {
-            candidatesPaint.color = newValue
-            invalidate()
+    var candidateColor: Int = Color.LTGRAY
+        set(value) {
+            if (candidatesPaint.color != value) {
+                candidatesPaint.color = value
+                invalidate()
+            }
+            field = value
         }
 
     var topBorderStyle = BorderStyle.NORMAL
