@@ -8,7 +8,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentSolverBinding
@@ -23,7 +25,6 @@ import org.nunocky.sudokusolver.solver.SudokuSolver
 class SolverFragment : Fragment() {
     private val args: SolverFragmentArgs by navArgs()
 
-    //    private val viewModel: SolverViewModel by viewModels()
     private val viewModel: SolverViewModel by viewModels {
         val app = (requireActivity().application as MyApplication)
         val appDatabase = app.appDatabase
@@ -63,18 +64,25 @@ class SolverFragment : Fragment() {
                 cellView.showCandidates = false
             }
         }
+        binding.sudokuBoard.updated = false
     }
 
     private fun startSolve() = lifecycleScope.launch {
+        loadSudoku().join() // TODO リセットボタンを設ける?
         viewModel.startSolve(callback)
     }
 
     private val callback = object : SudokuSolver.ProgressCallback {
         override fun onProgress(cells: List<Cell>) {
+            binding.sudokuBoard.updated = false
             binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
-                //cellView.updated = false // TODO 属性追加
                 cellView.fixedNum = cells[n].value
                 cellView.candidates = cells[n].candidates.toIntArray()
+            }
+
+            runBlocking {
+                // TODO ノーウェイト / ウェイトあり くらいの区分で良さそう
+                delay((viewModel.stepSpeed.value ?: 1) * 100L)
             }
         }
     }

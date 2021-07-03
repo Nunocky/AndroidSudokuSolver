@@ -16,16 +16,23 @@ class NumberCellView : View {
     private var canvasHeight: Float = 0f
 
     var index = 0
+
     var fixedNum = 0
         set(value) {
+            if (field != value) {
+                updated = true
+                invalidate()
+            }
             field = value
-            invalidate()
         }
 
     var candidates: IntArray = IntArray(0)
         set(value) {
+            if (!(field contentEquals value)) {
+                updated = true
+                invalidate()
+            }
             field = value
-            invalidate()
         }
 
     private val textPaint = Paint(ANTI_ALIAS_FLAG).apply {
@@ -174,7 +181,6 @@ class NumberCellView : View {
         }
     }
 
-
     // なんとなく作っていたAndroidのカスタムViewを正しく実装する
     // https://qiita.com/KazaKago/items/758076137e8d4a962dd0
 
@@ -218,24 +224,31 @@ class NumberCellView : View {
         }
     }
 
-    var borderColor: Int
-        get() = borderPaint.color
+    var borderColor: Int = Color.BLACK
         set(value) {
-            borderPaint.color = value
+            if (borderPaint.color != value) {
+                borderPaint.color = value
+                invalidate()
+            }
+            field = value
         }
 
-    var textColor: Int
-        get() = textPaint.color
-        set(newValue) {
-            textPaint.color = newValue
-            invalidate()
+    var textColor: Int = Color.BLACK
+        set(value) {
+            if (textPaint.color != value) {
+                textPaint.color = value
+                invalidate()
+            }
+            field = value
         }
 
-    var updatedTextColor: Int
-        get() = updatedTextPaint.color
-        set(newValue) {
-            updatedTextPaint.color = newValue
-            invalidate()
+    var updatedTextColor = Color.RED
+        set(value) {
+            if (updatedTextPaint.color != value) {
+                updatedTextPaint.color = value
+                invalidate()
+            }
+            field = value
         }
 
     var showCandidates: Boolean = true
@@ -243,6 +256,7 @@ class NumberCellView : View {
             field = value
             invalidate()
         }
+
     var candidateColor: Int
         get() = candidatesPaint.color
         set(newValue) {
@@ -287,6 +301,15 @@ class NumberCellView : View {
                 }
             )
             invalidate()
+        }
+
+    var updated = false
+        set(value) {
+            if (field != value) {
+                field = value
+                textPaint.color = if (value) updatedTextColor else textColor
+                invalidate()
+            }
         }
 
     private fun calcBorderWidth(style: Int, maxLength: Float): Float {

@@ -68,8 +68,11 @@ class EditFragment : Fragment() {
             saveEntityAndMoveToSolveFragment()
         }
 
-        viewModel.currentValue.observe(requireActivity()) {
-            currentCell?.fixedNum = it
+        viewModel.currentValue.observe(requireActivity()) { num ->
+            currentCell?.let {
+                it.fixedNum = num
+                it.updated = false
+            }
             // 通知
             val list = binding.sudokuBoardView.cellViews.map { cellView ->
                 cellView.fixedNum.toChar().code
@@ -94,6 +97,7 @@ class EditFragment : Fragment() {
                     cellList.add(cell)
                 }
                 binding.sudokuBoardView.updateCells(cellList)
+                binding.sudokuBoardView.updated = false
             }
         }
     }
@@ -138,16 +142,13 @@ class EditFragment : Fragment() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater);
+        super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.menu_edit, menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_save) {
             saveSudoku()
-//            val cells =
-//                binding.sudokuBoardView.cellViews.joinToString("") { it.fixedNum.toString() }
-//            viewModel.saveSudoku(cells)
         }
 
         return super.onOptionsItemSelected(item)
