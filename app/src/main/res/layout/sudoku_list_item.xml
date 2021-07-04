@@ -6,7 +6,9 @@
         android:layout_width="200dp"
         android:layout_height="200dp"
         android:layout_gravity="center"
-        app:cardCornerRadius="4dp">
+        app:cardCornerRadius="4dp"
+        app:cardElevation="5dp"
+        app:cardUseCompatPadding="true">
 
         <org.nunocky.sudokusolver.view.SudokuBoardView
             android:id="@+id/sudokuBoardView"

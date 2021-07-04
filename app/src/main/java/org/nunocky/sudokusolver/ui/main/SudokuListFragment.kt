@@ -52,9 +52,6 @@ class SudokuListFragment : Fragment() {
         binding.recyclerView.layoutManager =
             GridLayoutManager(requireActivity(), 2, RecyclerView.VERTICAL, false)
 
-        // TODO 間に適切な間を開ける
-        //binding.recyclerView.addItemDecoration(SpacesItemDecoration(24))
-
         val adapter = SudokuListAdapter(emptyList())
         binding.recyclerView.adapter = adapter
 
