@@ -53,16 +53,18 @@ class EditFragment : Fragment() {
             cellView.setOnClickListener(cellClickedListener)
         }
 
-        binding.tb0.setOnCheckedChangeListener(tbListener)
-        binding.tb1.setOnCheckedChangeListener(tbListener)
-        binding.tb2.setOnCheckedChangeListener(tbListener)
-        binding.tb3.setOnCheckedChangeListener(tbListener)
-        binding.tb4.setOnCheckedChangeListener(tbListener)
-        binding.tb5.setOnCheckedChangeListener(tbListener)
-        binding.tb6.setOnCheckedChangeListener(tbListener)
-        binding.tb7.setOnCheckedChangeListener(tbListener)
-        binding.tb8.setOnCheckedChangeListener(tbListener)
-        binding.tb9.setOnCheckedChangeListener(tbListener)
+        binding.numberInput.apply {
+            tb0.setOnCheckedChangeListener(tbListener)
+            tb1.setOnCheckedChangeListener(tbListener)
+            tb2.setOnCheckedChangeListener(tbListener)
+            tb3.setOnCheckedChangeListener(tbListener)
+            tb4.setOnCheckedChangeListener(tbListener)
+            tb5.setOnCheckedChangeListener(tbListener)
+            tb6.setOnCheckedChangeListener(tbListener)
+            tb7.setOnCheckedChangeListener(tbListener)
+            tb8.setOnCheckedChangeListener(tbListener)
+            tb9.setOnCheckedChangeListener(tbListener)
+        }
 
         binding.btnSolve.setOnClickListener {
             saveEntityAndMoveToSolveFragment()
@@ -118,15 +120,15 @@ class EditFragment : Fragment() {
 
     private val tbListener = CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
         val buttonIndex = when (buttonView.id) {
-            binding.tb1.id -> 1
-            binding.tb2.id -> 2
-            binding.tb3.id -> 3
-            binding.tb4.id -> 4
-            binding.tb5.id -> 5
-            binding.tb6.id -> 6
-            binding.tb7.id -> 7
-            binding.tb8.id -> 8
-            binding.tb9.id -> 9
+            binding.numberInput.tb1.id -> 1
+            binding.numberInput.tb2.id -> 2
+            binding.numberInput.tb3.id -> 3
+            binding.numberInput.tb4.id -> 4
+            binding.numberInput.tb5.id -> 5
+            binding.numberInput.tb6.id -> 6
+            binding.numberInput.tb7.id -> 7
+            binding.numberInput.tb8.id -> 8
+            binding.numberInput.tb9.id -> 9
             else -> 0
         }
 

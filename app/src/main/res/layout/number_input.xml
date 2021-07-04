@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <GridLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/tbAC"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="3"
+            android:layout_column="3"
+            android:text="AC" />
+
+        <ToggleButton
+            android:id="@+id/tb7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="0"
+            android:layout_column="1"
+            android:background="@drawable/style_toggle_button"
+            android:checked="@{viewModel.currentValue == 7}"
+            android:text="7"
+            android:textOff="7"
+            android:textOn="7" />
+
+        <ToggleButton
+            android:id="@+id/tb8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="0"
+            android:layout_column="2"
+            android:background="@drawable/style_toggle_button"
+            android:checked="@{viewModel.currentValue == 8}"
+            android:text="8"
+            android:textOff="8"
+            android:textOn="8" />
+
+        <ToggleButton
+            android:id="@+id/tb9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="0"
+            android:layout_column="3"
+            android:background="@drawable/style_toggle_button"
+            android:checked="@{viewModel.currentValue == 9}"
+            android:text="9"
+            android:textOff="9"
+            android:textOn="9" />
+
+        <ToggleButton
+            android:id="@+id/tb4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="1"
+            android:layout_column="1"
+            android:background="@drawable/style_toggle_button"
+            android:checked="@{viewModel.currentValue == 4}"
+            android:text="4"
+            android:textOff="4"
+            android:textOn="4" />
+
+        <ToggleButton
+            android:id="@+id/tb5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="1"
+            android:layout_column="2"
+            android:background="@drawable/style_toggle_button"
+            android:checked="@{viewModel.currentValue == 5}"
+            android:text="5"
+            android:textOff="5"
+            android:textOn="5" />
+
+        <ToggleButton
+            android:id="@+id/tb6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="1"
+            android:layout_column="3"
+            android:background="@drawable/style_toggle_button"
+            android:checked="@{viewModel.currentValue == 6}"
+            android:text="6"
+            android:textOff="6"
+            android:textOn="6" />
+
+        <ToggleButton
+            android:id="@+id/tb1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="2"
+            android:layout_column="1"
+            android:background="@drawable/style_toggle_button"
+            android:checked="@{viewModel.currentValue == 1}"
+            android:text="1"
+            android:textOff="1"
+            android:textOn="1" />
+
+        <ToggleButton
+            android:id="@+id/tb2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="2"
+            android:layout_column="2"
+            android:background="@drawable/style_toggle_button"
+            android:checked="@{viewModel.currentValue == 2}"
+            android:text="2"
+            android:textOff="2"
+            android:textOn="2" />
+
+        <ToggleButton
+            android:id="@+id/tb3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="2"
+            android:layout_column="3"
+            android:background="@drawable/style_toggle_button"
+            android:checked="@{viewModel.currentValue == 3}"
+            android:text="3"
+            android:textOff="3"
+            android:textOn="3" />
+
+        <ToggleButton
+            android:id="@+id/tb0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="3"
+            android:layout_column="1"
+            android:background="@drawable/style_toggle_button"
+            android:checked="@{viewModel.currentValue == 0}"
+            android:text="C"
+            android:textOff="C"
+            android:textOn="C" />
+    </GridLayout>
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="org.nunocky.sudokusolver.ui.main.EditViewModel" />
+    </data>
+</layout>
