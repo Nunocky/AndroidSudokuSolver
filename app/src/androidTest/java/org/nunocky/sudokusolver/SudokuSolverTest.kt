@@ -93,30 +93,6 @@ class SudokuSolverTest {
         assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
     }
 
-
-    @Test
-    fun testSolveHardStep() {
-        solver.load(targetHard)
-        assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
-
-        while (!solver.isSolved()) {
-            val valueChanged = solver.execStep()
-            if (!valueChanged) {
-                break
-            }
-            assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
-        }
-
-        assertTrue(solver.isSolved())
-        assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
-    }
-
-//    @Test
-//    fun TestDepthFirstSearch() {
-//        val solved = solver.depthFirstSearch(0)
-//        assertTrue(solved)
-//    }
-
     /**
      * アセット内のテキストファイルに格納された問題をすべて解く
      */
@@ -152,25 +128,7 @@ class SudokuSolverTest {
                 // 問題が間違っている可能性もある
                 assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
 
-                val sw = true // 自動で解くかステップ実行するか
-
-                if (sw) {
-                    solver.trySolve()
-                } else {
-                    while (!solver.isSolved()) {
-                        val valueChanged = solver.execStep()
-                        if (!valueChanged) {
-                            break
-                        }
-
-                        assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
-                    }
-
-                    if (!solver.isSolved()) {
-                        // 深さ優先探索
-                        solver.depthFirstSearch()
-                    }
-                }
+                solver.trySolve()
 
                 // 解決した、かつ配置が正当であることを確認
                 assertTrue(solver.isSolved())
