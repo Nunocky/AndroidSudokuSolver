@@ -117,9 +117,9 @@ class SolverFragment : Fragment() {
                 requireActivity().resources.getString(R.string.solver_fail)
 
             val bgColor = if (success)
-                requireActivity().resources.getColor(R.color.solverSuccess)
+                ContextCompat.getColor(requireContext(), R.color.solverSuccess)
             else
-                requireActivity().resources.getColor(R.color.solverSuccess)
+                ContextCompat.getColor(requireContext(), R.color.solverSuccess)
 
             val snackBar = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT)
             snackBar.view.setBackgroundColor(bgColor)
