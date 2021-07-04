@@ -9,11 +9,13 @@ class SudokuSolver {
         fun onProgress(cells: List<Cell>)
         fun onFocusGroup(groupIndex: Int) {}
         fun onUnfocusGroup(groupIndex: Int) {}
+
         //fun onCellFocused(cellId: Int) {}
         //fun onCellUnfocused(cellId: Int) {}
         //fun onSelectGroup(groupId: Int) {}
         //fun onUnselectGroup(groupId: Int) {}
         //fun onCellUpdated(cellId: Int, num: Int?, candidates: List<Int>?) {}
+        fun onComplete(success: Boolean) {}
     }
 
     var callback: ProgressCallback? = null
@@ -144,7 +146,9 @@ class SudokuSolver {
             depthFirstSearch()
         }
 
-        return isSolved()
+        val result = isSolved()
+        callback?.onComplete(result)
+        return result
     }
 
     /**

@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">SudokuSolver</string>
     <string name="action_about">About</string>
+
+    <string name="solver_success">解析完了</string>
+    <string name="solver_fail">解析不能</string>
+
 </resources>

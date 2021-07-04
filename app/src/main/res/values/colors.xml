@@ -9,4 +9,6 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="fixedCell">#cccccc</color>
+    <color name="solverSuccess">#8BC34A</color>
+    <color name="solverFail">#515151</color>
 </resources>

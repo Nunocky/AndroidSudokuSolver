@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -89,6 +90,23 @@ class SolverFragment : Fragment() {
                 // TODO ノーウェイト / ウェイトあり くらいの区分で良さそう
                 delay((viewModel.stepSpeed.value ?: 1) * 100L)
             }
+        }
+
+        override fun onComplete(success: Boolean) {
+            val message = if (success)
+                requireActivity().resources.getString(R.string.solver_success)
+            else
+                requireActivity().resources.getString(R.string.solver_fail)
+
+            val bgColor = if (success)
+                requireActivity().resources.getColor(R.color.solverSuccess)
+            else
+                requireActivity().resources.getColor(R.color.solverSuccess)
+
+            val snackBar = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT)
+            snackBar.view.setBackgroundColor(bgColor)
+
+            snackBar.show()
         }
     }
 }
