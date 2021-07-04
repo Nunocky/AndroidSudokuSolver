@@ -2,4 +2,33 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/nav_graph"/>
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/sudokuListFragment">
+    <fragment
+        android:id="@+id/sudokuListFragment"
+        android:name="org.nunocky.sudokusolver.ui.main.SudokuListFragment"
+        android:label="SudokuListFragment" >
+        <action
+            android:id="@+id/action_sudokuListFragment_to_editFragment"
+            app:destination="@id/editFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/editFragment"
+        android:name="org.nunocky.sudokusolver.ui.main.EditFragment"
+        android:label="EditFragment" >
+        <action
+            android:id="@+id/action_editFragment_to_solverFragment"
+            app:destination="@id/solverFragment" />
+        <argument
+            android:name="entityId"
+            app:argType="long" />
+    </fragment>
+    <fragment
+        android:id="@+id/solverFragment"
+        android:name="org.nunocky.sudokusolver.ui.main.SolverFragment"
+        android:label="SolverFragment" >
+        <argument
+            android:name="entityId"
+            app:argType="long" />
+    </fragment>
+</navigation>

@@ -2,6 +2,8 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'kotlin-kapt'
+    id "org.jetbrains.kotlin.android.extensions" // version "1.5.20-RC"
+    id "androidx.navigation.safeargs.kotlin"
 }
 
 android {
@@ -14,6 +16,12 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -58,7 +66,9 @@ dependencies {
 
     // LiveData
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.3.1"
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
+    implementation "androidx.cardview:cardview:1.0.0"
     //implementation 'pub.devrel:easypermissions:3.0.0'
 
     // Navigation
@@ -79,4 +89,5 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    androidTestImplementation "androidx.arch.core:core-testing:2.1.0"
 }

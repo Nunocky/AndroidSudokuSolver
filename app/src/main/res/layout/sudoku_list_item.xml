@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center"
+        app:cardCornerRadius="4dp">
+
+        <org.nunocky.sudokusolver.view.SudokuBoardView
+            android:id="@+id/sudokuBoardView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp" />
+    </androidx.cardview.widget.CardView>
+
+    <data>
+
+        <variable
+            name="sudokuEntity"
+            type="org.nunocky.sudokusolver.database.SudokuEntity" />
+    </data>
+</layout>

@@ -1,13 +1,23 @@
 package org.nunocky.sudokusolver.solver
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+
 class SudokuSolver {
 
     interface ProgressCallback {
-        fun onProgress(numbers: IntArray)
+        fun onProgress(cells: List<Cell>)
+        fun onFocusGroup(groupIndex: Int) {}
+        fun onUnfocusGroup(groupIndex: Int) {}
+        //fun onCellFocused(cellId: Int) {}
+        //fun onCellUnfocused(cellId: Int) {}
+        //fun onSelectGroup(groupId: Int) {}
+        //fun onUnselectGroup(groupId: Int) {}
+        //fun onCellUpdated(cellId: Int, num: Int?, candidates: List<Int>?) {}
     }
 
     var callback: ProgressCallback? = null
-    private val cells = ArrayList<Cell>()
+    val cells = ArrayList<Cell>()
     private val groups = ArrayList<Group>()
 
     init {
@@ -70,11 +80,14 @@ class SudokuSolver {
             }
         }
 
-        // cellにグループを関連付ける
         cells.forEach { cell ->
+            // cellにグループを関連付ける
             cell.groups = groups.filter { group ->
                 group.cells.contains(cell)
             }.toSet()
+
+            // cellに自分自身を関連付ける
+            cell.parent = this
         }
     }
 
@@ -84,14 +97,32 @@ class SudokuSolver {
      * @param numbers 各セルのあたい。未確定は0、確定していたら1~9
      * @throws IllegalArgumentException 0~9以外の数字を指定しようとすると発生
      */
-    fun setup(numbers: Array<Int>) {
+    fun setup(numbers: List<Int>) {
         if (numbers.size != cells.size) {
             throw IllegalArgumentException()
         }
 
         for (n in 0 until cells.size) {
-            cells[n].value = numbers[n]
+            if (numbers[n] !in 0..9) {
+                throw IllegalArgumentException()
+            }
+            cells[n].candidates = mutableSetOf(1, 2, 3, 4, 5, 6, 7, 8, 9)
+            cells[n].value = numbers[n] // 1~9なら candidatesは空集合にセットされる
         }
+
+        _isValid.postValue(calcIsValid())
+    }
+
+    /**
+     * 数字の文字列から問題をセット
+     * @param numbersStr 0~9の数字からなる 81文字の文字列
+     */
+    fun setup(numbersStr: String) {
+        val list = numbersStr.toCharArray().map { c -> c.code - '0'.code }
+        if (list.size != 81) {
+            throw IllegalArgumentException("format error")
+        }
+        setup(list)
     }
 
     /**
@@ -108,6 +139,11 @@ class SudokuSolver {
             }
         }
 
+        if (!isSolved()) {
+            // 深さ優先探索
+            depthFirstSearch()
+        }
+
         return isSolved()
     }
 
@@ -120,21 +156,25 @@ class SudokuSolver {
         // 基本フィルタ (確定候補をもとにふるい落とす)
         valueChanged = valueChanged or filter0()
 
-        groups.forEach { g ->
-            valueChanged = valueChanged or filterCombination(g, 2)
-            valueChanged = valueChanged or filterCombination(g, 3)
+        // TODO onFocusGroup, onUnfocusGroupの実装。 フォーカス時の背景色設定
+        groups.forEachIndexed() { index, g ->
+//            callback?.onFocusGroup(index)
+            for (n in 2..4) {
+                valueChanged = valueChanged or filterCombination(g, n)
+            }
             valueChanged = valueChanged or filterLastOne(g)
+//            callback?.onUnfocusGroup(index)
         }
 
-//        groups.forEach { g ->
-//            valueChanged = valueChanged or filterLastOne(g)
-//        }
+        groups.forEach { g ->
+            valueChanged = valueChanged or filterLastOne(g)
+        }
 
         cells.forEach { cell ->
             valueChanged = valueChanged or filterOneCandidate(cell)
         }
 
-        callback?.onProgress(getNumArray())
+        callback?.onProgress(cells)
         return valueChanged
     }
 
@@ -168,9 +208,10 @@ class SudokuSolver {
                         continue
                     }
 
-                    if (cell.candidates.contains(c.value)) {
-                        cell.candidates.remove(c.value)
-                    }
+                    // TODO このif文の判定はなくても良いかも。直接 removeで良くない?
+//                    if (cell.candidates.contains(c.value)) {
+                    cell.candidates.remove(c.value)
+//                    }
                 }
             }
 
@@ -269,76 +310,66 @@ class SudokuSolver {
         return valueChanged
     }
 
-//    /**
-//     * 深さ優先探索による解決を試みる
-//     *
-//     * これちゃんと動かないだろう・・・ nは何だ
-//     */
-//    fun depthFirstSearch(n: Int = 0): Boolean {
-//
-//        // すべての Cellが fixed なら解決
-//        if (cells.filter { it.isFixed }.size == cells.size) {
-//            return true
-//        }
-//
-//        val cell = cells[n]
-//        val candidatesBak = clone(cell.candidates)
-//
-//        // fixedなら進む
-//        if (cell.isFixed) {
-//            callback?.onProgress(getNumArray())
-//            return depthFirstSearch(n + 1)
-//        }
-//
-//        // 候補を置いてみて矛盾がなければ進む
-//        for (v in cell.candidates) {
-//            cell.value = v
-//            if (isBoardValid()) {
-//                callback?.onProgress(getNumArray())
-//                val solved = depthFirstSearch(n + 1)
-//                if (solved) {
-//                    callback?.onProgress(getNumArray())
-//                    return true
-//                }
-//            }
-//        }
-//
-//        // どの候補も当てはまらなかったので状態を元に戻してfalseを返す
-//        cell.value = 0
-//        cell.candidates = candidatesBak.toMutableSet()
-//        return false
-//    }
-//
-//    /**
-//     * fixされた内容に矛盾がなければ trueを返す
-//     */
-//    private fun isBoardValid(): Boolean {
-//        for (group in groups) {
-//            val ary = ArrayList<Int>()
-//            for (cell in group.cells) {
-//                if (!cell.isFixed) {
-//                    continue
-//                }
-//                if (ary.contains(cell.value)) {
-//                    return false
-//                }
-//                ary.add(cell.value)
-//            }
-//        }
-//
-//        return true
-//    }
+    /**
+     * 深さ優先探索による解決を試みる
+     */
+    fun depthFirstSearch(n: Int = 0): Boolean {
+
+        // すべての Cellが fixed なら解決
+        if (cells.filter { it.isFixed }.size == cells.size) {
+            return true
+        }
+
+        val cell = cells[n]
+        val candidatesBak = cell.candidates.toSet()
+
+        // fixedなら進む
+        if (cell.isFixed) {
+            callback?.onProgress(cells)
+            return depthFirstSearch(n + 1)
+        }
+
+        // 候補を置いてみて矛盾がなければ進む
+        for (v in cell.candidates) {
+            cell.value = v
+            if (calcIsValid()) {
+                callback?.onProgress(cells)
+                val solved = depthFirstSearch(n + 1)
+                if (solved) {
+                    callback?.onProgress(cells)
+                    return true
+                }
+            }
+        }
+
+        // どの候補も当てはまらなかったので状態を元に戻してfalseを返す
+        cell.value = 0
+        cell.candidates = candidatesBak.toMutableSet()
+        return false
+    }
+
+    // 数の配置が正しいか
+    private val _isValid = MutableLiveData(false)
+    val isValid: LiveData<Boolean> = _isValid
+
+    private fun calcIsValid(): Boolean {
+        groups.forEach { group ->
+            val numbers = mutableSetOf<Int>()
+            group.cells.forEach { cell ->
+                if (cell.value != 0 && numbers.contains(cell.value)) {
+                    return false
+                }
+                numbers.add(cell.value)
+            }
+        }
+
+        return true
+    }
 
     /**
-     * すべてのセルの値を返す
+     * cellからのデータ変更通知を受ける
      */
-    private fun getNumArray(): IntArray {
-        return cells.map {
-            it.value
-        }.toIntArray()
+    internal fun notifyDataChanged() {
+        _isValid.postValue(calcIsValid())
     }
 }
-
-//fun <T> clone(original: Set<T>): Set<T> {
-//    return HashSet(original)
-//}
