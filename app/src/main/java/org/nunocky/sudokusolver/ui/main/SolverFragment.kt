@@ -1,10 +1,12 @@
 package org.nunocky.sudokusolver.ui.main
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -54,7 +56,6 @@ class SolverFragment : Fragment() {
 
         binding.btnStart.setOnClickListener {
             viewModel.startSolver(callback)
-//            startSolve()
         }
 
         binding.btnReset.setOnClickListener {
@@ -63,6 +64,22 @@ class SolverFragment : Fragment() {
 
         binding.btnStop.setOnClickListener {
             stopSolve()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 速度を sharedPreferenceから復元
+        viewModel.stepSpeed.value =
+            requireActivity().getPreferences(Context.MODE_PRIVATE).getInt("stepSpeed", 0)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // 速度を保存
+        requireActivity().getPreferences(Context.MODE_PRIVATE).edit {
+            putInt("stepSpeed", viewModel.stepSpeed.value ?: 0)
+            commit()
         }
     }
 
@@ -83,10 +100,6 @@ class SolverFragment : Fragment() {
         }
         binding.sudokuBoard.updated = false
     }
-
-//    private fun startSolve() = lifecycleScope.launch {
-//        viewModel.startSolver(callback)
-//    }
 
     private fun stopSolve() = lifecycleScope.launch {
         viewModel.stopSolver()
