@@ -1,9 +1,7 @@
 package org.nunocky.sudokusolver.ui.main
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -12,6 +10,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import org.nunocky.sudokusolver.MyApplication
+import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.SudokuRepository
 import org.nunocky.sudokusolver.adapter.SudokuListAdapter
 import org.nunocky.sudokusolver.database.SudokuEntity
@@ -30,6 +29,11 @@ class SudokuListFragment : Fragment() {
         val app = (requireActivity().application as MyApplication)
         val appDatabase = app.appDatabase
         SudokuListViewModel.Factory(SudokuRepository(appDatabase))
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
@@ -73,6 +77,18 @@ class SudokuListFragment : Fragment() {
             val action = SudokuListFragmentDirections.actionSudokuListFragmentToEditFragment(0)
             findNavController().navigate(action)
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_sudoku_list, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.action_about) {
+        }
+
+        return super.onOptionsItemSelected(item)
     }
 
     private fun confirmDelete(entity: SudokuEntity) = lifecycleScope.launch {
