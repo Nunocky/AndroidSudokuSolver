@@ -14,6 +14,7 @@ class SudokuListAdapter(var list: List<SudokuEntity>) :
 
     interface OnItemClickListener {
         fun onItemClicked(view: View, position: Int)
+        fun onLongClick(view: View, position: Int): Boolean
     }
 
     var listener: OnItemClickListener? = null
@@ -58,7 +59,11 @@ class SudokuListAdapter(var list: List<SudokuEntity>) :
         }
 
         holder.itemView.setOnClickListener {
-            listener?.onItemClicked(holder.binding.root, position)
+            listener?.onItemClicked(it, position)
+        }
+
+        holder.itemView.setOnLongClickListener {
+            listener?.onLongClick(it, position) ?: true
         }
     }
 }

@@ -6,13 +6,18 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.launch
 import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.SudokuRepository
 import org.nunocky.sudokusolver.adapter.SudokuListAdapter
+import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.databinding.FragmentSudokuListBinding
+import org.nunocky.sudokusolver.ui.dialog.DeleteItemConfirmDialog
+import kotlin.coroutines.suspendCoroutine
 
 
 /**
@@ -56,6 +61,12 @@ class SudokuListFragment : Fragment() {
                     SudokuListFragmentDirections.actionSudokuListFragmentToEditFragment(entity.id)
                 findNavController().navigate(action)
             }
+
+            override fun onLongClick(view: View, position: Int): Boolean {
+                val entity = adapter.list[position]
+                confirmDelete(entity)
+                return true
+            }
         }
 
         binding.floatingActionButton.setOnClickListener {
@@ -63,4 +74,19 @@ class SudokuListFragment : Fragment() {
             findNavController().navigate(action)
         }
     }
+
+    private fun confirmDelete(entity: SudokuEntity) = lifecycleScope.launch {
+        val confirm = openDeleteDialog()
+
+        if (confirm) {
+            viewModel.deleteItem(entity)
+        }
+    }
+
+    private suspend fun openDeleteDialog() = suspendCoroutine<Boolean> { continuation ->
+        val dialog = DeleteItemConfirmDialog(continuation)
+        dialog.show(childFragmentManager, "delete")
+        // TODO parentとか childとかどう使い分ければいいの
+    }
 }
+
