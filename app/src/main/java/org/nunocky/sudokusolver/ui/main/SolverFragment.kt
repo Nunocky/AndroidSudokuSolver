@@ -55,6 +55,14 @@ class SolverFragment : Fragment() {
         binding.btnStart.setOnClickListener {
             startSolve()
         }
+
+        binding.btnReset.setOnClickListener {
+            reset()
+        }
+
+        binding.btnStop.setOnClickListener {
+            stopSolve()
+        }
     }
 
     private fun loadSudoku() = lifecycleScope.launch {
@@ -67,6 +75,8 @@ class SolverFragment : Fragment() {
                     setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.fixedCell))
                     candidates = IntArray(0)
                     showCandidates = false
+                } else {
+                    candidates = arrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9).toIntArray()
                 }
             }
         }
@@ -74,8 +84,16 @@ class SolverFragment : Fragment() {
     }
 
     private fun startSolve() = lifecycleScope.launch {
-        loadSudoku().join() // TODO リセットボタンを設ける?
-        viewModel.startSolve(callback)
+        viewModel.startSolver(callback)
+    }
+
+    private fun stopSolve() = lifecycleScope.launch {
+        viewModel.stopSolver()
+    }
+
+    private fun reset() = lifecycleScope.launch {
+        loadSudoku().join()
+        viewModel.resetSolver()
     }
 
     private val callback = object : SudokuSolver.ProgressCallback {

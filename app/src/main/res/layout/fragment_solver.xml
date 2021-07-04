@@ -8,16 +8,6 @@
         android:layout_height="match_parent"
         tools:context=".ui.main.SolverFragment">
 
-        <Button
-            android:id="@+id/btnStart"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:enabled="@{!viewModel.inProgress}"
-            android:text="SOLVE"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
         <SeekBar
             android:id="@+id/seekBar"
             android:layout_width="0dp"
@@ -49,11 +39,10 @@
         <TextView
             android:id="@+id/tvMessage"
             android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
             android:text="@{viewModel.message}"
-            app:layout_constraintBottom_toTopOf="@+id/btnStart"
+            app:layout_constraintBottom_toTopOf="@+id/btnReset"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView2" />
@@ -66,6 +55,46 @@
             android:text="@{viewModel.elapsedTime}"
             app:layout_constraintStart_toEndOf="@+id/textView2"
             app:layout_constraintTop_toTopOf="@+id/textView2" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnStart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="8dp"
+            android:enabled="@{viewModel.inProgress == Status.INIT}"
+            android:padding="16dp"
+            android:src="@drawable/play_arrow"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/btnStop" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnStop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:enabled="@{viewModel.inProgress == Status.WORKING}"
+            android:padding="16dp"
+            android:src="@drawable/stop"
+            app:layout_constraintBottom_toBottomOf="@+id/btnStart"
+            app:layout_constraintEnd_toStartOf="@+id/btnStart"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/btnReset" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnReset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="@{viewModel.inProgress == Status.DONE}"
+            android:padding="16dp"
+            android:src="@drawable/restart"
+            app:layout_constraintBottom_toBottomOf="@+id/btnStop"
+            app:layout_constraintEnd_toStartOf="@+id/btnStop"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline2"
@@ -92,6 +121,8 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <data>
+
+        <import type="org.nunocky.sudokusolver.ui.main.SolverViewModel.Status" />
 
         <variable
             name="viewModel"
