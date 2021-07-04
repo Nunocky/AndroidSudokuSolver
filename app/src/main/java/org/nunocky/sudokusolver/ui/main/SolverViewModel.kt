@@ -8,8 +8,6 @@ import kotlinx.coroutines.*
 import org.nunocky.sudokusolver.SudokuRepository
 import org.nunocky.sudokusolver.solver.Cell
 import org.nunocky.sudokusolver.solver.SudokuSolver
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
     class Factory(private val repository: SudokuRepository) :
@@ -35,7 +33,6 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
     private var timerJob: Job = Job().apply { cancel() }
 
     val stepSpeed = MutableLiveData(0)
-    val message = MutableLiveData("")
 
     val solver = SudokuSolver()
 
@@ -48,46 +45,13 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
     fun startSolver(callback: SudokuSolver.ProgressCallback) {
         solverJob = viewModelScope.launch(Dispatchers.IO) {
             inProgress.postValue(Status.WORKING)
-            message.postValue("solving...")
 
             startTimer()
-            val success = solve(callback)
 
-            // TODO もう messageはいらないかも
-            message.postValue(
-                if (success) {
-                    "solved!"
-                } else {
-                    "unsolved"
-                }
-            )
-
-            stopTimer()
-            inProgress.postValue(Status.DONE)
-        }
-    }
-
-    fun stopSolver() = viewModelScope.launch(Dispatchers.IO) {
-        cancelled = true
-        solverJob.cancel()
-        stopTimer()
-    }
-
-    fun resetSolver() = viewModelScope.launch(Dispatchers.IO) {
-        inProgress.postValue(Status.INIT)
-    }
-
-    private var cancelled = false
-
-    private suspend fun solve(callback: SudokuSolver.ProgressCallback) =
-        suspendCoroutine<Boolean> { continuation ->
-            // キャンセル処理、これで動くがもっと良い方法はないか?
-            try {
-                cancelled = false
-                solver.callback = callback
+            val success = kotlin.runCatching {
                 solver.callback = object : SudokuSolver.ProgressCallback {
                     override fun onProgress(cells: List<Cell>) {
-                        if (cancelled) {
+                        if (!isActive) {
                             throw InterruptedException()
                         }
                         callback.onProgress(cells)
@@ -97,13 +61,22 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
                         callback.onComplete(success)
                     }
                 }
-
                 solver.trySolve()
-            } catch (e: InterruptedException) {
-            } finally {
-                continuation.resume(solver.isSolved())
             }
+
+            stopTimer()
+            inProgress.postValue(Status.DONE)
         }
+    }
+
+    fun stopSolver() = viewModelScope.launch(Dispatchers.IO) {
+        solverJob.cancel()
+        stopTimer()
+    }
+
+    fun resetSolver() = viewModelScope.launch(Dispatchers.IO) {
+        inProgress.postValue(Status.INIT)
+    }
 
     private fun startTimer() {
         timerJob = viewModelScope.launch(Dispatchers.IO) {

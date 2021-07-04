@@ -53,7 +53,8 @@ class SolverFragment : Fragment() {
         loadSudoku()
 
         binding.btnStart.setOnClickListener {
-            startSolve()
+            viewModel.startSolver(callback)
+//            startSolve()
         }
 
         binding.btnReset.setOnClickListener {
@@ -83,9 +84,9 @@ class SolverFragment : Fragment() {
         binding.sudokuBoard.updated = false
     }
 
-    private fun startSolve() = lifecycleScope.launch {
-        viewModel.startSolver(callback)
-    }
+//    private fun startSolve() = lifecycleScope.launch {
+//        viewModel.startSolver(callback)
+//    }
 
     private fun stopSolve() = lifecycleScope.launch {
         viewModel.stopSolver()
