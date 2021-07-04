@@ -20,7 +20,6 @@ class EditFragment : Fragment() {
     private val args: EditFragmentArgs by navArgs()
     private lateinit var binding: FragmentEditBinding
 
-    //    private val viewModel: EditViewModel by viewModels()
     private val viewModel: EditViewModel by viewModels {
         val app = (requireActivity().application as MyApplication)
         val appDatabase = app.appDatabase
@@ -66,6 +65,10 @@ class EditFragment : Fragment() {
             tb9.setOnCheckedChangeListener(tbListener)
         }
 
+        binding.numberInput.tbAC.setOnClickListener {
+            clearAllCells()
+        }
+
         binding.btnSolve.setOnClickListener {
             saveEntityAndMoveToSolveFragment()
         }
@@ -79,14 +82,7 @@ class EditFragment : Fragment() {
             val list = binding.sudokuBoardView.cellViews.map { cellView ->
                 cellView.fixedNum.toChar().code
             }
-            viewModel.sudokuSolver.setup(list)
-        }
-
-        if (args.entityId == 0L) {
-            // new Item
-            viewModel.setNewSudoku()
-        } else {
-            viewModel.loadSudoku(args.entityId)
+            viewModel.sudokuSolver.load(list)
         }
 
         viewModel.entity.observe(requireActivity()) {
@@ -143,6 +139,17 @@ class EditFragment : Fragment() {
         viewModel.currentValue.value = buttonIndex
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        // 画面遷移時(前後) で読み込み直す
+        if (viewModel.entity.value!!.id == 0L && args.entityId == 0L) {
+            viewModel.setNewSudoku()
+        } else {
+            viewModel.loadSudoku(args.entityId)
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.menu_edit, menu)
@@ -159,7 +166,7 @@ class EditFragment : Fragment() {
     private fun saveSudoku() = lifecycleScope.launch {
         val cells =
             binding.sudokuBoardView.cellViews.joinToString("") { it.fixedNum.toString() }
-        viewModel.saveSudoku(cells)
+        viewModel.saveSudoku(cells).join()
     }
 
     private fun saveEntityAndMoveToSolveFragment() = lifecycleScope.launch {
@@ -168,5 +175,18 @@ class EditFragment : Fragment() {
             val action = EditFragmentDirections.actionEditFragmentToSolverFragment(entity.id)
             findNavController().navigate(action)
         }
+    }
+
+    private fun clearAllCells() {
+        binding.sudokuBoardView.cellViews.forEach { cellView ->
+            cellView.fixedNum = 0
+        }
+
+        // 通知
+        // TODO コード重複
+        val list = binding.sudokuBoardView.cellViews.map { cellView ->
+            cellView.fixedNum.toChar().code
+        }
+        viewModel.sudokuSolver.load(list)
     }
 }

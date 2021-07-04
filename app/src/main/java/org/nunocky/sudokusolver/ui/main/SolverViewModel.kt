@@ -41,7 +41,7 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
 
     fun loadSudoku(entityId: Long) = viewModelScope.launch(Dispatchers.IO) {
         repository.findById(entityId)?.let { entity ->
-            solver.setup(entity.cells)
+            solver.load(entity.cells)
         }
     }
 

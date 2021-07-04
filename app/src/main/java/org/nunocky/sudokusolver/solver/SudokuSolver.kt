@@ -99,7 +99,7 @@ class SudokuSolver {
      * @param numbers 各セルのあたい。未確定は0、確定していたら1~9
      * @throws IllegalArgumentException 0~9以外の数字を指定しようとすると発生
      */
-    fun setup(numbers: List<Int>) {
+    fun load(numbers: List<Int>) {
         if (numbers.size != cells.size) {
             throw IllegalArgumentException()
         }
@@ -119,12 +119,12 @@ class SudokuSolver {
      * 数字の文字列から問題をセット
      * @param numbersStr 0~9の数字からなる 81文字の文字列
      */
-    fun setup(numbersStr: String) {
+    fun load(numbersStr: String) {
         val list = numbersStr.toCharArray().map { c -> c.code - '0'.code }
         if (list.size != 81) {
             throw IllegalArgumentException("format error")
         }
-        setup(list)
+        load(list)
     }
 
     /**

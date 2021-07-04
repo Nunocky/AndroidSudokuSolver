@@ -65,7 +65,7 @@ class SudokuSolverTest {
 
     @Test
     fun testSolveEasy() {
-        solver.setup(targetEasy)
+        solver.load(targetEasy)
         assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
 
         val solved = solver.trySolve()
@@ -75,7 +75,7 @@ class SudokuSolverTest {
 
     @Test
     fun testSolveMedium() {
-        solver.setup(targetMedium)
+        solver.load(targetMedium)
         assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
 
         val solved = solver.trySolve()
@@ -85,7 +85,7 @@ class SudokuSolverTest {
 
     @Test
     fun testSolveHard() {
-        solver.setup(targetHard)
+        solver.load(targetHard)
         assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
 
         val solved = solver.trySolve()
@@ -96,7 +96,7 @@ class SudokuSolverTest {
 
     @Test
     fun testSolveHardStep() {
-        solver.setup(targetHard)
+        solver.load(targetHard)
         assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
 
         while (!solver.isSolved()) {
@@ -147,7 +147,7 @@ class SudokuSolverTest {
                     continue
                 }
 
-                solver.setup(line)
+                solver.load(line)
 
                 // 問題が間違っている可能性もある
                 assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))

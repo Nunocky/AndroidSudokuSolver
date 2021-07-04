@@ -1,6 +1,5 @@
 package org.nunocky.sudokusolver.ui.main
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -12,9 +11,6 @@ import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.solver.SudokuSolver
 
 class EditViewModel(private val repository: SudokuRepository) : ViewModel() {
-    companion object {
-        private const val TAG = "EditViewModel"
-    }
 
     class Factory(private val repository: SudokuRepository) :
         ViewModelProvider.NewInstanceFactory() {
@@ -25,7 +21,7 @@ class EditViewModel(private val repository: SudokuRepository) : ViewModel() {
     }
 
     var currentValue = MutableLiveData(0)
-    val entity = MutableLiveData<SudokuEntity?>(null)
+    val entity = MutableLiveData(SudokuEntity())
 
     val sudokuSolver = SudokuSolver()
     val isValid = sudokuSolver.isValid
@@ -41,8 +37,6 @@ class EditViewModel(private val repository: SudokuRepository) : ViewModel() {
     }
 
     fun saveSudoku(cells: String) = viewModelScope.launch(Dispatchers.IO) {
-        Log.d(TAG, cells)
-
         entity.value?.let {
             it.cells = cells
             if (it.id == 0L) {
@@ -50,6 +44,7 @@ class EditViewModel(private val repository: SudokuRepository) : ViewModel() {
             } else {
                 repository.update(it)
             }
+            entity.postValue(it)
         }
     }
 }
