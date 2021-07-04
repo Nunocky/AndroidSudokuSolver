@@ -85,7 +85,7 @@ class SudokuListFragment : Fragment() {
 
     private suspend fun openDeleteDialog() = suspendCoroutine<Boolean> { continuation ->
         val dialog = DeleteItemConfirmDialog(continuation)
-        dialog.show(childFragmentManager, "delete")
+        dialog.show(parentFragmentManager, "delete")
         // TODO parentとか childとかどう使い分ければいいの
     }
 }

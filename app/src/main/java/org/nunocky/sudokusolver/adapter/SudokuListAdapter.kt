@@ -3,6 +3,7 @@ package org.nunocky.sudokusolver.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.database.SudokuEntity
@@ -55,6 +56,11 @@ class SudokuListAdapter(var list: List<SudokuEntity>) :
         holder.binding.sudokuBoardView.apply {
             showCandidates = false
             updateCells(cellList)
+            holder.binding.sudokuBoardView.cellViews.forEach { cellView ->
+                if (cellView.fixedNum != 0) {
+                    cellView.setBackgroundColor(ContextCompat.getColor(context, R.color.fixedCell))
+                }
+            }
             updated = false
         }
 

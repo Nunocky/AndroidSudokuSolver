@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -12,6 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.nunocky.sudokusolver.MyApplication
+import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentSolverBinding
 import org.nunocky.sudokusolver.solver.Cell
@@ -58,10 +60,13 @@ class SolverFragment : Fragment() {
         viewModel.loadSudoku(args.entityId).join()
 
         binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
-            cellView.fixedNum = viewModel.solver.cells[n].value
-            if (cellView.fixedNum != 0) {
-                cellView.candidates = IntArray(0)
-                cellView.showCandidates = false
+            cellView.apply {
+                fixedNum = viewModel.solver.cells[n].value
+                if (fixedNum != 0) {
+                    setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.fixedCell))
+                    candidates = IntArray(0)
+                    showCandidates = false
+                }
             }
         }
         binding.sudokuBoard.updated = false
