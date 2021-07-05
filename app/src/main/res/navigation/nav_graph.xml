@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
     app:startDestination="@id/sudokuListFragment">
     <fragment
         android:id="@+id/sudokuListFragment"
         android:name="org.nunocky.sudokusolver.ui.main.SudokuListFragment"
-        android:label="SudokuListFragment" >
+        android:label="SudokuListFragment">
         <action
             android:id="@+id/action_sudokuListFragment_to_editFragment"
             app:destination="@id/editFragment" />
@@ -15,7 +14,7 @@
     <fragment
         android:id="@+id/editFragment"
         android:name="org.nunocky.sudokusolver.ui.main.EditFragment"
-        android:label="EditFragment" >
+        android:label="EditFragment">
         <action
             android:id="@+id/action_editFragment_to_solverFragment"
             app:destination="@id/solverFragment" />
@@ -26,9 +25,13 @@
     <fragment
         android:id="@+id/solverFragment"
         android:name="org.nunocky.sudokusolver.ui.main.SolverFragment"
-        android:label="SolverFragment" >
+        android:label="SolverFragment">
         <argument
             android:name="entityId"
             app:argType="long" />
     </fragment>
+    <fragment
+        android:id="@+id/aboutFragment"
+        android:name="org.nunocky.sudokusolver.ui.main.AboutFragment"
+        android:label="AboutFragment" />
 </navigation>

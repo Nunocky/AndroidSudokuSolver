@@ -4,5 +4,10 @@
 
     <string name="solver_success">解析完了</string>
     <string name="solver_fail">解析不能</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="current_version">現在のバージョン</string>
+    <string name="open_source_license">オープンソースライセンス</string>
+    <string name="github_page">GitHub Page</string>
 
 </resources>
