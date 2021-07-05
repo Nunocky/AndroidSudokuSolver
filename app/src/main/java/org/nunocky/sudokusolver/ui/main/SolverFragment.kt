@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
@@ -69,6 +70,7 @@ class SolverFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        (activity as AppCompatActivity).supportActionBar?.title = "Solve"
         // 速度を sharedPreferenceから復元
         viewModel.stepSpeed.value =
             requireActivity().getPreferences(Context.MODE_PRIVATE).getInt("stepSpeed", 0)

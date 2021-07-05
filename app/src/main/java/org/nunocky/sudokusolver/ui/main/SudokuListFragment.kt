@@ -2,6 +2,7 @@ package org.nunocky.sudokusolver.ui.main
 
 import android.os.Bundle
 import android.view.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -101,6 +102,11 @@ class SudokuListFragment : Fragment() {
         val dialog = DeleteItemConfirmDialog(continuation)
         dialog.show(parentFragmentManager, "delete")
         // TODO parentとか childとかどう使い分ければいいの
+    }
+
+    override fun onResume() {
+        super.onResume()
+        (activity as AppCompatActivity).supportActionBar?.title = "Sudoku Solver"
     }
 }
 

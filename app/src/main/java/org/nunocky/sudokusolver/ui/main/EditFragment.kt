@@ -3,6 +3,7 @@ package org.nunocky.sudokusolver.ui.main
 import android.os.Bundle
 import android.view.*
 import android.widget.CompoundButton
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -141,6 +142,7 @@ class EditFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        (activity as AppCompatActivity).supportActionBar?.title = "Edit"
 
         // 画面遷移時(前後) で読み込み直す
         if (viewModel.entity.value!!.id == 0L && args.entityId == 0L) {
