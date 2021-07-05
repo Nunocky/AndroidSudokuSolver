@@ -24,7 +24,6 @@ class SudokuSolver {
     var callback: ProgressCallback? = null
     val cells = ArrayList<Cell>()
     val groups = ArrayList<Group>()
-    private val algorithm = SolverV0(this)
 
     init {
         repeat(81) {
@@ -135,7 +134,19 @@ class SudokuSolver {
      * 問題を最後まで自動で解く
      *
      */
-    fun trySolve() = algorithm.trySolve()
+    fun trySolve(): Boolean {
+        val algorithm = SolverV0(this, cells, groups, callback)
+        val algorithm_dfs = SolverDFS(this, cells, groups, callback)
+
+        var retVal = algorithm.trySolve()
+
+        if (!retVal) {
+            retVal = algorithm_dfs.trySolve()
+        }
+
+        callback?.onComplete(retVal)
+        return retVal
+    }
 
     /**
      * 問題は解決したか

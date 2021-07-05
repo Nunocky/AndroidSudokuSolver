@@ -1,6 +1,11 @@
 package org.nunocky.sudokusolver.solver
 
-class SolverV0(private val parent: SudokuSolver) : SudokuSolver.Algorithm {
+class SolverV0(
+    private val parent: SudokuSolver,
+    private val cells: ArrayList<Cell>,
+    private val groups: ArrayList<Group>,
+    private val callback: SudokuSolver.ProgressCallback?
+) : SudokuSolver.Algorithm {
 
     override fun trySolve(): Boolean {
         var n = 0
@@ -12,13 +17,13 @@ class SolverV0(private val parent: SudokuSolver) : SudokuSolver.Algorithm {
             }
         }
 
-        if (!parent.isSolved()) {
-            // 深さ優先探索
-            depthFirstSearch()
-        }
+//        if (!parent.isSolved()) {
+//            // 深さ優先探索
+//            depthFirstSearch()
+//        }
 
         val result = parent.isSolved()
-        parent.callback?.onComplete(result)
+//        callback?.onComplete(result)
         return result
     }
 
@@ -32,7 +37,7 @@ class SolverV0(private val parent: SudokuSolver) : SudokuSolver.Algorithm {
         valueChanged = valueChanged or filter0()
 
         // TODO onFocusGroup, onUnfocusGroupの実装。 フォーカス時の背景色設定
-        parent.groups.forEachIndexed() { index, g ->
+        groups.forEachIndexed() { index, g ->
 //            callback?.onFocusGroup(index)
             for (n in 2..4) {
                 valueChanged = valueChanged or filterCombination(g, n)
@@ -41,15 +46,15 @@ class SolverV0(private val parent: SudokuSolver) : SudokuSolver.Algorithm {
 //            callback?.onUnfocusGroup(index)
         }
 
-        parent.groups.forEach { g ->
+        groups.forEach { g ->
             valueChanged = valueChanged or filterLastOne(g)
         }
 
-        parent.cells.forEach { cell ->
+        cells.forEach { cell ->
             valueChanged = valueChanged or filterOneCandidate(cell)
         }
 
-        parent.callback?.onProgress(parent.cells)
+        callback?.onProgress(cells)
         return valueChanged
     }
 
@@ -58,7 +63,7 @@ class SolverV0(private val parent: SudokuSolver) : SudokuSolver.Algorithm {
      */
     private fun filter0(): Boolean {
         var valueChanged = false
-        for (cell in parent.cells) {
+        for (cell in cells) {
             if (cell.isFixed) {
                 continue
             }
@@ -169,40 +174,42 @@ class SolverV0(private val parent: SudokuSolver) : SudokuSolver.Algorithm {
         return valueChanged
     }
 
-    /**
-     * 深さ優先探索による解決を試みる
-     */
-    private fun depthFirstSearch(n: Int = 0): Boolean {
-        // すべての Cellが fixed なら解決
-        if (parent.cells.filter { it.isFixed }.size == parent.cells.size) {
-            return true
-        }
-
-        val cell = parent.cells[n]
-        val candidatesBak = cell.candidates.toSet()
-
-        // fixedなら進む
-        if (cell.isFixed) {
-            parent.callback?.onProgress(parent.cells)
-            return depthFirstSearch(n + 1)
-        }
-
-        // 候補を置いてみて矛盾がなければ進む
-        for (v in cell.candidates) {
-            cell.value = v
-            if (parent.calcIsValid()) {
-                parent.callback?.onProgress(parent.cells)
-                val solved = depthFirstSearch(n + 1)
-                if (solved) {
-                    parent.callback?.onProgress(parent.cells)
-                    return true
-                }
-            }
-        }
-
-        // どの候補も当てはまらなかったので状態を元に戻してfalseを返す
-        cell.value = 0
-        cell.candidates = candidatesBak.toMutableSet()
-        return false
-    }
+//    /**
+//     * 深さ優先探索による解決を試みる
+//     * TODO DFSを分離する
+//     * TODO 探査順を変える。残り候補の少ないセルを先に処理すれば速くなるはず
+//     */
+//    private fun depthFirstSearch(n: Int = 0): Boolean {
+//        // すべての Cellが fixed なら解決
+//        if (cells.filter { it.isFixed }.size == cells.size) {
+//            return true
+//        }
+//
+//        val cell = cells[n]
+//        val candidatesBak = cell.candidates.toSet()
+//
+//        // fixedなら進む
+//        if (cell.isFixed) {
+//            callback?.onProgress(cells)
+//            return depthFirstSearch(n + 1)
+//        }
+//
+//        // 候補を置いてみて矛盾がなければ進む
+//        for (v in cell.candidates) {
+//            cell.value = v
+//            if (parent.calcIsValid()) {
+//                callback?.onProgress(cells)
+//                val solved = depthFirstSearch(n + 1)
+//                if (solved) {
+//                    callback?.onProgress(cells)
+//                    return true
+//                }
+//            }
+//        }
+//
+//        // どの候補も当てはまらなかったので状態を元に戻してfalseを返す
+//        cell.value = 0
+//        cell.candidates = candidatesBak.toMutableSet()
+//        return false
+//    }
 }
