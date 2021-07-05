@@ -25,7 +25,7 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
     }
 
     val inProgress = MutableLiveData(Status.INIT)
-    val elapsedTime = MutableLiveData("")
+    val elapsedTime = MutableLiveData("00:00.000")
     private var startTime = 0L
     private var currentTime = 0L
 
@@ -87,7 +87,7 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
             while (isActive) {
                 currentTime = System.currentTimeMillis()
                 elapsedTime.postValue((currentTime - startTime).toTimeStr())
-                delay(250)
+                delay(100)
             }
         }
     }
@@ -98,6 +98,7 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
 }
 
 private fun Long.toTimeStr(): String {
+    val milsecs = this % 1000
     var second = this / 1000 // second
 
     val hour = second / 3600
@@ -107,8 +108,8 @@ private fun Long.toTimeStr(): String {
     second -= 60 * minute
 
     return if (0 < hour) {
-        String.format("%02d:%02d:%02d", hour, minute, second)
+        String.format("%02d:%02d:%02d.%03d", hour, minute, milsecs)
     } else {
-        String.format("%02d:%02d", minute, second)
+        String.format("%02d:%02d.%03d", minute, second, milsecs)
     }
 }
