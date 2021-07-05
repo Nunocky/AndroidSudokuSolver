@@ -21,7 +21,7 @@ class EditViewModel(private val repository: SudokuRepository) : ViewModel() {
     }
 
     var currentValue = MutableLiveData(0)
-    val entity = MutableLiveData(SudokuEntity())
+    val entity = MutableLiveData<SudokuEntity?>(null)
 
     val sudokuSolver = SudokuSolver()
     val isValid = sudokuSolver.isValid
