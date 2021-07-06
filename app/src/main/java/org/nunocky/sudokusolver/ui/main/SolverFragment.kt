@@ -127,8 +127,9 @@ class SolverFragment : Fragment() {
         }
 
         override fun onComplete(success: Boolean) {
+            val difficulty = viewModel.solver.difficulty
             val message = if (success)
-                requireActivity().resources.getString(R.string.solver_success)
+                requireActivity().resources.getString(R.string.solver_success) + " 難度 $difficulty"
             else
                 requireActivity().resources.getString(R.string.solver_fail)
 

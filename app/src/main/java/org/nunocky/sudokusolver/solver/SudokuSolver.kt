@@ -4,6 +4,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 
 class SudokuSolver {
+    companion object {
+        const val DIFFICULTY_IMPOSSIBLE = -1
+        const val DIFFICULTY_UNDEF = 0
+        const val DIFFICULTY_EASY = 1
+        const val DIFFICULTY_MEDIUM = 2
+        const val DIFFICULTY_HARD = 3
+        const val DIFFICULTY_EXTREME = 3
+    }
+
     interface Algorithm {
         fun trySolve(): Boolean
     }
@@ -21,6 +30,7 @@ class SudokuSolver {
         fun onComplete(success: Boolean) {}
     }
 
+    var difficulty = DIFFICULTY_UNDEF
     var callback: ProgressCallback? = null
     val cells = ArrayList<Cell>()
     val groups = ArrayList<Group>()
@@ -135,14 +145,19 @@ class SudokuSolver {
      *
      */
     fun trySolve(): Boolean {
-        val algorithm = SolverV0(this, cells, groups, callback)
+        //val algorithm = SolverV0(this, cells, groups, callback)
+        val algorithm = SolverV1(this, cells, groups, callback)
         val algorithm_dfs = SolverDFS(this, cells, groups, callback)
 
         var retVal = algorithm.trySolve()
 
-        if (!retVal) {
-            retVal = algorithm_dfs.trySolve()
-        }
+//        if (!retVal) {
+//            difficulty = DIFFICULTY_EXTREME
+//            retVal = algorithm_dfs.trySolve()
+//            if (!retVal) {
+//                difficulty = DIFFICULTY_IMPOSSIBLE
+//            }
+//        }
 
         callback?.onComplete(retVal)
         return retVal
@@ -163,6 +178,9 @@ class SudokuSolver {
 
     // 数の配置が正しいか
     private val _isValid = MutableLiveData(false)
+
+    // TODO private val _isValid = calcIsValid() みたいに書けない?
+
     val isValid: LiveData<Boolean> = _isValid
 
     internal fun calcIsValid(): Boolean {
