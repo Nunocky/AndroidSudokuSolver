@@ -65,15 +65,15 @@ class SudokuSolver {
             groups.add(
                 Group(
                     setOf(
-                        cells[0 + i],
-                        cells[9 + i],
-                        cells[18 + i],
-                        cells[27 + i],
-                        cells[36 + i],
-                        cells[45 + i],
-                        cells[54 + i],
-                        cells[63 + i],
-                        cells[72 + i]
+                        cells[9 * 0 + i],
+                        cells[9 * 1 + i],
+                        cells[9 * 2 + i],
+                        cells[9 * 3 + i],
+                        cells[9 * 4 + i],
+                        cells[9 * 5 + i],
+                        cells[9 * 6 + i],
+                        cells[9 * 7 + i],
+                        cells[9 * 8 + i]
                     )
                 )
             )
@@ -86,9 +86,9 @@ class SudokuSolver {
                 groups.add(
                     Group(
                         setOf(
-                            cells[leftTop + 0], cells[leftTop + 1], cells[leftTop + 2],
-                            cells[leftTop + 9], cells[leftTop + 9 + 1], cells[leftTop + 9 + 2],
-                            cells[leftTop + 18], cells[leftTop + 18 + 1], cells[leftTop + 18 + 2]
+                            cells[leftTop + 9 * 0], cells[leftTop + 9 * 0 + 1], cells[leftTop + 9 * 0 + 2],
+                            cells[leftTop + 9 * 1], cells[leftTop + 9 * 1 + 1], cells[leftTop + 9 * 1 + 2],
+                            cells[leftTop + 9 * 2], cells[leftTop + 9 * 2 + 1], cells[leftTop + 9 * 2 + 2]
                         )
                     )
                 )

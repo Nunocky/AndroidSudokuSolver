@@ -35,14 +35,14 @@ class SolverV1(
                     valueChanged = valueChanged or filterLastOneCellInGroup(it)
                 }
 
-                // TODO このフィルタにバグ
+                // MEDIUM
                 if (1 < difficulty) {
                     groups.forEach {
                         valueChanged = valueChanged or filterGroupCellX(it)
                     }
                 }
 
-                // Combination filter
+                // HARD : Combination filter
                 if (2 < difficulty) {
                     for (group in groups) {
                         for (n in 2..4) {
@@ -98,7 +98,17 @@ class SolverV1(
         var changed = false
 
         if (cell.candidates.size == 1) {
-            cell.value = cell.candidates.first()
+            val fixedNum = cell.candidates.first()
+            cell.value = fixedNum
+
+            // TODO セルが確定したら所属するグループをここで更新する必要がある
+            //   重複してる処理なのでメソッドにする
+            cell.groups.forEach { g ->
+                g.cells.forEach {
+                    it.candidates.remove(fixedNum)
+                }
+            }
+
             changed = true
         }
 
@@ -124,6 +134,14 @@ class SolverV1(
 
         if (candidates.size == 1) {
             unFixedCell?.value = candidates.first()
+
+            // TODO セルが確定したら所属するグループをここで更新する必要がある
+            unFixedCell?.groups?.forEach { g ->
+                g.cells.forEach {
+                    it.candidates.remove(candidates.first())
+                }
+            }
+
             changed = true
         }
 
@@ -136,17 +154,22 @@ class SolverV1(
     private fun filterGroupCellX(group: Group): Boolean {
         var changed = false
 
-        // TODO ここにバグがある
         for (n in 1..9) {
-            val tmpCells = ArrayList<Cell>()
-            for (cell in group.cells) {
-                if (cell.candidates.contains(n)) {
-                    tmpCells.add(cell)
-                }
+            val tmpCells = group.cells.filter {
+                it.candidates.contains(n)
             }
 
-            if (tmpCells.count() == 1) {
-                tmpCells.first().value = n
+            if (tmpCells.size == 1) {
+                val c = tmpCells.first()
+                c.value = n
+
+                // TODO セルが確定したら所属するグループをここで更新する必要がある
+                c.groups.forEach { g ->
+                    g.cells.forEach {
+                        it.candidates.remove(n)
+                    }
+                }
+
                 changed = true
             }
         }
