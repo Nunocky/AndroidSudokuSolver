@@ -18,7 +18,7 @@ class SolverV1(
                 break
             }
 
-            parent.difficulty = difficulty
+            parent.difficulty = difficulty + SudokuSolver.DIFFICULTY_UNDEF
 
             var valueChanged = true
 

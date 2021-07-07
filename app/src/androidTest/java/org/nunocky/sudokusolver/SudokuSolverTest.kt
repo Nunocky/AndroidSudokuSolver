@@ -1,19 +1,20 @@
 package org.nunocky.sudokusolver
 
 import android.content.Context
+import android.os.Environment
 import android.util.Log
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import junit.framework.TestCase.assertTrue
+import junit.framework.TestCase.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.nunocky.sudokusolver.solver.Cell
 import org.nunocky.sudokusolver.solver.SudokuSolver
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import java.io.*
 import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
@@ -60,6 +61,46 @@ class SudokuSolverTest {
             callback = solverCallback
         }
     }
+
+    @Test
+    fun importDatabase() {
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+
+        val currentDBPath: String = appContext.getDatabasePath("appDatabase").absolutePath
+
+        // TODO 実装する
+        fail()
+    }
+
+    @Test
+    fun exportDatabase() {
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+
+        val currentDBPath: String = appContext.getDatabasePath("appDatabase").absolutePath
+
+        arrayOf("").forEach { postfix ->
+            val srcPath = currentDBPath + postfix
+            val filename = File(srcPath).name
+            FileInputStream(File(srcPath)).use { iStream ->
+                FileOutputStream(
+                    File(
+                        appContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
+                        filename
+                    )
+                ).use { oStream ->
+                    var len = 0
+                    val buffer = ByteArray(8 * 1024)
+                    do {
+                        len = iStream.read(buffer, 0, buffer.size)
+                        if (0 < len) {
+                            oStream.write(buffer, 0, len)
+                        }
+                    } while (0 < len)
+                }
+            }
+        }
+    }
+
 
     // TODO 解けない問題に対して正しい状態を返すテスト
 

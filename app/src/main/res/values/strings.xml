@@ -15,4 +15,13 @@
         <item>Standard + DFS</item>
         <item>only DFS</item>
     </string-array>
+
+    <string-array name="difficulty">
+        <item>IMPOSSIBLE</item>
+        <item>UNTESTED</item>
+        <item>EASY</item>
+        <item>MEDIUM</item>
+        <item>HARD</item>
+        <item>EXTREME</item>
+    </string-array>
 </resources>

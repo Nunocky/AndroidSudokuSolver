@@ -5,12 +5,12 @@ import androidx.lifecycle.MutableLiveData
 
 class SudokuSolver {
     companion object {
-        const val DIFFICULTY_IMPOSSIBLE = -1
-        const val DIFFICULTY_UNDEF = 0
-        const val DIFFICULTY_EASY = 1
-        const val DIFFICULTY_MEDIUM = 2
-        const val DIFFICULTY_HARD = 3
-        const val DIFFICULTY_EXTREME = 3
+        const val DIFFICULTY_IMPOSSIBLE = 0
+        const val DIFFICULTY_UNDEF = 1
+        const val DIFFICULTY_EASY = 2
+        const val DIFFICULTY_MEDIUM = 3
+        const val DIFFICULTY_HARD = 4
+        const val DIFFICULTY_EXTREME = 5
     }
 
     interface Algorithm {
@@ -150,7 +150,7 @@ class SudokuSolver {
      * 問題を最後まで自動で解く
      *
      */
-    fun trySolve(m: Int): Boolean {
+    fun trySolve(m: Int = 2): Boolean {
         val algorithm = SolverV1(this, cells, groups, callback)
         val algorithmDFS = SolverDFS(this, cells, groups, callback)
 

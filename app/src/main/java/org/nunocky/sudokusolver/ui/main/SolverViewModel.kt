@@ -97,6 +97,13 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
     private fun stopTimer() {
         timerJob.cancel()
     }
+
+    fun updateDifficulty(entityId: Long, difficulty: Int) = viewModelScope.launch(Dispatchers.IO) {
+        repository.findById(entityId)?.let { entity ->
+            entity.difficulty = difficulty
+            repository.update(entity)
+        }
+    }
 }
 
 private fun Long.toTimeStr(): String {
