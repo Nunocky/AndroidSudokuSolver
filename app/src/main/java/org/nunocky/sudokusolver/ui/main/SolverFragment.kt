@@ -74,6 +74,10 @@ class SolverFragment : Fragment() {
         // 速度を sharedPreferenceから復元
         viewModel.stepSpeed.value =
             requireActivity().getPreferences(Context.MODE_PRIVATE).getInt("stepSpeed", 0)
+
+        viewModel.solverMethod.value =
+            requireActivity().getPreferences(Context.MODE_PRIVATE).getInt("solverMethod", 1)
+
     }
 
     override fun onPause() {
@@ -81,6 +85,7 @@ class SolverFragment : Fragment() {
         // 速度を保存
         requireActivity().getPreferences(Context.MODE_PRIVATE).edit {
             putInt("stepSpeed", viewModel.stepSpeed.value ?: 0)
+            putInt("solverMethod", viewModel.solverMethod.value ?: 0)
             commit()
         }
     }
@@ -127,8 +132,9 @@ class SolverFragment : Fragment() {
         }
 
         override fun onComplete(success: Boolean) {
+            val difficulty = viewModel.solver.difficulty
             val message = if (success)
-                requireActivity().resources.getString(R.string.solver_success)
+                requireActivity().resources.getString(R.string.solver_success) + " 難度 $difficulty"
             else
                 requireActivity().resources.getString(R.string.solver_fail)
 

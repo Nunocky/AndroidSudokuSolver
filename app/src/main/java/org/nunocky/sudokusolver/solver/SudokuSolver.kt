@@ -4,6 +4,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 
 class SudokuSolver {
+    companion object {
+        const val DIFFICULTY_IMPOSSIBLE = -1
+        const val DIFFICULTY_UNDEF = 0
+        const val DIFFICULTY_EASY = 1
+        const val DIFFICULTY_MEDIUM = 2
+        const val DIFFICULTY_HARD = 3
+        const val DIFFICULTY_EXTREME = 3
+    }
+
     interface Algorithm {
         fun trySolve(): Boolean
     }
@@ -21,6 +30,7 @@ class SudokuSolver {
         fun onComplete(success: Boolean) {}
     }
 
+    var difficulty = DIFFICULTY_UNDEF
     var callback: ProgressCallback? = null
     val cells = ArrayList<Cell>()
     val groups = ArrayList<Group>()
@@ -55,15 +65,15 @@ class SudokuSolver {
             groups.add(
                 Group(
                     setOf(
-                        cells[0 + i],
-                        cells[9 + i],
-                        cells[18 + i],
-                        cells[27 + i],
-                        cells[36 + i],
-                        cells[45 + i],
-                        cells[54 + i],
-                        cells[63 + i],
-                        cells[72 + i]
+                        cells[9 * 0 + i],
+                        cells[9 * 1 + i],
+                        cells[9 * 2 + i],
+                        cells[9 * 3 + i],
+                        cells[9 * 4 + i],
+                        cells[9 * 5 + i],
+                        cells[9 * 6 + i],
+                        cells[9 * 7 + i],
+                        cells[9 * 8 + i]
                     )
                 )
             )
@@ -76,9 +86,15 @@ class SudokuSolver {
                 groups.add(
                     Group(
                         setOf(
-                            cells[leftTop + 0], cells[leftTop + 1], cells[leftTop + 2],
-                            cells[leftTop + 9], cells[leftTop + 9 + 1], cells[leftTop + 9 + 2],
-                            cells[leftTop + 18], cells[leftTop + 18 + 1], cells[leftTop + 18 + 2]
+                            cells[leftTop + 9 * 0],
+                            cells[leftTop + 9 * 0 + 1],
+                            cells[leftTop + 9 * 0 + 2],
+                            cells[leftTop + 9 * 1],
+                            cells[leftTop + 9 * 1 + 1],
+                            cells[leftTop + 9 * 1 + 2],
+                            cells[leftTop + 9 * 2],
+                            cells[leftTop + 9 * 2 + 1],
+                            cells[leftTop + 9 * 2 + 2]
                         )
                     )
                 )
@@ -134,14 +150,34 @@ class SudokuSolver {
      * 問題を最後まで自動で解く
      *
      */
-    fun trySolve(): Boolean {
-        val algorithm = SolverV0(this, cells, groups, callback)
-        val algorithm_dfs = SolverDFS(this, cells, groups, callback)
+    fun trySolve(m: Int): Boolean {
+        val algorithm = SolverV1(this, cells, groups, callback)
+        val algorithmDFS = SolverDFS(this, cells, groups, callback)
 
-        var retVal = algorithm.trySolve()
+        var retVal: Boolean
 
-        if (!retVal) {
-            retVal = algorithm_dfs.trySolve()
+        when (m) {
+            0 -> {
+                // only standard
+                retVal = algorithm.trySolve()
+            }
+            2 -> {
+                // only DFS
+                retVal = algorithmDFS.trySolve()
+                difficulty = DIFFICULTY_UNDEF // DFSだけ使ったときは判別できない
+            }
+            else -> {
+                // standard + DFS
+                retVal = algorithm.trySolve()
+
+                if (!retVal) {
+                    difficulty = DIFFICULTY_EXTREME
+                    retVal = algorithmDFS.trySolve()
+                    if (!retVal) {
+                        difficulty = DIFFICULTY_IMPOSSIBLE
+                    }
+                }
+            }
         }
 
         callback?.onComplete(retVal)
@@ -163,6 +199,9 @@ class SudokuSolver {
 
     // 数の配置が正しいか
     private val _isValid = MutableLiveData(false)
+
+    // TODO private val _isValid = calcIsValid() みたいに書けない?
+
     val isValid: LiveData<Boolean> = _isValid
 
     internal fun calcIsValid(): Boolean {

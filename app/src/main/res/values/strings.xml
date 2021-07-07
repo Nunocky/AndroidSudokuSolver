@@ -10,4 +10,9 @@
     <string name="open_source_license">オープンソースライセンス</string>
     <string name="github_page">GitHub Page</string>
 
+    <string-array name="solve_method">
+        <item>only Standard Solver</item>
+        <item>Standard + DFS</item>
+        <item>only DFS</item>
+    </string-array>
 </resources>
