@@ -144,12 +144,13 @@ class EditFragment : Fragment() {
         super.onResume()
         (activity as AppCompatActivity).supportActionBar?.title = "Edit"
 
+        viewModel.currentValue.value = 0
+
         // 画面遷移時(前後) で読み込み直す
         if (viewModel.entity.value == null) {
             if (args.entityId == 0L) {
-              viewModel.setNewSudoku()
-            }
-            else {
+                viewModel.setNewSudoku()
+            } else {
                 viewModel.loadSudoku(args.entityId)
             }
         }
