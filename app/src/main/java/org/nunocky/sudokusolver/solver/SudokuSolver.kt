@@ -39,68 +39,76 @@ class SudokuSolver {
     val groups = ArrayList<Group>()
 
     init {
-        repeat(81) {
-            cells.add(Cell())
+        repeat(81) { n ->
+            val cell = Cell().apply {
+                id = n
+            }
+            cells.add(cell)
         }
 
+        var groupId = 0
         // 横方向のグループ
         for (i in 0 until 9) {
             val p = i * 9
-            groups.add(
-                Group(
-                    setOf(
-                        cells[p + 0],
-                        cells[p + 1],
-                        cells[p + 2],
-                        cells[p + 3],
-                        cells[p + 4],
-                        cells[p + 5],
-                        cells[p + 6],
-                        cells[p + 7],
-                        cells[p + 8]
-                    )
+            val group = Group(
+                setOf(
+                    cells[p + 0],
+                    cells[p + 1],
+                    cells[p + 2],
+                    cells[p + 3],
+                    cells[p + 4],
+                    cells[p + 5],
+                    cells[p + 6],
+                    cells[p + 7],
+                    cells[p + 8]
                 )
-            )
+            ).apply {
+                id = groupId++
+            }
+            groups.add(group)
         }
 
         // 縦方向のグループ
         for (i in 0 until 9) {
-            groups.add(
-                Group(
-                    setOf(
-                        cells[9 * 0 + i],
-                        cells[9 * 1 + i],
-                        cells[9 * 2 + i],
-                        cells[9 * 3 + i],
-                        cells[9 * 4 + i],
-                        cells[9 * 5 + i],
-                        cells[9 * 6 + i],
-                        cells[9 * 7 + i],
-                        cells[9 * 8 + i]
-                    )
+            val group = Group(
+                setOf(
+                    cells[9 * 0 + i],
+                    cells[9 * 1 + i],
+                    cells[9 * 2 + i],
+                    cells[9 * 3 + i],
+                    cells[9 * 4 + i],
+                    cells[9 * 5 + i],
+                    cells[9 * 6 + i],
+                    cells[9 * 7 + i],
+                    cells[9 * 8 + i]
                 )
-            )
+            ).apply {
+                id = groupId++
+            }
+            groups.add(group)
+
         }
 
         // 3x3のグループ
         for (y in 0 until 3) {
             for (x in 0 until 3) {
                 val leftTop = y * 27 + x * 3
-                groups.add(
-                    Group(
-                        setOf(
-                            cells[leftTop + 9 * 0],
-                            cells[leftTop + 9 * 0 + 1],
-                            cells[leftTop + 9 * 0 + 2],
-                            cells[leftTop + 9 * 1],
-                            cells[leftTop + 9 * 1 + 1],
-                            cells[leftTop + 9 * 1 + 2],
-                            cells[leftTop + 9 * 2],
-                            cells[leftTop + 9 * 2 + 1],
-                            cells[leftTop + 9 * 2 + 2]
-                        )
+                val group = Group(
+                    setOf(
+                        cells[leftTop + 9 * 0],
+                        cells[leftTop + 9 * 0 + 1],
+                        cells[leftTop + 9 * 0 + 2],
+                        cells[leftTop + 9 * 1],
+                        cells[leftTop + 9 * 1 + 1],
+                        cells[leftTop + 9 * 1 + 2],
+                        cells[leftTop + 9 * 2],
+                        cells[leftTop + 9 * 2 + 1],
+                        cells[leftTop + 9 * 2 + 2]
                     )
-                )
+                ).apply {
+                    id = groupId++
+                }
+                groups.add(group)
             }
         }
 
