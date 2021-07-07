@@ -22,6 +22,18 @@
             app:layout_constraintStart_toEndOf="@+id/textView3"
             app:layout_constraintTop_toTopOf="@+id/guideline2" />
 
+        <Spinner
+            android:selectedItemPosition="@={viewModel.solverMethod}"
+            android:id="@+id/spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:entries="@array/solve_method"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView3" />
+
         <TextView
             android:id="@+id/textView3"
             android:layout_width="wrap_content"
@@ -43,6 +55,19 @@
             android:typeface="monospace"
             app:layout_constraintBottom_toTopOf="@+id/btnStop"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnReset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="@{viewModel.inProgress == Status.DONE}"
+            android:padding="16dp"
+            android:src="@drawable/restart"
+            app:layout_constraintBottom_toBottomOf="@+id/btnStop"
+            app:layout_constraintEnd_toStartOf="@+id/btnStop"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintStart_toStartOf="parent" />
 
         <androidx.appcompat.widget.AppCompatImageButton
@@ -71,19 +96,6 @@
             app:layout_constraintEnd_toStartOf="@+id/btnStart"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/btnReset" />
-
-        <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/btnReset"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:enabled="@{viewModel.inProgress == Status.DONE}"
-            android:padding="16dp"
-            android:src="@drawable/restart"
-            app:layout_constraintBottom_toBottomOf="@+id/btnStop"
-            app:layout_constraintEnd_toStartOf="@+id/btnStop"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toStartOf="parent" />
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline2"

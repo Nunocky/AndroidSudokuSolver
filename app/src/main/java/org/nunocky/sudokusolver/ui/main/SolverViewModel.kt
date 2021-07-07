@@ -26,13 +26,14 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
 
     val inProgress = MutableLiveData(Status.INIT)
     val elapsedTime = MutableLiveData("00:00.000")
+    val stepSpeed = MutableLiveData(0)
+    val solverMethod = MutableLiveData(1)
+
     private var startTime = 0L
     private var currentTime = 0L
 
     private var solverJob: Job = Job().apply { cancel() }
     private var timerJob: Job = Job().apply { cancel() }
-
-    val stepSpeed = MutableLiveData(0)
 
     val solver = SudokuSolver()
 
@@ -48,7 +49,7 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
 
             startTimer()
 
-            val success = kotlin.runCatching {
+            kotlin.runCatching {
                 solver.callback = object : SudokuSolver.ProgressCallback {
                     override fun onProgress(cells: List<Cell>) {
                         if (!isActive) {
@@ -61,7 +62,8 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
                         callback.onComplete(success)
                     }
                 }
-                solver.trySolve()
+
+                solver.trySolve(solverMethod.value ?: 0)
             }
 
             stopTimer()

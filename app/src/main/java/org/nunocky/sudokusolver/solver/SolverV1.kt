@@ -9,38 +9,45 @@ class SolverV1(
     private val callback: SudokuSolver.ProgressCallback?
 ) : SudokuSolver.Algorithm {
 
+    private fun isSolved() = parent.isSolved()
+
     override fun trySolve(): Boolean {
-        // 最も基本的なフィルタ。 レベルは EASY
         for (difficulty in 1..3) {
-            if (parent.isSolved()) {
+
+            if (isSolved()) {
                 break
             }
+
             parent.difficulty = difficulty
 
             var valueChanged = true
 
-            while (!parent.isSolved() && valueChanged) {
+            while (!isSolved() && valueChanged) {
                 valueChanged = false
 
                 // EASY
                 cells.forEach { cell ->
                     valueChanged = valueChanged or filter0(cell)
                 }
+                callback?.onProgress(cells)
 
                 cells.forEach { cell ->
                     valueChanged = valueChanged or filterOneCandidate(cell)
                 }
+//                callback?.onProgress(cells)
 
                 groups.forEach {
                     valueChanged = valueChanged or filterLastOneCellInGroup(it)
                 }
+//                callback?.onProgress(cells)
 
                 // MEDIUM
                 if (1 < difficulty) {
-                    groups.forEach {
-                        valueChanged = valueChanged or filterGroupCellX(it)
+                    groups.forEach { g ->
+                        valueChanged = valueChanged or filterGroupCellX(g)
                     }
                 }
+//                callback?.onProgress(cells)
 
                 // HARD : Combination filter
                 if (2 < difficulty) {
@@ -59,33 +66,22 @@ class SolverV1(
                 }
             }
 
-            if (parent.isSolved()) {
+            if (isSolved()) {
                 return true
             }
         }
 
-        return parent.isSolved()
+        return isSolved()
     }
 
     /**
      * あるセルの要素が確定しているとき、そのセルが属するすべてのグループでそのセルの値は候補から外れる
      */
     private fun filter0(cell: Cell): Boolean {
-        if (!cell.isFixed) {
-            return false
-        }
-
         var changed = false
-        val fixedNum = cell.value
 
-        // cellが所属しているグループの各セルについて、確定していなければそのセルの候補から除外
-        cell.groups.forEach { group ->
-            for (c in group.cells) {
-                if (c.candidates.contains(fixedNum)) {
-                    c.candidates.remove(fixedNum)
-                    changed = true
-                }
-            }
+        if (cell.isFixed) {
+            changed = changed or sweepCandidateForCell(cell, cell.value)
         }
 
         return changed
@@ -100,14 +96,7 @@ class SolverV1(
         if (cell.candidates.size == 1) {
             val fixedNum = cell.candidates.first()
             cell.value = fixedNum
-
-            // TODO セルが確定したら所属するグループをここで更新する必要がある
-            //   重複してる処理なのでメソッドにする
-            cell.groups.forEach { g ->
-                g.cells.forEach {
-                    it.candidates.remove(fixedNum)
-                }
-            }
+            sweepCandidateForCell(cell, fixedNum)
 
             changed = true
         }
@@ -133,16 +122,12 @@ class SolverV1(
         }
 
         if (candidates.size == 1) {
-            unFixedCell?.value = candidates.first()
-
-            // TODO セルが確定したら所属するグループをここで更新する必要がある
-            unFixedCell?.groups?.forEach { g ->
-                g.cells.forEach {
-                    it.candidates.remove(candidates.first())
-                }
+            unFixedCell?.let { cell ->
+                val fixedNum = candidates.first()
+                cell.value = fixedNum
+                sweepCandidateForCell(cell, fixedNum)
+                changed = true
             }
-
-            changed = true
         }
 
         return changed
@@ -162,14 +147,7 @@ class SolverV1(
             if (tmpCells.size == 1) {
                 val c = tmpCells.first()
                 c.value = n
-
-                // TODO セルが確定したら所属するグループをここで更新する必要がある
-                c.groups.forEach { g ->
-                    g.cells.forEach {
-                        it.candidates.remove(n)
-                    }
-                }
-
+                changed = changed or sweepCandidateForCell(c, n)
                 changed = true
             }
         }
@@ -213,10 +191,34 @@ class SolverV1(
                 }
 
                 cellAry.first().candidates.forEach { v ->
-                    cell.candidates.remove(v)
+                    if (cell.candidates.contains(v)) {
+                        cell.candidates.remove(v)
+                        changed = true
+                    }
                 }
 
                 changed = changed or filterOneCandidate(cell)
+            }
+        }
+
+        return changed
+    }
+
+    /**
+     * cellの所属するグループに対して、すべてのセルから候補 nを取り除く
+     */
+    private fun sweepCandidateForCell(cell: Cell, n: Int): Boolean {
+        var changed = false
+        for (g in cell.groups) {
+            for (c in g.cells) {
+                if (c == cell) {
+                    continue
+                }
+
+                if (c.candidates.contains(n)) {
+                    c.candidates.remove(n)
+                    changed = true
+                }
             }
         }
 

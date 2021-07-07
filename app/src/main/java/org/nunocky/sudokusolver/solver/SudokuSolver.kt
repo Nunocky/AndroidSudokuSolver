@@ -86,9 +86,15 @@ class SudokuSolver {
                 groups.add(
                     Group(
                         setOf(
-                            cells[leftTop + 9 * 0], cells[leftTop + 9 * 0 + 1], cells[leftTop + 9 * 0 + 2],
-                            cells[leftTop + 9 * 1], cells[leftTop + 9 * 1 + 1], cells[leftTop + 9 * 1 + 2],
-                            cells[leftTop + 9 * 2], cells[leftTop + 9 * 2 + 1], cells[leftTop + 9 * 2 + 2]
+                            cells[leftTop + 9 * 0],
+                            cells[leftTop + 9 * 0 + 1],
+                            cells[leftTop + 9 * 0 + 2],
+                            cells[leftTop + 9 * 1],
+                            cells[leftTop + 9 * 1 + 1],
+                            cells[leftTop + 9 * 1 + 2],
+                            cells[leftTop + 9 * 2],
+                            cells[leftTop + 9 * 2 + 1],
+                            cells[leftTop + 9 * 2 + 2]
                         )
                     )
                 )
@@ -144,20 +150,35 @@ class SudokuSolver {
      * 問題を最後まで自動で解く
      *
      */
-    fun trySolve(): Boolean {
-        //val algorithm = SolverV0(this, cells, groups, callback)
+    fun trySolve(m: Int): Boolean {
         val algorithm = SolverV1(this, cells, groups, callback)
-        val algorithm_dfs = SolverDFS(this, cells, groups, callback)
+        val algorithmDFS = SolverDFS(this, cells, groups, callback)
 
-        var retVal = algorithm.trySolve()
+        var retVal: Boolean
 
-//        if (!retVal) {
-//            difficulty = DIFFICULTY_EXTREME
-//            retVal = algorithm_dfs.trySolve()
-//            if (!retVal) {
-//                difficulty = DIFFICULTY_IMPOSSIBLE
-//            }
-//        }
+        when (m) {
+            0 -> {
+                // only standard
+                retVal = algorithm.trySolve()
+            }
+            2 -> {
+                // only DFS
+                retVal = algorithmDFS.trySolve()
+                difficulty = DIFFICULTY_UNDEF // DFSだけ使ったときは判別できない
+            }
+            else -> {
+                // standard + DFS
+                retVal = algorithm.trySolve()
+
+                if (!retVal) {
+                    difficulty = DIFFICULTY_EXTREME
+                    retVal = algorithmDFS.trySolve()
+                    if (!retVal) {
+                        difficulty = DIFFICULTY_IMPOSSIBLE
+                    }
+                }
+            }
+        }
 
         callback?.onComplete(retVal)
         return retVal
