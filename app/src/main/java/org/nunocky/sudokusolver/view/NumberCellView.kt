@@ -48,10 +48,10 @@ class NumberCellView : View {
         textSize = 10f
     }
 
-    private val linePaint = Paint().apply {
-        strokeWidth = 2f
-        color = Color.BLACK
-    }
+//    private val linePaint = Paint().apply {
+//        strokeWidth = 2f
+//        color = Color.BLACK
+//    }
 
     private val borderPaint = Paint(ANTI_ALIAS_FLAG).apply {
         strokeWidth = 8f
@@ -116,24 +116,28 @@ class NumberCellView : View {
     override fun draw(canvas: Canvas?) {
         super.draw(canvas)
 
+        if (canvas == null) {
+            return
+        }
+
         // draw borders
         borderPaint.strokeWidth = calcBorderWidth(topBorderStyle, canvasWidth)
-        canvas?.drawLine(0f, 0f, canvasWidth, 0f, borderPaint)
+        canvas.drawLine(0f, 0f, canvasWidth, 0f, borderPaint)
 
         borderPaint.strokeWidth = calcBorderWidth(rightBorderStyle, canvasHeight)
-        canvas?.drawLine(canvasWidth, 0f, canvasWidth, canvasHeight, borderPaint)
+        canvas.drawLine(canvasWidth, 0f, canvasWidth, canvasHeight, borderPaint)
 
         borderPaint.strokeWidth = calcBorderWidth(bottomBorderStyle, canvasHeight)
-        canvas?.drawLine(0f, canvasHeight, canvasWidth, canvasHeight, borderPaint)
+        canvas.drawLine(0f, canvasHeight, canvasWidth, canvasHeight, borderPaint)
 
         borderPaint.strokeWidth = calcBorderWidth(leftBorderStyle, canvasHeight)
-        canvas?.drawLine(0f, 0f, 0f, canvasHeight, borderPaint)
+        canvas.drawLine(0f, 0f, 0f, canvasHeight, borderPaint)
 
         if (showCandidates) {
             // draw cell lines
             // vertical
             for (lx in 0..2) {
-                canvas?.drawLine(
+                canvas.drawLine(
                     canvasWidth / 3f * lx, 0f,
                     canvasWidth / 3f * lx, canvasHeight,
                     candidatesPaint
@@ -142,7 +146,7 @@ class NumberCellView : View {
 
             // horizontal
             for (ly in 0..2) {
-                canvas?.drawLine(
+                canvas.drawLine(
                     0f, canvasHeight / 3f * ly,
                     canvasWidth, canvasHeight / 3f * ly,
                     candidatesPaint
@@ -162,7 +166,7 @@ class NumberCellView : View {
                     val baseX = centerX - textWidth / 2f
                     val baseY = centerY - (fontMetrics.ascent + fontMetrics.descent) / 2f
 
-                    canvas?.drawText("$v", baseX, baseY, candidatesPaint)
+                    canvas.drawText("$v", baseX, baseY, candidatesPaint)
                 }
             }
         }
@@ -177,7 +181,7 @@ class NumberCellView : View {
             val baseX = centerX - textWidth / 2f
             val baseY = centerY - (fontMetrics.ascent + fontMetrics.descent) / 2f
 
-            canvas?.drawText(text, baseX, baseY, textPaint)
+            canvas.drawText(text, baseX, baseY, textPaint)
         }
     }
 
