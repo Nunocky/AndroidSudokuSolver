@@ -130,7 +130,9 @@ class EditFragment : Fragment() {
         }
 
         if (!isChecked) {
-            if (currentCell != null && currentCell?.fixedNum == buttonIndex) {
+            if (currentCell == null) {
+                viewModel.currentValue.value = 0
+            } else if (currentCell?.fixedNum == buttonIndex) {
                 viewModel.currentValue.value = 0
             }
 
@@ -147,9 +149,8 @@ class EditFragment : Fragment() {
         // 画面遷移時(前後) で読み込み直す
         if (viewModel.entity.value == null) {
             if (args.entityId == 0L) {
-              viewModel.setNewSudoku()
-            }
-            else {
+                viewModel.setNewSudoku()
+            } else {
                 viewModel.loadSudoku(args.entityId)
             }
         }
