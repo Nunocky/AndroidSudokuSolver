@@ -67,6 +67,9 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
             }
 
             stopTimer()
+
+            val solverElapsedTime = solver.getElapsedTime()
+            elapsedTime.postValue(solverElapsedTime.toTimeStr())
             inProgress.postValue(Status.DONE)
         }
     }

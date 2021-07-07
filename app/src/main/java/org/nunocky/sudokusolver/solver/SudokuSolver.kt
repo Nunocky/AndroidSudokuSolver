@@ -30,6 +30,9 @@ class SudokuSolver {
         fun onComplete(success: Boolean) {}
     }
 
+    private var elapsedTime: Long = 0
+    fun getElapsedTime() = elapsedTime
+
     var difficulty = DIFFICULTY_UNDEF
     var callback: ProgressCallback? = null
     val cells = ArrayList<Cell>()
@@ -151,6 +154,8 @@ class SudokuSolver {
      *
      */
     fun trySolve(m: Int = 2): Boolean {
+        val tmStart = System.currentTimeMillis()
+
         val algorithm = SolverV1(this, cells, groups, callback)
         val algorithmDFS = SolverDFS(this, cells, groups, callback)
 
@@ -181,6 +186,10 @@ class SudokuSolver {
         }
 
         callback?.onComplete(retVal)
+
+        val tmEnd = System.currentTimeMillis()
+
+        elapsedTime = tmEnd - tmStart
         return retVal
     }
 

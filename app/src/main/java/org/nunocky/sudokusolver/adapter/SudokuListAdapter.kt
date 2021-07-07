@@ -1,5 +1,6 @@
 package org.nunocky.sudokusolver.adapter
 
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -64,8 +65,37 @@ class SudokuListAdapter(var list: List<SudokuEntity>) :
             }
 
             val difficulty = entity.difficulty ?: SudokuSolver.DIFFICULTY_UNDEF
-            val textArray = context.resources.getTextArray(R.array.difficulty)
-            holder.binding.text1.text = textArray[difficulty]
+
+            holder.binding.text1.apply {
+                val textArray = context.resources.getTextArray(R.array.difficulty)
+                val text1Color = when (difficulty) {
+                    1 -> {
+                        R.color.difficulty_undef
+                    }
+                    2 -> {
+                        R.color.difficulty_easy
+                    }
+                    3 -> {
+                        R.color.difficulty_medium
+                    }
+                    4 -> {
+                        R.color.difficulty_hard
+                    }
+                    5 -> {
+                        R.color.difficulty_extreme
+                    }
+                    else -> {
+                        R.color.difficulty_impossible
+                    }
+                }
+
+                this.text = textArray[difficulty]
+                if (Build.VERSION_CODES.M <= Build.VERSION.SDK_INT) {
+                    this.setTextColor(ContextCompat.getColor(context, text1Color))
+                } else {
+                    this.setTextColor(context.resources.getColor(text1Color))
+                }
+            }
 
             updated = false
         }
