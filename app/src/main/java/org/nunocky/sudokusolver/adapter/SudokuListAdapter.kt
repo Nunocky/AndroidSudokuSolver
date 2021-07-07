@@ -9,6 +9,7 @@ import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.databinding.SudokuListItemBinding
 import org.nunocky.sudokusolver.solver.Cell
+import org.nunocky.sudokusolver.solver.SudokuSolver
 
 class SudokuListAdapter(var list: List<SudokuEntity>) :
     RecyclerView.Adapter<SudokuListAdapter.SudokuListAdapterViewHolder>() {
@@ -61,6 +62,11 @@ class SudokuListAdapter(var list: List<SudokuEntity>) :
                     cellView.setBackgroundColor(ContextCompat.getColor(context, R.color.fixedCell))
                 }
             }
+
+            val difficulty = entity.difficulty ?: SudokuSolver.DIFFICULTY_UNDEF
+            val textArray = context.resources.getTextArray(R.array.difficulty)
+            holder.binding.text1.text = textArray[difficulty]
+
             updated = false
         }
 

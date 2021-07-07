@@ -8,6 +8,7 @@ import java.util.*
 data class SudokuEntity(
     @PrimaryKey(autoGenerate = true) var id: Long = 0L,
     var cells: String = "000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-    var createdAt: Calendar = Calendar.getInstance()
+    var createdAt: Calendar = Calendar.getInstance(),
+    var difficulty: Int? = 0
 )
 

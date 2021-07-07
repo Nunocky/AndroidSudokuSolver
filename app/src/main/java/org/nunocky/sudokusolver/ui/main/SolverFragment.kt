@@ -138,6 +138,16 @@ class SolverFragment : Fragment() {
             else
                 requireActivity().resources.getString(R.string.solver_fail)
 
+            // 成功したときは難易度をデータベースに反映する
+            if (success) {
+
+
+                when (viewModel.solverMethod.value ?: 1) {
+                    0, 1 -> {
+                        viewModel.updateDifficulty(args.entityId, difficulty)
+                    }
+                }
+            }
             val bgColor = if (success)
                 ContextCompat.getColor(requireContext(), R.color.solverSuccess)
             else
