@@ -189,6 +189,7 @@ class SudokuBoardView : ConstraintLayout {
 
     fun updateCells(cells: List<Cell>) {
         cellViews.forEachIndexed { n, cellView ->
+            cellView.onFocus = false
             cellView.fixedNum = cells[n].value
             cellView.candidates = cells[n].candidates.toIntArray()
         }
