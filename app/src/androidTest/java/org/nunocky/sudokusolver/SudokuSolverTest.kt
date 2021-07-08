@@ -134,6 +134,20 @@ class SudokuSolverTest {
         assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
     }
 
+    @Test
+    fun testDFS() {
+//        solver.load(targetEasy)  // 解けた
+//        solver.load(targetMedium)  // 解けた
+        solver.load(targetHard) // 解けた
+//        solver.load(targetExtreme) // 解けない (´・ω・｀)
+
+        assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
+
+        val solved = solver.trySolve(2)
+        assertTrue(solved)
+        assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
+    }
+
     /**
      * アセット内のテキストファイルに格納された問題をすべて解く
      */
@@ -204,5 +218,17 @@ class SudokuSolverTest {
                     "008065000" +
                     "000080000" +
                     "570320900"
+
+        private const val targetExtreme =
+            "000080109" +
+                    "902300040" +
+                    "005901700" +
+                    "100800067" +
+                    "000000000" +
+                    "520004001" +
+                    "001007900" +
+                    "060103508" +
+                    "703090002"
+
     }
 }
