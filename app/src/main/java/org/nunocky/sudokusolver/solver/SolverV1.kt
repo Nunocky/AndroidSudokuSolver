@@ -235,13 +235,13 @@ private class FilterCombination(parent: SolverV1, private val group: Group, priv
     }
 }
 
-
 // /**
 // * あるセルに対して、関連する3つのグループにおいて
 // *   + 候補 nを持つセルが1つだけ
 // * が共通している
 // */
-//    private fun filterGroupCellX2(cell: Cell): Boolean {
+//private class FilterGroupCellX2(parent: SolverV1, private val cell: Cell) : SudokuFilter(parent) {
+//    override fun exec(): Boolean {
 //        var changed = false
 //
 //        val ary = IntArray()
@@ -260,5 +260,4 @@ private class FilterCombination(parent: SolverV1, private val group: Group, priv
 //
 //        return changed
 //    }
-
-
+//}
