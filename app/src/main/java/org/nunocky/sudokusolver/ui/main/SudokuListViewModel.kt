@@ -1,8 +1,6 @@
 package org.nunocky.sudokusolver.ui.main
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.nunocky.sudokusolver.SudokuRepository
@@ -17,7 +15,48 @@ class SudokuListViewModel(private val repository: SudokuRepository) : ViewModel(
         }
     }
 
-    val sudokuList = repository.findAll()
+    val filterImpossible = MutableLiveData(true)
+    val filterUnTested = MutableLiveData(true)
+    val filterEasy = MutableLiveData(true)
+    val filterMedium = MutableLiveData(true)
+    val filterHard = MutableLiveData(true)
+    val filterExtreme = MutableLiveData(true)
+
+    val filter = MediatorLiveData<SudokuRepository.Filter?>()
+
+    init {
+        arrayOf(
+            filterImpossible,
+            filterUnTested,
+            filterEasy,
+            filterMedium,
+            filterHard,
+            filterExtreme
+        ).forEach {
+            filter.addSource(it) {
+                filter.postValue(
+                    SudokuRepository.Filter(
+                        checkImpossible = filterImpossible.value ?: true,
+                        checkUntested = filterUnTested.value ?: true,
+                        checkEasy = filterEasy.value ?: true,
+                        checkMedium = filterMedium.value ?: true,
+                        checkHard = filterHard.value ?: true,
+                        checkExtreme = filterExtreme.value ?: true,
+                    )
+                )
+            }
+        }
+    }
+
+    val sudokuList =
+        Transformations.switchMap(filter) {
+            if (it != null) {
+                val difficulties = it.toIntArray()
+                repository.findByDifficulties(difficulties)
+            } else {
+                repository.findAll()
+            }
+        }
 
     fun deleteItem(entity: SudokuEntity) = viewModelScope.launch(Dispatchers.IO) {
         repository.delete(entity)

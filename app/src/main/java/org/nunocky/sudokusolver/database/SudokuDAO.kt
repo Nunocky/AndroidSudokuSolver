@@ -19,4 +19,7 @@ interface SudokuDAO {
 
     @Query("select * from sudoku order by createdAt")
     fun findAll(): LiveData<List<SudokuEntity>>
+
+    @Query("select * from sudoku where difficulty in (:difficulties)")
+    fun findByDifficulties(difficulties: List<Int>): LiveData<List<SudokuEntity>>
 }
