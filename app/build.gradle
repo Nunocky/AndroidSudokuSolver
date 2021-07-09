@@ -15,7 +15,7 @@ android {
         applicationId "org.nunocky.sudokusolver"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 2
+        versionCode 3
         versionName "1.0"
 
         javaCompileOptions {
