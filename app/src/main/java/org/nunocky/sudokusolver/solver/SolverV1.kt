@@ -28,63 +28,82 @@ class SolverV1(
             basicFilters.add(FilterLastOneCellInGroup(this, group))
         }
 
+        mediumFilters.add(Filter3Lines(this, listOf(groups[0], groups[1], groups[2])))
+        mediumFilters.add(Filter3Lines(this, listOf(groups[3], groups[4], groups[5])))
+        mediumFilters.add(Filter3Lines(this, listOf(groups[6], groups[7], groups[8])))
+        mediumFilters.add(Filter3Lines(this, listOf(groups[9], groups[10], groups[11])))
+        mediumFilters.add(Filter3Lines(this, listOf(groups[12], groups[13], groups[14])))
+        mediumFilters.add(Filter3Lines(this, listOf(groups[15], groups[16], groups[17])))
+
         for (group in groups) {
             for (n in 2..7) {
-                mediumFilters.add(FilterCombination(this, group, n))
+                hardFilters.add(FilterCombination(this, group, n))
             }
         }
-
-        // TODO add hard filters
-        // valueChanged = valueChanged or filterGroupCellX2(cell.groups)
     }
 
-    // TODO : 不正な解析を行ったら例外を発生させる
+    private fun execEasyFilter(): Boolean {
+        var changed = false
+        var shouldRepeat: Boolean
+        shouldRepeat = true
+        do {
+            for (filter in basicFilters) {
+                shouldRepeat = filter.exec()
+                changed = changed or shouldRepeat
+
+                callback?.onProgress(cells)
+                if (!parent.calcIsValid()) {
+                    throw SudokuSolver.SolverError()
+                }
+            }
+        } while (shouldRepeat)
+        return changed
+    }
+
     override fun trySolve(): Boolean {
 
         for (difficulty in 0..2) {
             parent.difficulty = difficulty + SudokuSolver.DIFFICULTY_EASY
 
             var valueChanged = true
+            var shouldRepeat: Boolean
 
             while (!isSolved() && valueChanged) {
                 valueChanged = false
 
-                var shouldRepeat: Boolean
-
                 // EASY
-                shouldRepeat = true
-                do {
-                    for (filter in basicFilters) {
+                execEasyFilter()
+
+                // MEDIUM
+                if (0 < difficulty) {
+                    shouldRepeat = true
+                    for (filter in mediumFilters) {
+                        if (shouldRepeat) {
+                            execEasyFilter()
+                        }
                         shouldRepeat = filter.exec()
                         valueChanged = valueChanged or shouldRepeat
 
                         callback?.onProgress(cells)
                         if (!parent.calcIsValid()) {
-                            return false
-                        }
-                    }
-                } while (shouldRepeat)
-
-                // MEDIUM
-                if (0 < difficulty) {
-                    for (filter in mediumFilters) {
-                        valueChanged = valueChanged or filter.exec()
-
-                        callback?.onProgress(cells)
-                        if (!parent.calcIsValid()) {
-                            return false
+                            throw SudokuSolver.SolverError()
                         }
                     }
                 }
 
                 // HARD
                 if (1 < difficulty) {
+                    shouldRepeat = true
                     for (filter in hardFilters) {
-                        valueChanged = valueChanged or filter.exec()
+                        if (shouldRepeat) {
+                            execEasyFilter()
+                        }
+                        shouldRepeat = filter.exec()
+                        valueChanged = valueChanged or shouldRepeat
 
                         callback?.onProgress(cells)
                         if (!parent.calcIsValid()) {
-                            return false
+                            throw SudokuSolver.SolverError()
                         }
                     }
                 }
@@ -235,29 +254,36 @@ private class FilterCombination(parent: SolverV1, private val group: Group, priv
     }
 }
 
-// /**
-// * あるセルに対して、関連する3つのグループにおいて
-// *   + 候補 nを持つセルが1つだけ
-// * が共通している
-// */
-//private class FilterGroupCellX2(parent: SolverV1, private val cell: Cell) : SudokuFilter(parent) {
-//    override fun exec(): Boolean {
-//        var changed = false
-//
-//        val ary = IntArray()
-//        for (g in cell.groups) {
-//            for (n in 1..9) {
-//                val tmpCells = groups.flatMap { it.cells }
-//
-//                if (tmpCells.size == 1) {
-//                    val c = tmpCells.first()
-//                    fixCell(c, n)
-//                    changed = true
-//                    ary.put(n)
-//                }
-//            }
-//        }
-//
-//        return changed
-//    }
-//}
+/**
+ * 数字 n に対して、与えられた3つのグループについて
+ * + 他の2列で nが確定している
+ * + 残りの列に候補 n のセルがただ一つだけ存在する
+ * 上記を満たすとき、そのセルは nで確定する
+ */
+private class Filter3Lines(
+    parent: SolverV1,
+    private val group: List<Group>
+) :
+    SudokuFilter(parent) {
+    override fun exec(): Boolean {
+        arrayOf(
+            Triple(0, 1, 2),
+            Triple(1, 2, 0),
+            Triple(2, 0, 1),
+        ).forEach { t ->
+            for (n in 1..9) {
+                val x = group[t.first].cells.any { it.value == n }
+                val y = group[t.second].cells.any { it.value == n }
+                val z = group[t.third].cells.filter { it.candidates.contains(n) }
+
+                if (x and y && z.size == 1) {
+                    z.first().value = n
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
+}
+

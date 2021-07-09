@@ -1,5 +1,6 @@
 package org.nunocky.sudokusolver.ui.main
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -49,7 +50,7 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
 
             startTimer()
 
-            kotlin.runCatching {
+            val result = kotlin.runCatching {
                 solver.callback = object : SudokuSolver.ProgressCallback {
                     override fun onProgress(cells: List<Cell>) {
                         if (!isActive) {
@@ -71,6 +72,12 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
             val solverElapsedTime = solver.getElapsedTime()
             elapsedTime.postValue(solverElapsedTime.toTimeStr())
             inProgress.postValue(Status.DONE)
+
+            if (result.isSuccess) {
+
+            } else {
+                Log.d(TAG, "error")
+            }
         }
     }
 
@@ -106,6 +113,10 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
             entity.difficulty = difficulty
             repository.update(entity)
         }
+    }
+
+    companion object {
+        private const val TAG = "SolverViewModel"
     }
 }
 

@@ -13,6 +13,8 @@ class SudokuSolver {
         const val DIFFICULTY_EXTREME = 5
     }
 
+    class SolverError() : IllegalStateException()
+
     interface Algorithm {
         fun trySolve(): Boolean
     }
