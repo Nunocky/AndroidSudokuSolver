@@ -17,11 +17,12 @@ class SolverDFS(
         return depthFirstSearch()
     }
 
-    //private fun isSolved() = parent.isSolved()
+    private fun isSolved() = parent.isSolved()
 
     /**
      * 深さ優先探索による解決を試みる
      * TODO 探査順を変える。残り候補の少ないセルを先に処理すれば速くなるはず
+     *       ... というわけでもなかった
      */
 
     private lateinit var cellList: List<Cell>
@@ -29,20 +30,42 @@ class SolverDFS(
 
     private fun setup() {
         // 基本的なフィルタをかける (明らかに必要でない候補をへらす)
-        for (cell in cells) {
-            if (cell.isFixed) {
-                sweepCandidateForCell(cell, cell.value)
-            }
-        }
+        var shouldRepeat: Boolean
+        do {
+            shouldRepeat = false
 
-        // 基本的なフィルタで残り候補1となったものは確定させておく
-        for (cell in cells) {
-            if (cell.candidates.size == 1) {
-                cell.value = cell.candidates.first()
-            }
-        }
+            for (cell in cells) {
+                if (cell.isFixed) {
+                    val n = cell.value
+                    cell.groups.forEach { g ->
+                        g.cells.forEach { c ->
+                            if (c.candidates.contains(n)) {
+                                c.candidates.remove(n)
+                            }
 
-        // TODO sortedBy, sortedByDescendingとどちらが速いのだろう
+                            // そのセルの候補が残り1だったらそのセルは確定。そのときはもう一度このフィルタを繰り返す
+                            if (c.candidates.size == 1) {
+                                c.value = c.candidates.first()
+                                shouldRepeat = true
+                            }
+                        }
+                    }
+                }
+            }
+        } while (shouldRepeat)
+//        for (cell in cells) {
+//            if (cell.isFixed) {
+//                sweepCandidateForCell(cell, cell.value)
+//            }
+//        }
+//
+//        // 基本的なフィルタで残り候補1となったものは確定させておく
+//        for (cell in cells) {
+//            if (cell.candidates.size == 1) {
+//                cell.value = cell.candidates.first()
+//            }
+//        }
+
         cellList = cells.filter { 0 < it.candidates.size }.sortedBy { it.candidates.size }
         Log.d(TAG, "${cellList.size}")
 
@@ -53,7 +76,7 @@ class SolverDFS(
         maxDepth = depth.coerceAtLeast(maxDepth)
 
         // 終端確認
-        if (parent.isSolved()) {
+        if (isSolved()) {
             return true
         }
 
