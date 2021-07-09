@@ -66,7 +66,7 @@ class SolverV1(
             parent.difficulty = difficulty + SudokuSolver.DIFFICULTY_EASY
 
             var valueChanged = true
-            var shouldRepeat: Boolean
+            var shouldRefresh: Boolean
 
             while (!isSolved() && valueChanged) {
                 valueChanged = false
@@ -76,13 +76,13 @@ class SolverV1(
 
                 // MEDIUM
                 if (0 < difficulty) {
-                    shouldRepeat = true
+                    shouldRefresh = true
                     for (filter in mediumFilters) {
-                        if (shouldRepeat) {
+                        if (shouldRefresh) {
                             execEasyFilter()
                         }
-                        shouldRepeat = filter.exec()
-                        valueChanged = valueChanged or shouldRepeat
+                        shouldRefresh = filter.exec()
+                        valueChanged = valueChanged or shouldRefresh
 
                         callback?.onProgress(cells)
                         if (!parent.calcIsValid()) {
@@ -93,13 +93,13 @@ class SolverV1(
 
                 // HARD
                 if (1 < difficulty) {
-                    shouldRepeat = true
+                    shouldRefresh = true
                     for (filter in hardFilters) {
-                        if (shouldRepeat) {
+                        if (shouldRefresh) {
                             execEasyFilter()
                         }
-                        shouldRepeat = filter.exec()
-                        valueChanged = valueChanged or shouldRepeat
+                        shouldRefresh = filter.exec()
+                        valueChanged = valueChanged or shouldRefresh
 
                         callback?.onProgress(cells)
                         if (!parent.calcIsValid()) {
