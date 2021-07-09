@@ -2,11 +2,12 @@ package org.nunocky.sudokusolver.ui.main
 
 import android.os.Bundle
 import android.view.*
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
@@ -24,6 +25,7 @@ import kotlin.coroutines.suspendCoroutine
  * 登録した問題一覧
  */
 class SudokuListFragment : Fragment() {
+    private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: FragmentSudokuListBinding
 
     private val viewModel: SudokuListViewModel by viewModels {
@@ -32,9 +34,17 @@ class SudokuListFragment : Fragment() {
         SudokuListViewModel.Factory(SudokuRepository(appDatabase))
     }
 
+//    override fun onSupportNavigateUp(): Boolean {
+//        val navController = findNavController(R.id.nav_host_fragment_content_main)
+//        return navController.navigateUp(appBarConfiguration)
+//                || super.onSupportNavigateUp()
+//    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
+//        val navController = findNavController(R.id.nav_host_)
+//        appBarConfiguration = AppBarConfiguration(navController.graph)
     }
 
     override fun onCreateView(
@@ -49,6 +59,10 @@ class SudokuListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val navController = findNavController()
+        val appBarConfiguration = AppBarConfiguration(navController.graph)
+        binding.toolbar.setupWithNavController(navController, appBarConfiguration)
 
         binding.recyclerView.layoutManager =
             GridLayoutManager(requireActivity(), 2, RecyclerView.VERTICAL, false)
@@ -106,7 +120,7 @@ class SudokuListFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        (activity as AppCompatActivity).supportActionBar?.title = "Sudoku Solver"
+//        (activity as AppCompatActivity).supportActionBar?.title = "Sudoku Solver"
     }
 }
 
