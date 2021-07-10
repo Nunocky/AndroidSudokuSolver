@@ -2,31 +2,35 @@ package org.nunocky.sudokusolver.ui.main
 
 import android.os.Bundle
 import android.view.*
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ActionMode
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+import androidx.recyclerview.selection.SelectionPredicates
+import androidx.recyclerview.selection.SelectionTracker
+import androidx.recyclerview.selection.StableIdKeyProvider
+import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.launch
 import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.SudokuRepository
+import org.nunocky.sudokusolver.adapter.SudokuEntityDetailsLookup
 import org.nunocky.sudokusolver.adapter.SudokuListAdapter
-import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.databinding.FragmentSudokuListBinding
-import org.nunocky.sudokusolver.ui.dialog.DeleteItemConfirmDialog
-import kotlin.coroutines.suspendCoroutine
 
 
 /**
  * 登録した問題一覧
  */
 class SudokuListFragment : Fragment() {
-    private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: FragmentSudokuListBinding
+    private lateinit var adapter: SudokuListAdapter
+    private var actionMode: ActionMode? = null
+    private lateinit var tracker: SelectionTracker<Long>
 
     private val viewModel: SudokuListViewModel by viewModels {
         val app = (requireActivity().application as MyApplication)
@@ -34,17 +38,9 @@ class SudokuListFragment : Fragment() {
         SudokuListViewModel.Factory(SudokuRepository(appDatabase))
     }
 
-//    override fun onSupportNavigateUp(): Boolean {
-//        val navController = findNavController(R.id.nav_host_fragment_content_main)
-//        return navController.navigateUp(appBarConfiguration)
-//                || super.onSupportNavigateUp()
-//    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-//        val navController = findNavController(R.id.nav_host_)
-//        appBarConfiguration = AppBarConfiguration(navController.graph)
     }
 
     override fun onCreateView(
@@ -67,7 +63,7 @@ class SudokuListFragment : Fragment() {
         binding.recyclerView.layoutManager =
             GridLayoutManager(requireActivity(), 2, RecyclerView.VERTICAL, false)
 
-        val adapter = SudokuListAdapter(emptyList())
+        adapter = SudokuListAdapter(emptyList())
         binding.recyclerView.adapter = adapter
 
         adapter.listener = object : SudokuListAdapter.OnItemClickListener {
@@ -77,17 +73,93 @@ class SudokuListFragment : Fragment() {
                     SudokuListFragmentDirections.actionSudokuListFragmentToEditFragment(entity.id)
                 findNavController().navigate(action)
             }
-
-            override fun onLongClick(view: View, position: Int): Boolean {
-                val entity = adapter.list[position]
-                confirmDelete(entity)
-                return true
-            }
         }
+
+        tracker = SelectionTracker.Builder(
+            "sudoku-selection-id",
+            binding.recyclerView,
+            StableIdKeyProvider(binding.recyclerView),
+            SudokuEntityDetailsLookup(binding.recyclerView),
+            StorageStrategy.createLongStorage()
+        ).withSelectionPredicate(
+            SelectionPredicates.createSelectAnything()
+        ).build()
+
+        tracker.addObserver(object : SelectionTracker.SelectionObserver<Long>() {
+//            override fun onSelectionRefresh() {
+//                super.onSelectionRefresh()
+//            }
+//
+//            override fun onSelectionRestored() {
+//                super.onSelectionRestored()
+//            }
+//
+//            override fun onItemStateChanged(key: Long, selected: Boolean) {
+//                super.onItemStateChanged(key, selected)
+//            }
+
+            override fun onSelectionChanged() {
+                super.onSelectionChanged()
+                when {
+                    tracker.hasSelection() && actionMode == null -> {
+                        actionMode =
+                            (requireActivity() as AppCompatActivity).startSupportActionMode(
+                                actionModeCallback
+                            )
+                    }
+
+                    !tracker.hasSelection() && actionMode != null -> {
+                        actionMode?.finish()
+                        actionMode = null
+                    }
+
+                    else -> {
+                    }
+                }
+            }
+        })
+
+        adapter.tracker = tracker
 
         binding.floatingActionButton.setOnClickListener {
             val action = SudokuListFragmentDirections.actionSudokuListFragmentToEditFragment(0)
             findNavController().navigate(action)
+        }
+    }
+
+    private val actionModeCallback = object : ActionMode.Callback {
+        override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+            // Log.d(TAG, "onCreateActionMode")
+            mode.menuInflater.inflate(R.menu.menu_item_select, menu)
+            return true
+        }
+
+        override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
+            // Log.d(TAG, "onPrepareActionMode")
+            binding.filterList.root.visibility = View.GONE
+            return false
+        }
+
+        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+            //Log.d(TAG, "onActionItemClicked")
+            if (item.itemId == R.id.action_delete) {
+                val ids = tracker.selection.toList()
+                //Log.d(TAG, ids.joinToString(" "))
+                viewModel.deleteItems(ids)
+            }
+
+            // ActionModeを解除したときに RecyclerViewの選択状態も解除
+            tracker.clearSelection()
+            return false
+        }
+
+        override fun onDestroyActionMode(mode: ActionMode?) {
+            //Log.d(TAG, "onDestroyActionMode")
+            binding.filterList.root.visibility = View.VISIBLE
+            actionMode = null
+
+            // ActionModeを解除したときに RecyclerViewの選択状態も解除
+            tracker.clearSelection()
         }
     }
 
@@ -99,28 +171,20 @@ class SudokuListFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_about) {
             findNavController().navigate(R.id.aboutFragment)
+            return true
         }
 
         return super.onOptionsItemSelected(item)
     }
 
-    private fun confirmDelete(entity: SudokuEntity) = lifecycleScope.launch {
-        val confirm = openDeleteDialog()
-
-        if (confirm) {
-            viewModel.deleteItem(entity)
-        }
-    }
-
-    private suspend fun openDeleteDialog() = suspendCoroutine<Boolean> { continuation ->
-        val dialog = DeleteItemConfirmDialog(continuation)
-        dialog.show(parentFragmentManager, "delete")
-        // TODO parentとか childとかどう使い分ければいいの
-    }
-
-    override fun onResume() {
-        super.onResume()
-//        (activity as AppCompatActivity).supportActionBar?.title = "Sudoku Solver"
+    companion object {
+        private const val TAG = "SudokuListFragment"
     }
 }
 
+// 参考にしたコード
+// https://android.gcreate.jp/recycler_view_multiselection_with_action_mode/
+// https://github.com/gen0083/SampleRecyclerViewMultipleSelection/blob/master/app/src/main/java/jp/gcreate/samplerecyclerviewmultipleselection/MainActivity.kt
+
+// Two actionbars when starting ActionMode
+// https://stackoverflow.com/questions/37629856/two-actionbars-when-starting-actionmode

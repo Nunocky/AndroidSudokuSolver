@@ -30,6 +30,7 @@
                 app:layout_scrollFlags="scroll|enterAlways" />
 
             <include
+                android:id="@+id/filterList"
                 layout="@layout/list_filter"
                 app:viewModel="@{viewModel}" />
         </com.google.android.material.appbar.AppBarLayout>
