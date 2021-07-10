@@ -11,6 +11,9 @@ interface SudokuDAO {
     @Delete
     fun delete(entity: SudokuEntity)
 
+    @Query("delete from sudoku where id in (:ids)")
+    fun deleteByIds(ids : List<Long>)
+
     @Update
     fun update(entity: SudokuEntity)
 

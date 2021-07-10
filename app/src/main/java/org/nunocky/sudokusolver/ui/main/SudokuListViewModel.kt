@@ -61,4 +61,8 @@ class SudokuListViewModel(private val repository: SudokuRepository) : ViewModel(
     fun deleteItem(entity: SudokuEntity) = viewModelScope.launch(Dispatchers.IO) {
         repository.delete(entity)
     }
+
+    fun deleteItems(ids: List<Long>) = viewModelScope.launch(Dispatchers.IO) {
+        repository.deleteByIds(ids)
+    }
 }

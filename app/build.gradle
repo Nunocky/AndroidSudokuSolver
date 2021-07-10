@@ -73,6 +73,10 @@ dependencies {
     implementation "androidx.cardview:cardview:1.0.0"
     //implementation 'pub.devrel:easypermissions:3.0.0'
 
+    // RecyclerView
+    implementation("androidx.recyclerview:recyclerview:1.2.1")
+    implementation("androidx.recyclerview:recyclerview-selection:1.1.0")
+
     // Navigation
     def nav_version = "2.3.5"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
