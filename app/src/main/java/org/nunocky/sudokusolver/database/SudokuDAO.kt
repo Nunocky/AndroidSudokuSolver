@@ -8,11 +8,14 @@ interface SudokuDAO {
     @Insert
     fun insert(entity: SudokuEntity): Long
 
+    @Insert
+    fun insert(entities: List<SudokuEntity>)
+
     @Delete
     fun delete(entity: SudokuEntity)
 
     @Query("delete from sudoku where id in (:ids)")
-    fun deleteByIds(ids : List<Long>)
+    fun deleteByIds(ids: List<Long>)
 
     @Update
     fun update(entity: SudokuEntity)

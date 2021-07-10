@@ -7,8 +7,8 @@ import java.util.*
 @Entity(tableName = "sudoku")
 data class SudokuEntity(
     @PrimaryKey(autoGenerate = true) var id: Long = 0L,
-    var cells: String = "000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    var cells: String = "0".repeat(81),
     var createdAt: Calendar = Calendar.getInstance(),
-    var difficulty: Int? = 0
+    var difficulty: Int? = 1 // "UNTESTED"
 )
 

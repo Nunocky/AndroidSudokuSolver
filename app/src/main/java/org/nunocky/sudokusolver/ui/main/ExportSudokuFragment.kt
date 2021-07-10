@@ -16,7 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import org.nunocky.sudokusolver.MyApplication
-import org.nunocky.sudokusolver.SudokuRepository
+import org.nunocky.sudokusolver.database.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentExportSudokuBinding
 
 class ExportSudokuFragment : Fragment() {

@@ -6,9 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
-import org.nunocky.sudokusolver.SudokuRepository
-import org.nunocky.sudokulib.Cell
-import org.nunocky.sudokulib.SudokuSolver
+import org.nunocky.sudokusolver.database.SudokuRepository
 
 class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
     class Factory(private val repository: SudokuRepository) :

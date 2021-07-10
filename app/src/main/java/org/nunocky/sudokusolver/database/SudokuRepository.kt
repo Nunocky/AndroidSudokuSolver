@@ -1,8 +1,6 @@
-package org.nunocky.sudokusolver
+package org.nunocky.sudokusolver.database
 
 import androidx.lifecycle.LiveData
-import org.nunocky.sudokusolver.database.AppDatabase
-import org.nunocky.sudokusolver.database.SudokuEntity
 
 class SudokuRepository(database: AppDatabase) {
     data class Filter(
@@ -40,6 +38,7 @@ class SudokuRepository(database: AppDatabase) {
     private val dao = database.getSudokuDAO()
 
     fun insert(entity: SudokuEntity) = dao.insert(entity)
+    fun insert(entities: List<SudokuEntity>) = dao.insert(entities)
     fun delete(entity: SudokuEntity) = dao.delete(entity)
     fun deleteByIds(ids: List<Long>) = dao.deleteByIds(ids)
     fun update(entity: SudokuEntity) = dao.update(entity)

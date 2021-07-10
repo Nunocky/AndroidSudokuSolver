@@ -8,7 +8,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.nunocky.sudokusolver.MyApplication
-import org.nunocky.sudokusolver.SudokuRepository
+import org.nunocky.sudokusolver.database.SudokuRepository
 
 class ExportSudokuViewModel(
     application: Application,

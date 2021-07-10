@@ -3,7 +3,7 @@ package org.nunocky.sudokusolver.ui.main
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.nunocky.sudokusolver.SudokuRepository
+import org.nunocky.sudokusolver.database.SudokuRepository
 import org.nunocky.sudokusolver.database.SudokuEntity
 
 class SudokuListViewModel(private val repository: SudokuRepository) : ViewModel() {

@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.R
-import org.nunocky.sudokusolver.SudokuRepository
+import org.nunocky.sudokusolver.database.SudokuRepository
 import org.nunocky.sudokusolver.adapter.SudokuEntityDetailsLookup
 import org.nunocky.sudokusolver.adapter.SudokuListAdapter
 import org.nunocky.sudokusolver.databinding.FragmentSudokuListBinding

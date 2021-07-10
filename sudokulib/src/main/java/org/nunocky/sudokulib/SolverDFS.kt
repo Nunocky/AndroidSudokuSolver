@@ -67,7 +67,7 @@ class SolverDFS(
 //        }
 
         cellList = cells.filter { 0 < it.candidates.size }.sortedBy { it.candidates.size }
-        Log.d(TAG, "${cellList.size}")
+        //Log.d(TAG, "${cellList.size}")
 
         maxDepth = 0
     }
@@ -91,10 +91,10 @@ class SolverDFS(
 
             // 矛盾がなければ進む
             if (parent.calcIsValid()) {
-                Log.d(
-                    TAG,
-                    "${depth}/${cellList.size} [$maxDepth]: set cell ${cell.id} (${cell.id % 9}, ${cell.id / 9}) to $v"
-                )
+//                Log.d(
+//                    TAG,
+//                    "${depth}/${cellList.size} [$maxDepth]: set cell ${cell.id} (${cell.id % 9}, ${cell.id / 9}) to $v"
+//                )
                 callback?.onProgress(cells)
                 val solved = depthFirstSearch(depth + 1)
 
@@ -108,7 +108,7 @@ class SolverDFS(
             cell.candidates = candidatesBak.toMutableSet()
         }
 
-        Log.d(TAG, "${depth}/${cellList.size} : fail")
+//        Log.d(TAG, "${depth}/${cellList.size} : fail")
         return false
     }
 
