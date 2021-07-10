@@ -16,7 +16,7 @@ import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentEditBinding
-import org.nunocky.sudokusolver.solver.Cell
+import org.nunocky.sudokulib.Cell
 import org.nunocky.sudokusolver.view.NumberCellView
 
 class EditFragment : Fragment() {
@@ -94,9 +94,9 @@ class EditFragment : Fragment() {
 
         viewModel.entity.observe(requireActivity()) {
             it?.cells?.let { cells ->
-                val cellList = ArrayList<Cell>()
+                val cellList = ArrayList<org.nunocky.sudokulib.Cell>()
                 cells.toCharArray().forEach {
-                    val cell = Cell().apply {
+                    val cell = org.nunocky.sudokulib.Cell().apply {
                         value = it - '0'
                     }
                     cellList.add(cell)

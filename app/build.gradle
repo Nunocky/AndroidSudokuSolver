@@ -94,6 +94,11 @@ dependencies {
     // Copyright
     implementation "com.google.android.gms:play-services-oss-licenses:17.0.0"
 
+    // CoroutineAutoDispose
+    // implementation 'com.github.satoshun.coroutine.autodispose:autodispose:0.3.1'
+
+    implementation project(path: ':sudokulib')
+
     // test
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'

@@ -7,8 +7,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import org.nunocky.sudokusolver.SudokuRepository
-import org.nunocky.sudokusolver.solver.Cell
-import org.nunocky.sudokusolver.solver.SudokuSolver
+import org.nunocky.sudokulib.Cell
+import org.nunocky.sudokulib.SudokuSolver
 
 class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
     class Factory(private val repository: SudokuRepository) :
@@ -36,7 +36,7 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
     private var solverJob: Job = Job().apply { cancel() }
     private var timerJob: Job = Job().apply { cancel() }
 
-    val solver = SudokuSolver()
+    val solver = org.nunocky.sudokulib.SudokuSolver()
 
     fun loadSudoku(entityId: Long) = viewModelScope.launch(Dispatchers.IO) {
         repository.findById(entityId)?.let { entity ->
@@ -44,15 +44,15 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
         }
     }
 
-    fun startSolver(callback: SudokuSolver.ProgressCallback) {
+    fun startSolver(callback: org.nunocky.sudokulib.SudokuSolver.ProgressCallback) {
         solverJob = viewModelScope.launch(Dispatchers.IO) {
             inProgress.postValue(Status.WORKING)
 
             startTimer()
 
             val result = kotlin.runCatching {
-                solver.callback = object : SudokuSolver.ProgressCallback {
-                    override fun onProgress(cells: List<Cell>) {
+                solver.callback = object : org.nunocky.sudokulib.SudokuSolver.ProgressCallback {
+                    override fun onProgress(cells: List<org.nunocky.sudokulib.Cell>) {
                         if (!isActive) {
                             throw InterruptedException()
                         }

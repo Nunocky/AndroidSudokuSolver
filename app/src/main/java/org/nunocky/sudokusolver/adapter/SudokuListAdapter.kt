@@ -12,8 +12,8 @@ import androidx.recyclerview.widget.RecyclerView
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.databinding.SudokuListItemBinding
-import org.nunocky.sudokusolver.solver.Cell
-import org.nunocky.sudokusolver.solver.SudokuSolver
+import org.nunocky.sudokulib.Cell
+import org.nunocky.sudokulib.SudokuSolver
 
 class SudokuListAdapter(var list: List<SudokuEntity>) :
     RecyclerView.Adapter<SudokuListAdapter.ViewHolder>() {
@@ -44,9 +44,9 @@ class SudokuListAdapter(var list: List<SudokuEntity>) :
                 showCandidates = false
 
                 val text = entity.cells
-                val cellList = ArrayList<Cell>()
+                val cellList = ArrayList<org.nunocky.sudokulib.Cell>()
                 text.toCharArray().forEach {
-                    val cell = Cell().apply {
+                    val cell = org.nunocky.sudokulib.Cell().apply {
                         value = it - '0'
                     }
                     cellList.add(cell)
@@ -64,32 +64,21 @@ class SudokuListAdapter(var list: List<SudokuEntity>) :
                     }
                 }
 
-                val difficulty = entity.difficulty ?: SudokuSolver.DIFFICULTY_UNDEF
+                val difficulty = entity.difficulty ?: org.nunocky.sudokulib.SudokuSolver.DIFFICULTY_UNDEF
 
                 binding.text1.apply {
                     val textArray = context.resources.getTextArray(R.array.difficulty)
+                    this.text = textArray[difficulty]
+
                     val text1Color = when (difficulty) {
-                        1 -> {
-                            R.color.difficulty_undef
-                        }
-                        2 -> {
-                            R.color.difficulty_easy
-                        }
-                        3 -> {
-                            R.color.difficulty_medium
-                        }
-                        4 -> {
-                            R.color.difficulty_hard
-                        }
-                        5 -> {
-                            R.color.difficulty_extreme
-                        }
-                        else -> {
-                            R.color.difficulty_impossible
-                        }
+                        1 -> R.color.difficulty_undef
+                        2 -> R.color.difficulty_easy
+                        3 -> R.color.difficulty_medium
+                        4 -> R.color.difficulty_hard
+                        5 -> R.color.difficulty_extreme
+                        else -> R.color.difficulty_impossible
                     }
 
-                    this.text = textArray[difficulty]
                     if (Build.VERSION_CODES.M <= Build.VERSION.SDK_INT) {
                         this.setTextColor(ContextCompat.getColor(context, text1Color))
                     } else {

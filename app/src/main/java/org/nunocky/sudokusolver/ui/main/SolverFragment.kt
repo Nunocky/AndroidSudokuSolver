@@ -23,8 +23,8 @@ import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentSolverBinding
-import org.nunocky.sudokusolver.solver.Cell
-import org.nunocky.sudokusolver.solver.SudokuSolver
+import org.nunocky.sudokulib.Cell
+import org.nunocky.sudokulib.SudokuSolver
 
 /**
  * 問題を解く
@@ -124,8 +124,8 @@ class SolverFragment : Fragment() {
         viewModel.resetSolver()
     }
 
-    private val callback = object : SudokuSolver.ProgressCallback {
-        override fun onProgress(cells: List<Cell>) {
+    private val callback = object : org.nunocky.sudokulib.SudokuSolver.ProgressCallback {
+        override fun onProgress(cells: List<org.nunocky.sudokulib.Cell>) {
             binding.sudokuBoard.updated = false
             binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
                 cellView.fixedNum = cells[n].value
