@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.nunocky.sudokusolver.SudokuRepository
 import org.nunocky.sudokusolver.database.SudokuEntity
-import org.nunocky.sudokusolver.solver.SudokuSolver
+import org.nunocky.sudokulib.SudokuSolver
 
 class EditViewModel(private val repository: SudokuRepository) : ViewModel() {
 
@@ -23,7 +23,7 @@ class EditViewModel(private val repository: SudokuRepository) : ViewModel() {
     var currentValue = MutableLiveData(0)
     val entity = MutableLiveData<SudokuEntity?>(null)
 
-    val sudokuSolver = SudokuSolver()
+    val sudokuSolver = org.nunocky.sudokulib.SudokuSolver()
     val isValid = sudokuSolver.isValid
 
     fun setNewSudoku() {

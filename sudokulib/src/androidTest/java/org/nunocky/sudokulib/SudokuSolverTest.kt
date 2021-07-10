@@ -1,4 +1,4 @@
-package org.nunocky.sudokusolver
+package org.nunocky.sudokulib
 
 import android.content.Context
 import android.os.Environment
@@ -12,8 +12,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.nunocky.sudokusolver.solver.Cell
-import org.nunocky.sudokusolver.solver.SudokuSolver
+import org.nunocky.sudokusolver.getOrAwaitValue
 import java.io.*
 import java.util.concurrent.TimeUnit
 

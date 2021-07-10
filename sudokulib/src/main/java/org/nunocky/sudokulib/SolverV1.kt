@@ -1,4 +1,4 @@
-package org.nunocky.sudokusolver.solver
+package org.nunocky.sudokulib
 
 import java.util.*
 

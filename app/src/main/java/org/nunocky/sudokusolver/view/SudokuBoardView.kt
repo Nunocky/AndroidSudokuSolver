@@ -7,7 +7,7 @@ import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.CHAIN_PACKED
 import org.nunocky.sudokusolver.R
-import org.nunocky.sudokusolver.solver.Cell
+import org.nunocky.sudokulib.Cell
 
 class SudokuBoardView : ConstraintLayout {
     val cellViews = ArrayList<NumberCellView>()
@@ -187,7 +187,7 @@ class SudokuBoardView : ConstraintLayout {
         }
     }
 
-    fun updateCells(cells: List<Cell>) {
+    fun updateCells(cells: List<org.nunocky.sudokulib.Cell>) {
         cellViews.forEachIndexed { n, cellView ->
             cellView.onFocus = false
             cellView.fixedNum = cells[n].value
