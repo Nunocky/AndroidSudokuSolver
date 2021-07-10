@@ -60,6 +60,11 @@ class SudokuListFragment : Fragment() {
         val appBarConfiguration = AppBarConfiguration(navController.graph)
         binding.toolbar.setupWithNavController(navController, appBarConfiguration)
 
+        // Fragment に Toolbar を持たせるのはやめなさい
+        // http://y-anz-m.blogspot.com/2016/10/fragment-toolbar.html
+        // これを回避する方法がよくわからない
+        (activity as AppCompatActivity).setSupportActionBar(binding.toolbar)
+
         binding.recyclerView.layoutManager =
             GridLayoutManager(requireActivity(), 2, RecyclerView.VERTICAL, false)
 
@@ -169,9 +174,19 @@ class SudokuListFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.action_about) {
-            findNavController().navigate(R.id.aboutFragment)
-            return true
+        when (item.itemId) {
+            R.id.action_about -> {
+                findNavController().navigate(R.id.aboutFragment)
+                return true
+            }
+            R.id.action_export -> {
+                findNavController().navigate(R.id.exportSudokuFragment)
+                return true
+            }
+            R.id.action_import -> {
+                findNavController().navigate(R.id.importSudokuFragment)
+                return true
+            }
         }
 
         return super.onOptionsItemSelected(item)

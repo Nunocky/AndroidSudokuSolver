@@ -84,7 +84,6 @@ class SolverFragment : Fragment() {
 
         viewModel.solverMethod.value =
             requireActivity().getPreferences(Context.MODE_PRIVATE).getInt("solverMethod", 1)
-
     }
 
     override fun onPause() {
@@ -124,8 +123,8 @@ class SolverFragment : Fragment() {
         viewModel.resetSolver()
     }
 
-    private val callback = object : org.nunocky.sudokulib.SudokuSolver.ProgressCallback {
-        override fun onProgress(cells: List<org.nunocky.sudokulib.Cell>) {
+    private val callback = object : SudokuSolver.ProgressCallback {
+        override fun onProgress(cells: List<Cell>) {
             binding.sudokuBoard.updated = false
             binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
                 cellView.fixedNum = cells[n].value

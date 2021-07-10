@@ -52,6 +52,7 @@ class EditFragment : Fragment() {
         val navController = findNavController()
         val appBarConfiguration = AppBarConfiguration(navController.graph)
         binding.toolbar.setupWithNavController(navController, appBarConfiguration)
+        (activity as AppCompatActivity?)!!.setSupportActionBar(binding.toolbar)
 
         binding.sudokuBoardView.showCandidates = false
 
