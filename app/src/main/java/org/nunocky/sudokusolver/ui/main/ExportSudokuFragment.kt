@@ -21,6 +21,7 @@ import org.nunocky.sudokusolver.databinding.FragmentExportSudokuBinding
 
 class ExportSudokuFragment : Fragment() {
     private lateinit var binding: FragmentExportSudokuBinding
+    private var fmt = 0 // 出力フォーマット (0:text, 1:json)
 
     private val viewModel: ExportSudokuViewModel by viewModels {
         val app = (requireActivity().application as MyApplication)
@@ -43,11 +44,22 @@ class ExportSudokuFragment : Fragment() {
         (activity as AppCompatActivity?)!!.setSupportActionBar(binding.toolbar)
 
         binding.btnExecute.setOnClickListener {
+            fmt = 0
 
             val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "text/plain"
                 putExtra(Intent.EXTRA_TITLE, "sudoku_backup.txt")
+            }
+            startForResult.launch(intent)
+        }
+
+        binding.btnExportJson.setOnClickListener {
+            fmt = 1
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/json"
+                putExtra(Intent.EXTRA_TITLE, "sudoku_backup.json")
             }
             startForResult.launch(intent)
         }
@@ -63,7 +75,12 @@ class ExportSudokuFragment : Fragment() {
 
                 uri?.let {
                     lifecycleScope.launch {
-                        viewModel.execExport(it)
+
+                        if (fmt == 0) {
+                            viewModel.execExport(it)
+                        } else {
+                            viewModel.execExportJson(it)
+                        }
                         Toast.makeText(requireActivity(), "exported", Toast.LENGTH_SHORT).show()
                     }
                 }

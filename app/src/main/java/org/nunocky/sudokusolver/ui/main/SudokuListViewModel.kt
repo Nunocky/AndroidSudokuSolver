@@ -54,7 +54,7 @@ class SudokuListViewModel(private val repository: SudokuRepository) : ViewModel(
                 val difficulties = it.toIntArray()
                 repository.findByDifficulties(difficulties)
             } else {
-                repository.findAll()
+                repository.findAllAsLiveData()
             }
         }
 

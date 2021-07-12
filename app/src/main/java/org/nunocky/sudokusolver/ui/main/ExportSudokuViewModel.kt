@@ -2,13 +2,19 @@ package org.nunocky.sudokusolver.ui.main
 
 import android.app.Application
 import android.net.Uri
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import org.nunocky.sudokusolver.CalenderJsonAdapter
 import org.nunocky.sudokusolver.MyApplication
+import org.nunocky.sudokusolver.SudokuJsonAdapterFactory
+import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.database.SudokuRepository
+import java.util.*
 
 class ExportSudokuViewModel(
     application: Application,
@@ -23,12 +29,11 @@ class ExportSudokuViewModel(
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
-    @ExperimentalCoroutinesApi
     suspend fun execExport(uri: Uri) = withContext(Dispatchers.IO) {
         val app = getApplication() as MyApplication
         app.contentResolver.openOutputStream(uri).use { oStream ->
             oStream?.bufferedWriter()?.use { writer ->
-                val list = repository.findAll().await()
+                val list = repository.findAll()
 
                 list.forEach { entity ->
                     writer.write(entity.cells)
@@ -37,24 +42,27 @@ class ExportSudokuViewModel(
             }
         }
     }
-}
 
-@ExperimentalCoroutinesApi
-private suspend fun <T> LiveData<T>.await(): T {
-    return withContext(Dispatchers.Main.immediate) {
-        suspendCancellableCoroutine { continuation ->
-            val observer = object : Observer<T> {
-                override fun onChanged(value: T) {
-                    removeObserver(this)
-                    continuation.resume(value, onCancellation = {})
-                }
-            }
+    suspend fun execExportJson(uri: Uri) = withContext(Dispatchers.IO) {
 
-            observeForever(observer)
+        val app = getApplication() as MyApplication
 
-            continuation.invokeOnCancellation {
-                removeObserver(observer)
+        app.contentResolver.openOutputStream(uri).use { oStream ->
+            oStream?.bufferedWriter()?.use { writer ->
+
+                val builder = Moshi.Builder()
+                    .add(SudokuJsonAdapterFactory.INSTANCE)
+                    .add(Calendar::class.java, CalenderJsonAdapter())
+                    .build()
+
+                val dataType =
+                    Types.newParameterizedType(List::class.java, SudokuEntity::class.java)
+                val adapter = builder.adapter<List<SudokuEntity>>(dataType)
+                val list = adapter.toJson(repository.findAll().toList())
+                writer.write(list)
             }
         }
+
+
     }
 }

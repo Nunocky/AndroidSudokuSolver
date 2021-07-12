@@ -43,6 +43,7 @@ class SudokuRepository(database: AppDatabase) {
     fun deleteByIds(ids: List<Long>) = dao.deleteByIds(ids)
     fun update(entity: SudokuEntity) = dao.update(entity)
     fun findById(id: Long) = dao.findById(id)
-    fun findAll(): LiveData<List<SudokuEntity>> = dao.findAll()
+    fun findAll(): List<SudokuEntity> = dao.findAll()
+    fun findAllAsLiveData(): LiveData<List<SudokuEntity>> = dao.findAllAsLiveData()
     fun findByDifficulties(difficulties: List<Int>) = dao.findByDifficulties(difficulties)
 }
