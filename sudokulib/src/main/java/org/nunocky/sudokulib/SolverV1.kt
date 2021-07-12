@@ -51,12 +51,13 @@ class SolverV1(
                 shouldRepeat = filter.exec()
                 changed = changed or shouldRepeat
 
-                callback?.onProgress(cells)
                 if (!parent.calcIsValid()) {
                     throw SudokuSolver.SolverError()
                 }
             }
         } while (shouldRepeat)
+
+        callback?.onProgress(cells)
         return changed
     }
 
@@ -84,11 +85,11 @@ class SolverV1(
                         shouldRefresh = filter.exec()
                         valueChanged = valueChanged or shouldRefresh
 
-                        callback?.onProgress(cells)
                         if (!parent.calcIsValid()) {
                             throw SudokuSolver.SolverError()
                         }
                     }
+                    callback?.onProgress(cells)
                 }
 
                 // HARD
@@ -101,11 +102,11 @@ class SolverV1(
                         shouldRefresh = filter.exec()
                         valueChanged = valueChanged or shouldRefresh
 
-                        callback?.onProgress(cells)
                         if (!parent.calcIsValid()) {
                             throw SudokuSolver.SolverError()
                         }
                     }
+                    callback?.onProgress(cells)
                 }
 
                 if (isSolved()) {
