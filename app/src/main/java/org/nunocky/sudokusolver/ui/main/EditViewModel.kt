@@ -6,9 +6,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.nunocky.sudokusolver.SudokuRepository
+import org.nunocky.sudokusolver.database.SudokuRepository
 import org.nunocky.sudokusolver.database.SudokuEntity
-import org.nunocky.sudokulib.SudokuSolver
 
 class EditViewModel(private val repository: SudokuRepository) : ViewModel() {
 

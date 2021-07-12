@@ -14,9 +14,8 @@ import androidx.navigation.ui.setupWithNavController
 import kotlinx.coroutines.launch
 import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.R
-import org.nunocky.sudokusolver.SudokuRepository
+import org.nunocky.sudokusolver.database.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentEditBinding
-import org.nunocky.sudokulib.Cell
 import org.nunocky.sudokusolver.view.NumberCellView
 
 class EditFragment : Fragment() {
@@ -52,6 +51,7 @@ class EditFragment : Fragment() {
         val navController = findNavController()
         val appBarConfiguration = AppBarConfiguration(navController.graph)
         binding.toolbar.setupWithNavController(navController, appBarConfiguration)
+        (activity as AppCompatActivity?)!!.setSupportActionBar(binding.toolbar)
 
         binding.sudokuBoardView.showCandidates = false
 
