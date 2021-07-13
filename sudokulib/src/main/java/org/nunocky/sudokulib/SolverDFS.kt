@@ -66,7 +66,7 @@ class SolverDFS(
 //            }
 //        }
 
-        cellList = cells.filter { 0 < it.candidates.size }.sortedBy { it.candidates.size }
+        cellList = cells.filter { 0 < it.candidates.size } //.sort { it.candidates.size }
         //Log.d(TAG, "${cellList.size}")
 
         maxDepth = 0
