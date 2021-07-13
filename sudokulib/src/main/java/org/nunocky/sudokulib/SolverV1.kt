@@ -1,5 +1,7 @@
 package org.nunocky.sudokulib
 
+import org.nunocky.sudokulib.SudokuSolver.Companion.DIFFICULTY_EASY
+import org.nunocky.sudokulib.SudokuSolver.Companion.DIFFICULTY_MEDIUM
 import java.util.*
 
 class SolverV1(
@@ -76,7 +78,7 @@ class SolverV1(
                 execEasyFilter()
 
                 // MEDIUM
-                if (0 < difficulty) {
+                if (DIFFICULTY_EASY < difficulty) {
                     shouldRefresh = true
                     for (filter in mediumFilters) {
                         if (shouldRefresh) {
@@ -93,7 +95,7 @@ class SolverV1(
                 }
 
                 // HARD
-                if (1 < difficulty) {
+                if (DIFFICULTY_MEDIUM < difficulty) {
                     shouldRefresh = true
                     for (filter in hardFilters) {
                         if (shouldRefresh) {
