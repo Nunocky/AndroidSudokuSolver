@@ -15,6 +15,7 @@ import androidx.recyclerview.selection.StableIdKeyProvider
 import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.database.SudokuRepository
@@ -151,6 +152,15 @@ class SudokuListFragment : Fragment() {
                 val ids = tracker.selection.toList()
                 //Log.d(TAG, ids.joinToString(" "))
                 viewModel.deleteItems(ids)
+
+                // Snackbar表示。復元機能も
+                Snackbar.make(binding.root, "deleted", Snackbar.LENGTH_SHORT)
+                    .setAction("restore"
+                    ) {
+                        // TODO 復元
+                        viewModel.restoreDeletedItems()
+                    }
+                    .show()
             }
 
             // ActionModeを解除したときに RecyclerViewの選択状態も解除

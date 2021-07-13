@@ -23,6 +23,9 @@ interface SudokuDAO {
     @Query("select * from sudoku where id=:id")
     fun findById(id: Long): SudokuEntity?
 
+    @Query("select * from sudoku where id in (:ids)")
+    fun findByIds(ids: List<Long>): List<SudokuEntity>
+
     @Query("select * from sudoku order by createdAt")
     fun findAll(): List<SudokuEntity>
 

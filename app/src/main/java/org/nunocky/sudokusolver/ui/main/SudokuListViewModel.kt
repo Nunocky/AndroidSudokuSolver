@@ -3,8 +3,8 @@ package org.nunocky.sudokusolver.ui.main
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.nunocky.sudokusolver.database.SudokuRepository
 import org.nunocky.sudokusolver.database.SudokuEntity
+import org.nunocky.sudokusolver.database.SudokuRepository
 
 class SudokuListViewModel(private val repository: SudokuRepository) : ViewModel() {
     class Factory(private val repository: SudokuRepository) :
@@ -62,7 +62,16 @@ class SudokuListViewModel(private val repository: SudokuRepository) : ViewModel(
         repository.delete(entity)
     }
 
+    private var deletedItems: List<SudokuEntity>? = null
+
     fun deleteItems(ids: List<Long>) = viewModelScope.launch(Dispatchers.IO) {
+        deletedItems = repository.findByIds(ids)
         repository.deleteByIds(ids)
+    }
+
+    fun restoreDeletedItems() = viewModelScope.launch(Dispatchers.IO) {
+        deletedItems?.let { them ->
+            repository.insert(them)
+        }
     }
 }
