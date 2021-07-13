@@ -1,9 +1,11 @@
 package org.nunocky.sudokusolver.ui.main
 
+import android.content.Context
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
+import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -18,9 +20,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.R
-import org.nunocky.sudokusolver.database.SudokuRepository
 import org.nunocky.sudokusolver.adapter.SudokuEntityDetailsLookup
 import org.nunocky.sudokusolver.adapter.SudokuListAdapter
+import org.nunocky.sudokusolver.database.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentSudokuListBinding
 
 
@@ -65,6 +67,20 @@ class SudokuListFragment : Fragment() {
         // http://y-anz-m.blogspot.com/2016/10/fragment-toolbar.html
         // これを回避する方法がよくわからない
         (activity as AppCompatActivity).setSupportActionBar(binding.toolbar)
+
+        viewModel.filter.observe(requireActivity()) {
+            requireActivity().let { activity ->
+                activity.getPreferences(Context.MODE_PRIVATE).edit {
+                    putBoolean("filterImpossible", viewModel.filterImpossible.value ?: true)
+                    putBoolean("filterUnTested", viewModel.filterUnTested.value ?: true)
+                    putBoolean("filterEasy", viewModel.filterEasy.value ?: true)
+                    putBoolean("filterMedium", viewModel.filterMedium.value ?: true)
+                    putBoolean("filterHard", viewModel.filterHard.value ?: true)
+                    putBoolean("filterExtreme", viewModel.filterExtreme.value ?: true)
+                    commit()
+                }
+            }
+        }
 
         binding.recyclerView.layoutManager =
             GridLayoutManager(requireActivity(), 2, RecyclerView.VERTICAL, false)
@@ -200,6 +216,21 @@ class SudokuListFragment : Fragment() {
         }
 
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        requireActivity().let { activity ->
+            val prefs = activity.getPreferences(Context.MODE_PRIVATE)
+            viewModel.filterImpossible.value = prefs.getBoolean("filterImpossible", true)
+            viewModel.filterUnTested.value = prefs.getBoolean("filterUnTested", true)
+            viewModel.filterEasy.value = prefs.getBoolean("filterEasy", true)
+            viewModel.filterMedium.value = prefs.getBoolean("filterMedium", true)
+            viewModel.filterHard.value = prefs.getBoolean("filterHard", true)
+            viewModel.filterExtreme.value = prefs.getBoolean("filterExtreme", true)
+        }
+
     }
 
     companion object {
