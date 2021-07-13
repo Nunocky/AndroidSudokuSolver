@@ -1,6 +1,7 @@
 package org.nunocky.sudokulib
 
 import org.nunocky.sudokulib.SudokuSolver.Companion.DIFFICULTY_EASY
+import org.nunocky.sudokulib.SudokuSolver.Companion.DIFFICULTY_HARD
 import org.nunocky.sudokulib.SudokuSolver.Companion.DIFFICULTY_MEDIUM
 import java.util.*
 
@@ -65,8 +66,8 @@ class SolverV1(
 
     override fun trySolve(): Boolean {
 
-        for (difficulty in 0..2) {
-            parent.difficulty = difficulty + SudokuSolver.DIFFICULTY_EASY
+        for (difficulty in DIFFICULTY_EASY..DIFFICULTY_HARD) {
+            parent.difficulty = difficulty
 
             var valueChanged = true
             var shouldRefresh: Boolean
