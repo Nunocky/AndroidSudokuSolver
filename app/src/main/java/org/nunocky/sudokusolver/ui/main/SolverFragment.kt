@@ -73,6 +73,10 @@ class SolverFragment : Fragment() {
         binding.btnStop.setOnClickListener {
             stopSolve()
         }
+
+        viewModel.solverMethod.observe(requireActivity()) {
+            reset()
+        }
     }
 
     override fun onResume() {
