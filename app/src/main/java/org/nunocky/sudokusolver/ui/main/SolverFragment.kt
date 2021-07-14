@@ -19,12 +19,12 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.nunocky.sudokulib.Cell
+import org.nunocky.sudokulib.SudokuSolver
 import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.database.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentSolverBinding
-import org.nunocky.sudokulib.Cell
-import org.nunocky.sudokulib.SudokuSolver
 
 /**
  * 問題を解く
@@ -174,6 +174,22 @@ class SolverFragment : Fragment() {
 
             snackBar.show()
         }
+//
+//        override fun onInterrupted() {
+//            val snackBar = Snackbar.make(binding.root, "interrupted", Snackbar.LENGTH_SHORT)
+//            val bgColor = ContextCompat.getColor(requireContext(), R.color.solverFail)
+//
+//            snackBar.view.setBackgroundColor(bgColor)
+//            snackBar.show()
+//        }
+//
+//        override fun onSolverError() {
+//            val snackBar = Snackbar.make(binding.root, "solver error", Snackbar.LENGTH_SHORT)
+//            val bgColor = ContextCompat.getColor(requireContext(), R.color.solverFail)
+//
+//            snackBar.view.setBackgroundColor(bgColor)
+//            snackBar.show()
+//        }
     }
 }
 

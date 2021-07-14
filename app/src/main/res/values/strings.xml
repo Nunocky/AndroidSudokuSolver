@@ -1,25 +1,24 @@
 <resources>
     <string name="app_name">SudokuSolver</string>
+
     <string name="action_import">import</string>
     <string name="action_export">export</string>
     <string name="action_about">About</string>
 
     <string name="solver_success">Completed</string>
-    <string name="solver_fail">Cannot solve or cancelled</string>
+    <string name="solver_fail">Could not be solved with this solver</string>
 
     <string name="current_version">Current Version</string>
     <string name="open_source_license">Open Source License</string>
     <string name="github_page">GitHub Page</string>
     <string name="delete">delete</string>
 
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-
     <string-array name="solve_method">
         <item>only Standard Solver</item>
         <item>Standard + DFS</item>
         <item>only DFS</item>
     </string-array>
-    <!-- TODO: Remove or change this placeholder text -->
+
     <string-array name="difficulty">
         <item>IMPOSSIBLE</item>
         <item>UNTESTED</item>

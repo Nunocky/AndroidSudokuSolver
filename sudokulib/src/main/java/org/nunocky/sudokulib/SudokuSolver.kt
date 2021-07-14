@@ -13,7 +13,7 @@ class SudokuSolver {
         const val DIFFICULTY_EXTREME = 5
     }
 
-    class SolverError() : IllegalStateException()
+    class SolverError : IllegalStateException()
 
     interface Algorithm {
         fun trySolve(): Boolean
@@ -30,6 +30,8 @@ class SudokuSolver {
         //fun onUnselectGroup(groupId: Int) {}
         //fun onCellUpdated(cellId: Int, num: Int?, candidates: List<Int>?) {}
         fun onComplete(success: Boolean) {}
+        fun onInterrupted() {}
+        fun onSolverError() {}
     }
 
     private var elapsedTime: Long = 0
