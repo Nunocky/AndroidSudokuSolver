@@ -6,7 +6,7 @@
     <fragment
         android:id="@+id/sudokuListFragment"
         android:name="org.nunocky.sudokusolver.ui.main.SudokuListFragment"
-        android:label="SudokuListFragment">
+        android:label="Sudoku Solver">
         <action
             android:id="@+id/action_sudokuListFragment_to_editFragment"
             app:destination="@id/editFragment" />
@@ -23,7 +23,7 @@
     <fragment
         android:id="@+id/editFragment"
         android:name="org.nunocky.sudokusolver.ui.main.EditFragment"
-        android:label="EditFragment">
+        android:label="Edit / New">
         <action
             android:id="@+id/action_editFragment_to_solverFragment"
             app:destination="@id/solverFragment" />
@@ -34,7 +34,7 @@
     <fragment
         android:id="@+id/solverFragment"
         android:name="org.nunocky.sudokusolver.ui.main.SolverFragment"
-        android:label="SolverFragment">
+        android:label="Solve">
         <argument
             android:name="entityId"
             app:argType="long" />
@@ -42,13 +42,13 @@
     <fragment
         android:id="@+id/aboutFragment"
         android:name="org.nunocky.sudokusolver.ui.main.AboutFragment"
-        android:label="AboutFragment" />
+        android:label="About Sudoku Solver" />
     <fragment
         android:id="@+id/exportSudokuFragment"
         android:name="org.nunocky.sudokusolver.ui.main.ExportSudokuFragment"
-        android:label="ExportSudokuFragment" />
+        android:label="Export Data" />
     <fragment
         android:id="@+id/importSudokuFragment"
         android:name="org.nunocky.sudokusolver.ui.main.ImportSudokuFragment"
-        android:label="ImportSudokuFragment" />
+        android:label="Import Data" />
 </navigation>
