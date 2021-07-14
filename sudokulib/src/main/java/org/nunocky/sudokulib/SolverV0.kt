@@ -17,14 +17,7 @@ class SolverV0(
             }
         }
 
-//        if (!parent.isSolved()) {
-//            // 深さ優先探索
-//            depthFirstSearch()
-//        }
-
-        val result = parent.isSolved()
-//        callback?.onComplete(result)
-        return result
+        return parent.isSolved()
     }
 
     /**
@@ -36,14 +29,13 @@ class SolverV0(
         // 基本フィルタ (確定候補をもとにふるい落とす)
         valueChanged = valueChanged or filter0()
 
-        // TODO onFocusGroup, onUnfocusGroupの実装。 フォーカス時の背景色設定
-        groups.forEachIndexed() { index, g ->
-//            callback?.onFocusGroup(index)
+        groups.forEachIndexed { index, g ->
+            callback?.onFocusGroup(index)
             for (n in 2..4) {
                 valueChanged = valueChanged or filterCombination(g, n)
             }
             valueChanged = valueChanged or filterLastOne(g)
-//            callback?.onUnfocusGroup(index)
+            callback?.onUnfocusGroup(index)
         }
 
         groups.forEach { g ->
@@ -173,43 +165,4 @@ class SolverV0(
 
         return valueChanged
     }
-
-//    /**
-//     * 深さ優先探索による解決を試みる
-//     * TODO DFSを分離する
-//     * TODO 探査順を変える。残り候補の少ないセルを先に処理すれば速くなるはず
-//     */
-//    private fun depthFirstSearch(n: Int = 0): Boolean {
-//        // すべての Cellが fixed なら解決
-//        if (cells.filter { it.isFixed }.size == cells.size) {
-//            return true
-//        }
-//
-//        val cell = cells[n]
-//        val candidatesBak = cell.candidates.toSet()
-//
-//        // fixedなら進む
-//        if (cell.isFixed) {
-//            callback?.onProgress(cells)
-//            return depthFirstSearch(n + 1)
-//        }
-//
-//        // 候補を置いてみて矛盾がなければ進む
-//        for (v in cell.candidates) {
-//            cell.value = v
-//            if (parent.calcIsValid()) {
-//                callback?.onProgress(cells)
-//                val solved = depthFirstSearch(n + 1)
-//                if (solved) {
-//                    callback?.onProgress(cells)
-//                    return true
-//                }
-//            }
-//        }
-//
-//        // どの候補も当てはまらなかったので状態を元に戻してfalseを返す
-//        cell.value = 0
-//        cell.candidates = candidatesBak.toMutableSet()
-//        return false
-//    }
 }

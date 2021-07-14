@@ -173,7 +173,6 @@ class SudokuListFragment : Fragment() {
                 Snackbar.make(binding.root, "deleted", Snackbar.LENGTH_SHORT)
                     .setAction("restore"
                     ) {
-                        // TODO 復元
                         viewModel.restoreDeletedItems()
                     }
                     .show()
