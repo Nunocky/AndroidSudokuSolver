@@ -147,7 +147,8 @@ class SudokuListFragment : Fragment() {
         adapter.tracker = tracker
 
         binding.floatingActionButton.setOnClickListener {
-            val action = SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(0)
+            val action =
+                SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(entityId = 0L)
             findNavController().navigate(action)
         }
     }

@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.nunocky.sudokulib.Cell
 import org.nunocky.sudokulib.SudokuSolver
+import org.nunocky.sudokusolver.NavigationMainDirections
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.databinding.FragmentSolverBinding
 
@@ -59,7 +60,8 @@ class SolverFragment : Fragment() {
         // 条件付きナビゲーション
         viewModel.entityId.observe(viewLifecycleOwner) { entityId ->
             if (entityId == 0L) {
-                navController.navigate(R.id.editFragment)
+                val action = NavigationMainDirections.actionGlobalEditFragment(entityId = 0L)
+                navController.navigate(action)
             }
         }
 
@@ -84,7 +86,12 @@ class SolverFragment : Fragment() {
                 cellView.apply {
                     fixedNum = viewModel.solver.cells[n].value
                     if (fixedNum != 0) {
-                        setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.fixedCell))
+                        setBackgroundColor(
+                            ContextCompat.getColor(
+                                requireActivity(),
+                                R.color.fixedCell
+                            )
+                        )
                         candidates = IntArray(0)
                         showCandidates = false
                     } else {
@@ -141,8 +148,8 @@ class SolverFragment : Fragment() {
 
     private fun reset() = lifecycleScope.launch {
         //loadSudoku().join()
-        // TODO リセット処理
-        viewModel.resetSolver()
+        //viewModel.resetSolver()
+//        TODO("リセット処理")
     }
 
     private val callback = object : SudokuSolver.ProgressCallback {
