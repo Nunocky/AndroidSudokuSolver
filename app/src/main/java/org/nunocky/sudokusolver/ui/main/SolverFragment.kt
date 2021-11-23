@@ -11,6 +11,7 @@ import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.ui.AppBarConfiguration
@@ -37,13 +38,32 @@ class SolverFragment : Fragment() {
     private lateinit var binding: FragmentSolverBinding
     private val viewModel: SolverViewModel by viewModels()
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val navController = findNavController()
+        val currentBackStackEntry = navController.currentBackStackEntry!!
+        val savedStateHandle = currentBackStackEntry.savedStateHandle
+
+        savedStateHandle.getLiveData<Boolean>(EditFragment.KEY_SAVED)
+            .observe(currentBackStackEntry, { success ->
+                if (!success) {
+                    val startDestination = navController.graph.startDestination
+                    val navOptions = NavOptions.Builder()
+                        .setPopUpTo(startDestination, true)
+                        .build()
+                    navController.navigate(startDestination, null, navOptions)
+                }
+            })
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentSolverBinding.inflate(inflater, container, false)
         binding.viewModel = viewModel
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = viewLifecycleOwner
 
         return binding.root
     }
@@ -53,11 +73,10 @@ class SolverFragment : Fragment() {
 
         val navController = findNavController()
 
-        // TODO Activityに移す?
+        // TODO Activityに移す
         val appBarConfiguration = AppBarConfiguration(navController.graph)
         binding.toolbar.setupWithNavController(navController, appBarConfiguration)
 
-        // 条件付きナビゲーション
         viewModel.entityId.observe(viewLifecycleOwner) { entityId ->
             if (entityId == 0L) {
                 val action = NavigationMainDirections.actionGlobalEditFragment(entityId = 0L)

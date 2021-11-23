@@ -21,6 +21,7 @@ class AboutFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentAboutBinding.inflate(inflater, container, false)
+        binding.lifecycleOwner = viewLifecycleOwner
 
         val adapter = AboutListAdapter()
         binding.listView.adapter = adapter

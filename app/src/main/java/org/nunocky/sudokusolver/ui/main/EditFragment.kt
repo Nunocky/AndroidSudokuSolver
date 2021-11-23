@@ -13,9 +13,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.R
-import org.nunocky.sudokusolver.database.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentEditBinding
 import org.nunocky.sudokusolver.view.NumberCellView
 
@@ -39,14 +37,18 @@ class EditFragment : Fragment() {
     ): View {
         binding = FragmentEditBinding.inflate(inflater, container, false)
         binding.viewModel = viewModel
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = viewLifecycleOwner
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
 
         val navController = findNavController()
+        val previousSavedStateHandle = findNavController().previousBackStackEntry!!.savedStateHandle
+        previousSavedStateHandle.set(KEY_SAVED, false)
+
         val appBarConfiguration = AppBarConfiguration(navController.graph)
         binding.toolbar.setupWithNavController(navController, appBarConfiguration)
         (activity as AppCompatActivity?)!!.setSupportActionBar(binding.toolbar)
@@ -74,9 +76,9 @@ class EditFragment : Fragment() {
             clearAllCells()
         }
 
-        binding.btnSolve.setOnClickListener {
-            saveEntityAndMoveToSolveFragment()
-        }
+//        binding.btnSolve.setOnClickListener {
+//            saveEntityAndMoveToSolveFragment()
+//        }
 
         viewModel.currentValue.observe(requireActivity()) { num ->
             currentCell?.let {
@@ -168,28 +170,50 @@ class EditFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.action_save) {
-            saveSudoku()
+        return when (item.itemId) {
+            R.id.home -> {
+                // TODO : 動かないのを直す
+                findNavController().popBackStack()
+                true
+            }
+            R.id.action_save -> {
+                saveSudoku()
+                true
+            }
+            else -> {
+                super.onOptionsItemSelected(item)
+            }
         }
-
-        return super.onOptionsItemSelected(item)
     }
 
     private fun saveSudoku() = lifecycleScope.launch {
         val cells =
             binding.sudokuBoardView.cellViews.joinToString("") { it.fixedNum.toString() }
         viewModel.saveSudoku(cells).join()
+
+        // 条件付きナビゲーション
+        val savedStateHandle = findNavController().previousBackStackEntry!!.savedStateHandle
+        savedStateHandle.set(KEY_SAVED, true)
+        findNavController().popBackStack()
     }
 
-    private fun saveEntityAndMoveToSolveFragment() = lifecycleScope.launch {
-        viewModel.entity.value?.let { entity ->
-            saveSudoku().join()
+//    private fun saveEntityAndMoveToSolveFragment() {
+//        val cells =
+//            binding.sudokuBoardView.cellViews.joinToString("") { it.fixedNum.toString() }
+//        viewModel.saveSudoku(cells)
+//
+//    }
 
-            TODO("条件付きナビゲーション 前の画面のステータスを更新する")
-//            val action = EditFragmentDirections.actionEditFragmentToSolverFragment(entity.id)
-//            findNavController().navigate(action)
-        }
-    }
+//    private fun saveEntityAndMoveToSolveFragment() = lifecycleScope.launch {
+//        viewModel.entity.value?.let { entity ->
+//            saveSudoku().join()
+//
+//            // 条件付きナビゲーション
+//            val savedStateHandle = findNavController().previousBackStackEntry!!.savedStateHandle
+//            savedStateHandle.set(KEY_SAVED, true)
+//            findNavController().popBackStack()
+//        }
+//    }
 
     private fun clearAllCells() {
         binding.sudokuBoardView.cellViews.forEach { cellView ->

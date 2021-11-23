@@ -91,6 +91,7 @@ class SudokuListFragment : Fragment() {
         adapter = SudokuListAdapter(emptyList())
         binding.recyclerView.adapter = adapter
 
+        // TODO : タップで [SolverFragment] へ。ロングタップでアクションモード起動
         adapter.listener = object : SudokuListAdapter.OnItemClickListener {
             override fun onItemClicked(view: View, position: Int) {
                 val entity = adapter.list[position]
