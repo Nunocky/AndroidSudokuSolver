@@ -11,6 +11,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.R
@@ -18,15 +19,12 @@ import org.nunocky.sudokusolver.database.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentEditBinding
 import org.nunocky.sudokusolver.view.NumberCellView
 
+@AndroidEntryPoint
 class EditFragment : Fragment() {
     private val args: EditFragmentArgs by navArgs()
     private lateinit var binding: FragmentEditBinding
 
-    private val viewModel: EditViewModel by viewModels {
-        val app = (requireActivity().application as MyApplication)
-        val appDatabase = app.appDatabase
-        EditViewModel.Factory(SudokuRepository(appDatabase))
-    }
+    private val viewModel: EditViewModel by viewModels()
 
     private var currentCell: NumberCellView? = null
 
@@ -186,8 +184,10 @@ class EditFragment : Fragment() {
     private fun saveEntityAndMoveToSolveFragment() = lifecycleScope.launch {
         viewModel.entity.value?.let { entity ->
             saveSudoku().join()
-            val action = EditFragmentDirections.actionEditFragmentToSolverFragment(entity.id)
-            findNavController().navigate(action)
+
+            TODO("条件付きナビゲーション 前の画面のステータスを更新する")
+//            val action = EditFragmentDirections.actionEditFragmentToSolverFragment(entity.id)
+//            findNavController().navigate(action)
         }
     }
 
@@ -202,5 +202,9 @@ class EditFragment : Fragment() {
             cellView.fixedNum.toChar().code
         }
         viewModel.sudokuSolver.load(list)
+    }
+
+    companion object {
+        const val KEY_SAVED = "saved"
     }
 }

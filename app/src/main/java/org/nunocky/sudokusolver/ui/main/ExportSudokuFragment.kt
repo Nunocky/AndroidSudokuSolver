@@ -13,21 +13,22 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
-import org.nunocky.sudokusolver.MyApplication
-import org.nunocky.sudokusolver.database.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentExportSudokuBinding
 
+@AndroidEntryPoint
 class ExportSudokuFragment : Fragment() {
     private lateinit var binding: FragmentExportSudokuBinding
     private var fmt = 0 // 出力フォーマット (0:text, 1:json)
 
-    private val viewModel: ExportSudokuViewModel by viewModels {
-        val app = (requireActivity().application as MyApplication)
-        val appDatabase = app.appDatabase
-        ExportSudokuViewModel.Factory(requireActivity().application, SudokuRepository(appDatabase))
-    }
+    private val viewModel: ExportSudokuViewModel by viewModels()
+//    {
+//        val app = (requireActivity().application as MyApplication)
+//        val appDatabase = app.appDatabase
+//        ExportSudokuViewModel.Factory(requireActivity().application, SudokuRepository(appDatabase))
+//    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,7 +39,7 @@ class ExportSudokuFragment : Fragment() {
         return binding.root
     }
 
-    @ExperimentalCoroutinesApi
+    //@ExperimentalCoroutinesApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (activity as AppCompatActivity?)!!.setSupportActionBar(binding.toolbar)

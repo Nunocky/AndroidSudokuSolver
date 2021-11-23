@@ -1,19 +1,24 @@
 package org.nunocky.sudokusolver.ui.main
 
 import androidx.lifecycle.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.database.SudokuRepository
+import javax.inject.Inject
 
-class SudokuListViewModel(private val repository: SudokuRepository) : ViewModel() {
-    class Factory(private val repository: SudokuRepository) :
-        ViewModelProvider.NewInstanceFactory() {
-        @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return SudokuListViewModel(repository) as T
-        }
-    }
+@HiltViewModel
+class SudokuListViewModel @Inject constructor (
+    val savesStateHandle: SavedStateHandle,
+    val repository: SudokuRepository) : ViewModel() {
+//    class Factory(private val repository: SudokuRepository) :
+//        ViewModelProvider.NewInstanceFactory() {
+//        @Suppress("unchecked_cast")
+//        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+//            return SudokuListViewModel(repository) as T
+//        }
+//    }
 
     val filterImpossible = MutableLiveData(true)
     val filterUnTested = MutableLiveData(true)

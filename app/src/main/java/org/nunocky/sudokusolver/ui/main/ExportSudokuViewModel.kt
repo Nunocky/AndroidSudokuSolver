@@ -2,36 +2,38 @@ package org.nunocky.sudokusolver.ui.main
 
 import android.app.Application
 import android.net.Uri
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.nunocky.sudokusolver.CalenderJsonAdapter
-import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.SudokuJsonAdapterFactory
 import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.database.SudokuRepository
 import java.util.*
+import javax.inject.Inject
 
-class ExportSudokuViewModel(
-    application: Application,
+@HiltViewModel
+class ExportSudokuViewModel @Inject constructor(
+    private val application: Application,
+    private val savedStateHandle: SavedStateHandle,
     private val repository: SudokuRepository
-) : AndroidViewModel(application) {
-    class Factory(private val application: Application, private val repository: SudokuRepository) :
-        ViewModelProvider.NewInstanceFactory() {
-        @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return ExportSudokuViewModel(application, repository) as T
-        }
-    }
+) : ViewModel() {
+//    class Factory(private val application: Application, private val repository: SudokuRepository) :
+//        ViewModelProvider.NewInstanceFactory() {
+//        @Suppress("unchecked_cast")
+//        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+//            return ExportSudokuViewModel(application, repository) as T
+//        }
+//    }
 
     @Suppress("BlockingMethodInNonBlockingContext")
     suspend fun execExport(uri: Uri) = withContext(Dispatchers.IO) {
-        val app = getApplication() as MyApplication
-        app.contentResolver.openOutputStream(uri).use { oStream ->
+        //val app = applicationContext as MyApplication
+        application.contentResolver.openOutputStream(uri).use { oStream ->
             oStream?.bufferedWriter()?.use { writer ->
                 val list = repository.findAll()
 
@@ -45,9 +47,8 @@ class ExportSudokuViewModel(
 
     suspend fun execExportJson(uri: Uri) = withContext(Dispatchers.IO) {
 
-        val app = getApplication() as MyApplication
-
-        app.contentResolver.openOutputStream(uri).use { oStream ->
+        //val app = getApplication() as MyApplication
+        application.contentResolver.openOutputStream(uri).use { oStream ->
             oStream?.bufferedWriter()?.use { writer ->
 
                 val builder = Moshi.Builder()

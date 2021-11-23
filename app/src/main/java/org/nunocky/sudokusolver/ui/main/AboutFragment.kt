@@ -8,9 +8,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
+import dagger.hilt.android.AndroidEntryPoint
 import org.nunocky.sudokusolver.adapter.AboutListAdapter
 import org.nunocky.sudokusolver.databinding.FragmentAboutBinding
 
+@AndroidEntryPoint
 class AboutFragment : Fragment() {
     private lateinit var binding: FragmentAboutBinding
 

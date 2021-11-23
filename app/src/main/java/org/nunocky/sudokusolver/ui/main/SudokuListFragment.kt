@@ -18,6 +18,7 @@ import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.adapter.SudokuEntityDetailsLookup
@@ -29,17 +30,19 @@ import org.nunocky.sudokusolver.databinding.FragmentSudokuListBinding
 /**
  * 登録した問題一覧
  */
+@AndroidEntryPoint
 class SudokuListFragment : Fragment() {
     private lateinit var binding: FragmentSudokuListBinding
     private lateinit var adapter: SudokuListAdapter
     private var actionMode: ActionMode? = null
     private lateinit var tracker: SelectionTracker<Long>
 
-    private val viewModel: SudokuListViewModel by viewModels {
-        val app = (requireActivity().application as MyApplication)
-        val appDatabase = app.appDatabase
-        SudokuListViewModel.Factory(SudokuRepository(appDatabase))
-    }
+    private val viewModel: SudokuListViewModel by viewModels()
+//    {
+//        val app = (requireActivity().application as MyApplication)
+//        val appDatabase = app.appDatabase
+//        SudokuListViewModel.Factory(SudokuRepository(appDatabase))
+//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,7 +95,7 @@ class SudokuListFragment : Fragment() {
             override fun onItemClicked(view: View, position: Int) {
                 val entity = adapter.list[position]
                 val action =
-                    SudokuListFragmentDirections.actionSudokuListFragmentToEditFragment(entity.id)
+                    SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(entityId = entity.id)
                 findNavController().navigate(action)
             }
         }
@@ -144,7 +147,7 @@ class SudokuListFragment : Fragment() {
         adapter.tracker = tracker
 
         binding.floatingActionButton.setOnClickListener {
-            val action = SudokuListFragmentDirections.actionSudokuListFragmentToEditFragment(0)
+            val action = SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(0)
             findNavController().navigate(action)
         }
     }
@@ -171,7 +174,8 @@ class SudokuListFragment : Fragment() {
 
                 // Snackbar表示。復元機能も
                 Snackbar.make(binding.root, "deleted", Snackbar.LENGTH_SHORT)
-                    .setAction("restore"
+                    .setAction(
+                        "restore"
                     ) {
                         viewModel.restoreDeletedItems()
                     }

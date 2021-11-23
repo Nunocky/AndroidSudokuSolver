@@ -16,14 +16,13 @@ import androidx.navigation.fragment.navArgs
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.nunocky.sudokulib.Cell
 import org.nunocky.sudokulib.SudokuSolver
-import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.R
-import org.nunocky.sudokusolver.database.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentSolverBinding
 
 /**
@@ -31,16 +30,11 @@ import org.nunocky.sudokusolver.databinding.FragmentSolverBinding
  *
  *
  */
+@AndroidEntryPoint
 class SolverFragment : Fragment() {
     private val args: SolverFragmentArgs by navArgs()
-
-    private val viewModel: SolverViewModel by viewModels {
-        val app = (requireActivity().application as MyApplication)
-        val appDatabase = app.appDatabase
-        SolverViewModel.Factory(SudokuRepository(appDatabase))
-    }
-
     private lateinit var binding: FragmentSolverBinding
+    private val viewModel: SolverViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -57,10 +51,17 @@ class SolverFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val navController = findNavController()
+
+        // TODO Activityに移す?
         val appBarConfiguration = AppBarConfiguration(navController.graph)
         binding.toolbar.setupWithNavController(navController, appBarConfiguration)
 
-        loadSudoku()
+        // 条件付きナビゲーション
+        viewModel.entityId.observe(viewLifecycleOwner) { entityId ->
+            if (entityId == 0L) {
+                navController.navigate(R.id.editFragment)
+            }
+        }
 
         binding.btnStart.setOnClickListener {
             viewModel.startSolver(callback)
@@ -76,6 +77,22 @@ class SolverFragment : Fragment() {
 
         viewModel.solverMethod.observe(requireActivity()) {
             reset()
+        }
+
+        viewModel.solverReady.observe(viewLifecycleOwner) {
+            binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
+                cellView.apply {
+                    fixedNum = viewModel.solver.cells[n].value
+                    if (fixedNum != 0) {
+                        setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.fixedCell))
+                        candidates = IntArray(0)
+                        showCandidates = false
+                    } else {
+                        candidates = arrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9).toIntArray()
+                    }
+                }
+            }
+            binding.sudokuBoard.updated = false
         }
     }
 
@@ -100,30 +117,31 @@ class SolverFragment : Fragment() {
         }
     }
 
-    private fun loadSudoku() = lifecycleScope.launch {
-        viewModel.loadSudoku(args.entityId).join()
-
-        binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
-            cellView.apply {
-                fixedNum = viewModel.solver.cells[n].value
-                if (fixedNum != 0) {
-                    setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.fixedCell))
-                    candidates = IntArray(0)
-                    showCandidates = false
-                } else {
-                    candidates = arrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9).toIntArray()
-                }
-            }
-        }
-        binding.sudokuBoard.updated = false
-    }
+//    private fun loadSudoku() = lifecycleScope.launch {
+//        viewModel.loadSudoku(args.entityId).join()
+//
+//        binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
+//            cellView.apply {
+//                fixedNum = viewModel.solver.cells[n].value
+//                if (fixedNum != 0) {
+//                    setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.fixedCell))
+//                    candidates = IntArray(0)
+//                    showCandidates = false
+//                } else {
+//                    candidates = arrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9).toIntArray()
+//                }
+//            }
+//        }
+//        binding.sudokuBoard.updated = false
+//    }
 
     private fun stopSolve() = lifecycleScope.launch {
         viewModel.stopSolver()
     }
 
     private fun reset() = lifecycleScope.launch {
-        loadSudoku().join()
+        //loadSudoku().join()
+        // TODO リセット処理
         viewModel.resetSolver()
     }
 

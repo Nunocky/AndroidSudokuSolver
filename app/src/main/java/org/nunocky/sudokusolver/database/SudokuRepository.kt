@@ -1,8 +1,11 @@
 package org.nunocky.sudokusolver.database
 
 import androidx.lifecycle.LiveData
+import javax.inject.Inject
 
-class SudokuRepository(database: AppDatabase) {
+class SudokuRepository @Inject constructor(
+    private val dao: SudokuDAO
+) {
     data class Filter(
         val checkImpossible: Boolean,
         val checkUntested: Boolean,
@@ -35,7 +38,7 @@ class SudokuRepository(database: AppDatabase) {
         }
     }
 
-    private val dao = database.getSudokuDAO()
+    //private val dao = database.getSudokuDAO()
 
     fun insert(entity: SudokuEntity) = dao.insert(entity)
     fun insert(entities: List<SudokuEntity>) = dao.insert(entities)

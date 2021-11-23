@@ -1,21 +1,17 @@
 package org.nunocky.sudokusolver.ui.main
 
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import org.nunocky.sudokulib.SudokuSolver
 import org.nunocky.sudokusolver.database.SudokuRepository
+import javax.inject.Inject
 
-class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
-    class Factory(private val repository: SudokuRepository) :
-        ViewModelProvider.NewInstanceFactory() {
-        @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return SolverViewModel(repository) as T
-        }
-    }
+@HiltViewModel
+class SolverViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
+    private val repository: SudokuRepository
+) : ViewModel() {
 
     enum class Status {
         INIT,
@@ -39,9 +35,28 @@ class SolverViewModel(private val repository: SudokuRepository) : ViewModel() {
 
     val solver = SudokuSolver()
 
-    fun loadSudoku(entityId: Long) = viewModelScope.launch(Dispatchers.IO) {
-        repository.findById(entityId)?.let { entity ->
-            solver.load(entity.cells)
+    val entityId = savedStateHandle.getLiveData("entity_id", 0L)
+
+//    fun loadSudoku(entityId: Long) = viewModelScope.launch(Dispatchers.IO) {
+//    fun loadSudoku() = viewModelScope.launch(Dispatchers.IO) {
+//        repository.findById(entityId)?.let { entity ->
+//            solver.load(entity.cells)
+//        }
+//    }
+
+    val solverReady = MediatorLiveData<Boolean>()
+
+    init {
+        solverReady.addSource(entityId) {
+            if (it != 0L) {
+                val entity = repository.findById(it)
+                if (entity != null) {
+                    solver.load(entity.cells)
+                    solverReady.value = true
+                } else {
+                    throw IllegalArgumentException("load failed")
+                }
+            }
         }
     }
 
