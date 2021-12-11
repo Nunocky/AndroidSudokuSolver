@@ -12,8 +12,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -70,16 +68,10 @@ class SolverFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val navController = findNavController()
-
-        // TODO Activityに移す
-//        val appBarConfiguration = AppBarConfiguration(navController.graph)
-//        binding.toolbar.setupWithNavController(navController, appBarConfiguration)
-
         viewModel.entityId.observe(viewLifecycleOwner) { entityId ->
             if (entityId == 0L) {
                 val action = NavigationMainDirections.actionGlobalEditFragment(entityId = 0L)
-                navController.navigate(action)
+                findNavController().navigate(action)
             }
         }
 
@@ -149,9 +141,9 @@ class SolverFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_edit) {
-            // TODO へ 編集画面に
-
-
+            // TODO 編集画面に
+            val action = SolverFragmentDirections.actionGlobalEditFragment(args.entityId)
+            findNavController().navigate(action)
         }
         return super.onOptionsItemSelected(item)
     }

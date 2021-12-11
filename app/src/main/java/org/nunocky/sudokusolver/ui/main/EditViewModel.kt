@@ -2,6 +2,7 @@ package org.nunocky.sudokusolver.ui.main
 
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.database.SudokuRepository
@@ -24,7 +25,7 @@ class EditViewModel @Inject constructor(
 
     init {
         entity.addSource(entityId) {
-            viewModelScope.launch {
+            viewModelScope.launch(Dispatchers.IO) {
                 if (it == 0L) {
                     setNewSudoku()
                 } else {
