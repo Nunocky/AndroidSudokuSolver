@@ -4,6 +4,9 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import dagger.hilt.android.AndroidEntryPoint
 import org.nunocky.sudokusolver.databinding.ActivityMainBinding
@@ -15,6 +18,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private lateinit var navController: NavController
+    private lateinit var appBarConfiguration: AppBarConfiguration
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,12 +36,13 @@ class MainActivity : AppCompatActivity() {
         navController = navHostFragment.navController
 
         val toolbar = binding.toolbar
-
-        // (1) OptionsMenuを出すために必要
         setSupportActionBar(toolbar)
-        // (2) タイトル設定、Up navigateボタンのために必要
-        toolbar.setupWithNavController(navController)
-        // (2)はこちらの書き方でもOK
-        // NavigationUI.setupWithNavController(toolbar, navController)
+
+        appBarConfiguration = AppBarConfiguration(navController.graph)
+        setupActionBarWithNavController(navController, appBarConfiguration)
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 }

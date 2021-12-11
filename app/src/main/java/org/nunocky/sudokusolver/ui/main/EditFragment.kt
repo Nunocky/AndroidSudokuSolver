@@ -3,7 +3,7 @@ package org.nunocky.sudokusolver.ui.main
 import android.os.Bundle
 import android.view.*
 import android.widget.CompoundButton
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -19,7 +19,6 @@ import org.nunocky.sudokusolver.view.NumberCellView
 class EditFragment : Fragment() {
     private val args: EditFragmentArgs by navArgs()
     private lateinit var binding: FragmentEditBinding
-
     private val viewModel: EditViewModel by viewModels()
 
     private var currentCell: NumberCellView? = null
@@ -34,13 +33,17 @@ class EditFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentEditBinding.inflate(inflater, container, false)
-        binding.viewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
+        binding.viewModel = viewModel
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            onBackButtonClicked()
+        }
 
         val navController = findNavController()
         val previousSavedStateHandle = navController.previousBackStackEntry!!.savedStateHandle
@@ -143,8 +146,6 @@ class EditFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        (activity as AppCompatActivity).supportActionBar?.title = "Edit"
-
         viewModel.currentValue.value = 0
     }
 
@@ -155,9 +156,8 @@ class EditFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.home -> {
-                // TODO : 動かないのを直す
-                findNavController().popBackStack()
+            android.R.id.home -> {
+                onBackButtonClicked()
                 true
             }
             R.id.action_save -> {
@@ -212,6 +212,18 @@ class EditFragment : Fragment() {
             cellView.fixedNum.toChar().code
         }
         viewModel.sudokuSolver.load(list)
+    }
+
+    private fun onBackButtonClicked() {
+        val navController = findNavController()
+        val previousSavedStateHandle = navController.previousBackStackEntry!!.savedStateHandle
+
+        // 既存のアイテム編集時は保存の如何に関わらずソルバー画面に戻る
+        if (args.entityId != 0L) {
+            previousSavedStateHandle.set(KEY_SAVED, true)
+        }
+
+        findNavController().popBackStack()
     }
 
     companion object {
