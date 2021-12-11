@@ -72,9 +72,9 @@ class EditFragment : Fragment() {
             clearAllCells()
         }
 
-        binding.btnSolve.setOnClickListener {
-            saveEntityAndMoveToSolveFragment()
-        }
+//        binding.btnSolve.setOnClickListener {
+//            saveEntityAndMoveToSolveFragment()
+//        }
 
         viewModel.currentValue.observe(this) { num ->
             currentCell?.let {
@@ -184,22 +184,22 @@ class EditFragment : Fragment() {
         }
     }
 
-    private fun saveEntityAndMoveToSolveFragment() = lifecycleScope.launch(Dispatchers.IO) {
-
-        val cells = binding.sudokuBoardView.cellViews.joinToString("") {
-            it.fixedNum.toString()
-        }
-
-        val entityId = viewModel.saveSudoku(cells)
-
-        withContext(Dispatchers.Main) {
-            val previousSavedStateHandle =
-                findNavController().previousBackStackEntry!!.savedStateHandle
-            previousSavedStateHandle.set(KEY_SAVED, true)
-            previousSavedStateHandle.set("entityId", entityId)
-            findNavController().popBackStack()
-        }
-    }
+//    private fun saveEntityAndMoveToSolveFragment() = lifecycleScope.launch(Dispatchers.IO) {
+//
+//        val cells = binding.sudokuBoardView.cellViews.joinToString("") {
+//            it.fixedNum.toString()
+//        }
+//
+//        val entityId = viewModel.saveSudoku(cells)
+//
+//        withContext(Dispatchers.Main) {
+//            val previousSavedStateHandle =
+//                findNavController().previousBackStackEntry!!.savedStateHandle
+//            previousSavedStateHandle.set(KEY_SAVED, true)
+//            previousSavedStateHandle.set("entityId", entityId)
+//            findNavController().popBackStack()
+//        }
+//    }
 
     private fun clearAllCells() {
         binding.sudokuBoardView.cellViews.forEach { cellView ->
