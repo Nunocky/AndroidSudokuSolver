@@ -1,10 +1,8 @@
 package org.nunocky.sudokusolver.ui.main
 
-import android.content.Context
 import android.os.Bundle
 import android.view.*
 import androidx.core.content.ContextCompat
-import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -20,8 +18,10 @@ import kotlinx.coroutines.runBlocking
 import org.nunocky.sudokulib.Cell
 import org.nunocky.sudokulib.SudokuSolver
 import org.nunocky.sudokusolver.NavigationMainDirections
+import org.nunocky.sudokusolver.Preference
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.databinding.FragmentSolverBinding
+import javax.inject.Inject
 
 /**
  * 問題を解く
@@ -33,6 +33,9 @@ class SolverFragment : Fragment() {
     private val args: SolverFragmentArgs by navArgs()
     private lateinit var binding: FragmentSolverBinding
     private val viewModel: SolverViewModel by viewModels()
+
+    @Inject
+    lateinit var preference: Preference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +53,9 @@ class SolverFragment : Fragment() {
                         .setPopUpTo(startDestination, true)
                         .build()
                     navController.navigate(startDestination, null, navOptions)
+                } else {
+                    // TODO SAVE時の entityIdを受け取る方法
+                    reset()
                 }
             })
     }
@@ -115,23 +121,27 @@ class SolverFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-//        (activity as AppCompatActivity).supportActionBar?.title = "Solve"
         // 速度を sharedPreferenceから復元
-        viewModel.stepSpeed.value =
-            requireActivity().getPreferences(Context.MODE_PRIVATE).getInt("stepSpeed", 0)
+         viewModel.stepSpeed.value= preference.stepSpeed
+         viewModel.solverMethod.value = preference.solverMethod
 
-        viewModel.solverMethod.value =
-            requireActivity().getPreferences(Context.MODE_PRIVATE).getInt("solverMethod", 1)
+//        viewModel.stepSpeed.value =
+//            requireActivity().getPreferences(Context.MODE_PRIVATE).getInt("stepSpeed", 0)
+//
+//        viewModel.solverMethod.value =
+//            requireActivity().getPreferences(Context.MODE_PRIVATE).getInt("solverMethod", 1)
     }
 
     override fun onPause() {
         super.onPause()
         // 速度を保存
-        requireActivity().getPreferences(Context.MODE_PRIVATE).edit {
-            putInt("stepSpeed", viewModel.stepSpeed.value ?: 0)
-            putInt("solverMethod", viewModel.solverMethod.value ?: 0)
-            commit()
-        }
+        preference.stepSpeed = viewModel.stepSpeed.value ?: 0
+        preference.solverMethod = viewModel.solverMethod.value ?: 0
+//        requireActivity().getPreferences(Context.MODE_PRIVATE).edit {
+//            putInt("stepSpeed", viewModel.stepSpeed.value ?: 0)
+//            putInt("solverMethod", viewModel.solverMethod.value ?: 0)
+//            commit()
+//        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -158,8 +168,7 @@ class SolverFragment : Fragment() {
     }
 
     private suspend fun loadSudoku() {
-        viewModel.loadSudoku(args.entityId)
-
+        viewModel.loadSudoku(viewModel.entityId.value!!)
         // TODO セルの色を初期化する
         binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
             cellView.apply {

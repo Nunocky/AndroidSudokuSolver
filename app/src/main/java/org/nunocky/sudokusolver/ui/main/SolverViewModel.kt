@@ -4,13 +4,15 @@ import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import org.nunocky.sudokulib.SudokuSolver
+import org.nunocky.sudokusolver.Preference
 import org.nunocky.sudokusolver.database.SudokuRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class SolverViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val repository: SudokuRepository
+    private val repository: SudokuRepository,
+    private val preference: Preference
 ) : ViewModel() {
 
     enum class Status {
@@ -24,8 +26,8 @@ class SolverViewModel @Inject constructor(
 
     val solverStatus = MutableLiveData(Status.INIT)
     val elapsedTime = MutableLiveData("00:00.000")
-    val stepSpeed = MutableLiveData(0)
-    val solverMethod = MutableLiveData(1)
+    val stepSpeed = savedStateHandle.getLiveData<Int>("stepSpeed", preference.stepSpeed)
+    val solverMethod = savedStateHandle.getLiveData<Int>("solverMethod", preference.solverMethod)
 
     private var startTime = 0L
     private var currentTime = 0L
