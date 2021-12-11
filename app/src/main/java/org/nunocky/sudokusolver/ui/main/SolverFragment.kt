@@ -2,9 +2,7 @@ package org.nunocky.sudokusolver.ui.main
 
 import android.content.Context
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
@@ -40,6 +38,7 @@ class SolverFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
 
         val navController = findNavController()
         val currentBackStackEntry = navController.currentBackStackEntry!!
@@ -74,8 +73,8 @@ class SolverFragment : Fragment() {
         val navController = findNavController()
 
         // TODO Activityに移す
-        val appBarConfiguration = AppBarConfiguration(navController.graph)
-        binding.toolbar.setupWithNavController(navController, appBarConfiguration)
+//        val appBarConfiguration = AppBarConfiguration(navController.graph)
+//        binding.toolbar.setupWithNavController(navController, appBarConfiguration)
 
         viewModel.entityId.observe(viewLifecycleOwner) { entityId ->
             if (entityId == 0L) {
@@ -143,23 +142,19 @@ class SolverFragment : Fragment() {
         }
     }
 
-//    private fun loadSudoku() = lifecycleScope.launch {
-//        viewModel.loadSudoku(args.entityId).join()
-//
-//        binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
-//            cellView.apply {
-//                fixedNum = viewModel.solver.cells[n].value
-//                if (fixedNum != 0) {
-//                    setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.fixedCell))
-//                    candidates = IntArray(0)
-//                    showCandidates = false
-//                } else {
-//                    candidates = arrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9).toIntArray()
-//                }
-//            }
-//        }
-//        binding.sudokuBoard.updated = false
-//    }
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_solver, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.action_edit) {
+            // TODO へ 編集画面に
+
+
+        }
+        return super.onOptionsItemSelected(item)
+    }
 
     private fun stopSolve() = lifecycleScope.launch {
         viewModel.stopSolver()

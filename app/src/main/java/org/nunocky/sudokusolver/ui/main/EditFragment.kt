@@ -9,10 +9,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupWithNavController
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.databinding.FragmentEditBinding
 import org.nunocky.sudokusolver.view.NumberCellView
@@ -43,15 +41,10 @@ class EditFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setHasOptionsMenu(true)
 
         val navController = findNavController()
-        val previousSavedStateHandle = findNavController().previousBackStackEntry!!.savedStateHandle
+        val previousSavedStateHandle = navController.previousBackStackEntry!!.savedStateHandle
         previousSavedStateHandle.set(KEY_SAVED, false)
-
-        val appBarConfiguration = AppBarConfiguration(navController.graph)
-        binding.toolbar.setupWithNavController(navController, appBarConfiguration)
-        (activity as AppCompatActivity?)!!.setSupportActionBar(binding.toolbar)
 
         binding.sudokuBoardView.showCandidates = false
 
@@ -76,11 +69,11 @@ class EditFragment : Fragment() {
             clearAllCells()
         }
 
-//        binding.btnSolve.setOnClickListener {
-//            saveEntityAndMoveToSolveFragment()
-//        }
+        binding.btnSolve.setOnClickListener {
+            saveEntityAndMoveToSolveFragment()
+        }
 
-        viewModel.currentValue.observe(requireActivity()) { num ->
+        viewModel.currentValue.observe(this) { num ->
             currentCell?.let {
                 it.fixedNum = num
                 it.updated = false
@@ -92,7 +85,7 @@ class EditFragment : Fragment() {
             viewModel.sudokuSolver.load(list)
         }
 
-        viewModel.entity.observe(requireActivity()) {
+        viewModel.entity.observe(this) {
             it?.cells?.let { cells ->
                 val cellList = ArrayList<org.nunocky.sudokulib.Cell>()
                 cells.toCharArray().forEach {
@@ -153,15 +146,6 @@ class EditFragment : Fragment() {
         (activity as AppCompatActivity).supportActionBar?.title = "Edit"
 
         viewModel.currentValue.value = 0
-
-        // 画面遷移時(前後) で読み込み直す
-        if (viewModel.entity.value == null) {
-            if (args.entityId == 0L) {
-                viewModel.setNewSudoku()
-            } else {
-                viewModel.loadSudoku(args.entityId)
-            }
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -186,34 +170,36 @@ class EditFragment : Fragment() {
         }
     }
 
-    private fun saveSudoku() = lifecycleScope.launch {
+    private fun saveSudoku() = lifecycleScope.launch(Dispatchers.IO) {
         val cells =
             binding.sudokuBoardView.cellViews.joinToString("") { it.fixedNum.toString() }
-        viewModel.saveSudoku(cells).join()
 
-        // 条件付きナビゲーション
-        val savedStateHandle = findNavController().previousBackStackEntry!!.savedStateHandle
-        savedStateHandle.set(KEY_SAVED, true)
-        findNavController().popBackStack()
+        val id = viewModel.saveSudoku(cells)
+
+        withContext(Dispatchers.Main) {
+            val previousSavedStateHandle =
+                findNavController().previousBackStackEntry!!.savedStateHandle
+            previousSavedStateHandle.set(KEY_SAVED, true)
+            previousSavedStateHandle.set("entityId", id)
+        }
     }
 
-//    private fun saveEntityAndMoveToSolveFragment() {
-//        val cells =
-//            binding.sudokuBoardView.cellViews.joinToString("") { it.fixedNum.toString() }
-//        viewModel.saveSudoku(cells)
-//
-//    }
+    private fun saveEntityAndMoveToSolveFragment() = lifecycleScope.launch(Dispatchers.IO) {
 
-//    private fun saveEntityAndMoveToSolveFragment() = lifecycleScope.launch {
-//        viewModel.entity.value?.let { entity ->
-//            saveSudoku().join()
-//
-//            // 条件付きナビゲーション
-//            val savedStateHandle = findNavController().previousBackStackEntry!!.savedStateHandle
-//            savedStateHandle.set(KEY_SAVED, true)
-//            findNavController().popBackStack()
-//        }
-//    }
+        val cells = binding.sudokuBoardView.cellViews.joinToString("") {
+            it.fixedNum.toString()
+        }
+
+        val entityId = viewModel.saveSudoku(cells)
+
+        withContext(Dispatchers.Main) {
+            val previousSavedStateHandle =
+                findNavController().previousBackStackEntry!!.savedStateHandle
+            previousSavedStateHandle.set(KEY_SAVED, true)
+            previousSavedStateHandle.set("entityId", entityId)
+            findNavController().popBackStack()
+        }
+    }
 
     private fun clearAllCells() {
         binding.sudokuBoardView.cellViews.forEach { cellView ->

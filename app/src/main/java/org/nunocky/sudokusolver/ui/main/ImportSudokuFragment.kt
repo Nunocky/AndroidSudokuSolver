@@ -39,7 +39,6 @@ class ImportSudokuFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        (activity as AppCompatActivity?)!!.setSupportActionBar(binding.toolbar)
 
         binding.btnExecute.setOnClickListener {
 

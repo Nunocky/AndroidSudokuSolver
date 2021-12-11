@@ -8,7 +8,13 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.16779572694111516" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/fragment_edit.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/fragment_export_sudoku.xml" value="0.15438950554994954" />
+        <entry key="app/src/main/res/layout/fragment_import_sudoku.xml" value="0.15438950554994954" />
+        <entry key="app/src/main/res/layout/fragment_solver.xml" value="0.15438950554994954" />
+        <entry key="app/src/main/res/layout/fragment_sudoku_list.xml" value="0.25" />
+        <entry key="app/src/main/res/menu/menu_solver.xml" value="0.2064814814814815" />
       </map>
     </option>
   </component>

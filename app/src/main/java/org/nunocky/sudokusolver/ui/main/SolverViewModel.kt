@@ -35,7 +35,7 @@ class SolverViewModel @Inject constructor(
 
     val solver = SudokuSolver()
 
-    val entityId = savedStateHandle.getLiveData("entity_id", 0L)
+    val entityId = savedStateHandle.getLiveData("entityId", 0L)
 
 //    fun loadSudoku(entityId: Long) = viewModelScope.launch(Dispatchers.IO) {
 //    fun loadSudoku() = viewModelScope.launch(Dispatchers.IO) {
@@ -48,13 +48,15 @@ class SolverViewModel @Inject constructor(
 
     init {
         solverReady.addSource(entityId) {
-            if (it != 0L) {
-                val entity = repository.findById(it)
-                if (entity != null) {
-                    solver.load(entity.cells)
-                    solverReady.value = true
-                } else {
-                    throw IllegalArgumentException("load failed")
+            viewModelScope.launch(Dispatchers.IO) {
+                if (it != 0L) {
+                    val entity = repository.findById(it)
+                    if (entity != null) {
+                        solver.load(entity.cells)
+                        solverReady.postValue(true)
+                    } else {
+                        throw IllegalArgumentException("load failed")
+                    }
                 }
             }
         }
