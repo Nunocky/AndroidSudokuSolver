@@ -3,7 +3,6 @@ package org.nunocky.sudokusolver.ui.main
 import android.content.Context
 import android.os.Bundle
 import android.view.*
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
@@ -14,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -87,7 +87,7 @@ class SolverFragment : Fragment() {
             stopSolve()
         }
 
-        viewModel.solverMethod.observe(requireActivity()) {
+        viewModel.solverMethod.observe(viewLifecycleOwner) {
             reset()
         }
 
@@ -115,7 +115,7 @@ class SolverFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        (activity as AppCompatActivity).supportActionBar?.title = "Solve"
+//        (activity as AppCompatActivity).supportActionBar?.title = "Solve"
         // 速度を sharedPreferenceから復元
         viewModel.stepSpeed.value =
             requireActivity().getPreferences(Context.MODE_PRIVATE).getInt("stepSpeed", 0)
@@ -141,7 +141,6 @@ class SolverFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_edit) {
-            // TODO 編集画面に
             val action = SolverFragmentDirections.actionGlobalEditFragment(args.entityId)
             findNavController().navigate(action)
         }
@@ -152,10 +151,29 @@ class SolverFragment : Fragment() {
         viewModel.stopSolver()
     }
 
-    private fun reset() = lifecycleScope.launch {
-        //loadSudoku().join()
-        //viewModel.resetSolver()
-//        TODO("リセット処理")
+    private fun reset() = lifecycleScope.launch(Dispatchers.IO) {
+     // TODO 遷移時にここが3回呼ばれている ... solverMethodが3回変更になっている
+        loadSudoku()
+        viewModel.resetSolver()
+    }
+
+    private suspend fun loadSudoku() {
+        viewModel.loadSudoku(args.entityId)
+
+        // TODO セルの色を初期化する
+        binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
+            cellView.apply {
+                fixedNum = viewModel.solver.cells[n].value
+                if (fixedNum != 0) {
+                    setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.fixedCell))
+                    candidates = IntArray(0)
+                    showCandidates = false
+                } else {
+                    candidates = arrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9).toIntArray()
+                }
+            }
+        }
+        binding.sudokuBoard.updated = false
     }
 
     private val callback = object : SudokuSolver.ProgressCallback {

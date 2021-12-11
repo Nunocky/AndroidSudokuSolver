@@ -43,6 +43,11 @@ class SolverViewModel @Inject constructor(
 //            solver.load(entity.cells)
 //        }
 //    }
+    suspend fun loadSudoku(entityId: Long) {
+        repository.findById(entityId)?.let { entity ->
+            solver.load(entity.cells)
+        }
+    }
 
     val solverReady = MediatorLiveData<Boolean>()
 
@@ -109,12 +114,19 @@ class SolverViewModel @Inject constructor(
         }
     }
 
-    fun stopSolver() = viewModelScope.launch(Dispatchers.IO) {
+//    fun stopSolver() = viewModelScope.launch(Dispatchers.IO) {
+//        solverJob.cancel()
+//        stopTimer()
+//    }
+    suspend fun stopSolver() {
         solverJob.cancel()
         stopTimer()
     }
 
-    fun resetSolver() = viewModelScope.launch(Dispatchers.IO) {
+//    fun resetSolver() = viewModelScope.launch(Dispatchers.IO) {
+//        solverStatus.postValue(Status.INIT)
+//    }
+    suspend fun resetSolver() {
         solverStatus.postValue(Status.INIT)
     }
 
