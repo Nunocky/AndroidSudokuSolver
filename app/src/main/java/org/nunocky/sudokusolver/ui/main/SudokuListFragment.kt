@@ -128,7 +128,11 @@ class SudokuListFragment : Fragment() {
 
         adapter.tracker = tracker
 
-        // FAB処理は Activityに移動
+        binding.floatingActionButton.setOnClickListener {
+            val action =
+                SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(entityId = 0L)
+            findNavController().navigate(action)
+        }
     }
 
     private val actionModeCallback = object : ActionMode.Callback {

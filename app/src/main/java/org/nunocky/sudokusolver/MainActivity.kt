@@ -23,13 +23,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupToolbar()
-
-        binding.floatingActionButton.setOnClickListener {
-            TODO("実装する contentId = 0")
-//            val action =
-//                SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(entityId = 0L)
-//            findNavController().navigate(action)
-        }
     }
 
     private fun setupToolbar() {
