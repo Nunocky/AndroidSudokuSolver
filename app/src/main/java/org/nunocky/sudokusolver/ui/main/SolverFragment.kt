@@ -14,6 +14,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import org.nunocky.sudokulib.Cell
 import org.nunocky.sudokulib.SudokuSolver
+import org.nunocky.sudokusolver.NavigationMainDirections
 import org.nunocky.sudokusolver.Preference
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.databinding.FragmentSolverBinding
@@ -42,6 +43,13 @@ class SolverFragment : Fragment() {
 
         val currentBackStackEntry = navController.currentBackStackEntry!!
         val savedStateHandle = currentBackStackEntry.savedStateHandle
+
+        // TODO この文のあるべき位置をドキュメントで確かめる
+        if (viewModel.entityId.value == 0L) {
+            val action = NavigationMainDirections.actionGlobalEditFragment(entityId = 0L)
+            findNavController().navigate(action)
+            return
+        }
 
         savedStateHandle.getLiveData<Boolean>(EditFragment.KEY_SAVED)
             .observe(currentBackStackEntry, { success ->
@@ -78,24 +86,6 @@ class SolverFragment : Fragment() {
             }
         }
 
-        // TODO これがよくなさそう
-        //      前画面でセットした entityIdが反映されていないか、その後にどこかで0がセットされている?
-//        if (viewModel.entityId.value!! <= 0L) {
-//            val action = NavigationMainDirections.actionGlobalEditFragment(entityId = 0L)
-//            findNavController().navigate(action)
-//        }
-
-//        userViewModel.entityId.observe(viewLifecycleOwner) { entityId ->
-//            if (entityId == 0L) {
-//                val action = NavigationMainDirections.actionGlobalEditFragment(entityId = 0L)
-//                findNavController().navigate(action)
-//            } else {
-//                lifecycleScope.launch(Dispatchers.IO) {
-//                    loadSudoku(entityId)
-//                }
-//            }
-//        }
-
         binding.btnStart.setOnClickListener {
             viewModel.startSolver(callback)
         }
@@ -125,13 +115,6 @@ class SolverFragment : Fragment() {
                 else -> {}
             }
         }
-//        viewModel.solverReady.observe(viewLifecycleOwner) {
-//            // 盤面を初期化
-//            syncBoard()
-//            binding.sudokuBoard.updated = false
-//        }
-
-
     }
 
     override fun onPause() {
@@ -185,7 +168,6 @@ class SolverFragment : Fragment() {
 
     private fun reset() = lifecycleScope.launch(Dispatchers.IO) {
         // TODO 遷移時にここが3回呼ばれている ... solverMethodが3回変更されている
-
         viewModel.entityId.value?.let {
             loadSudoku(it)
         }

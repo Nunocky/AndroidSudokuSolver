@@ -21,12 +21,12 @@ class EditFragment : Fragment() {
     private val args: EditFragmentArgs by navArgs()
     private lateinit var binding: FragmentEditBinding
     private val viewModel: EditViewModel by viewModels()
-//    private val userViewModel: UserViewModel by activityViewModels()
 
     private val navController by lazy { findNavController() }
     private val previousSavedStateHandle by lazy { navController.previousBackStackEntry!!.savedStateHandle }
 
     private var currentCell: NumberCellView? = null
+    private var shouldReturnToList = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +53,7 @@ class EditFragment : Fragment() {
         viewModel.entityId.observe(viewLifecycleOwner) { entity ->
             entity?.let {
                 loadSudoku(it)
+                shouldReturnToList = (it == 0L)
             }
         }
 
@@ -214,6 +215,8 @@ class EditFragment : Fragment() {
                 previousSavedStateHandle.set(KEY_SAVED, true)
                 previousSavedStateHandle.set("entityId", newId)
             }
+
+            shouldReturnToList = false
         }
     }
 
@@ -231,8 +234,12 @@ class EditFragment : Fragment() {
     }
 
     private fun onBackButtonClicked() {
-        previousSavedStateHandle.set(KEY_SAVED, true)
-        navController.popBackStack()
+        if ( shouldReturnToList ) {
+            navController.popBackStack(R.id.sudokuListFragment, false)
+        } else {
+            previousSavedStateHandle.set(KEY_SAVED, true)
+            navController.popBackStack()
+        }
     }
 
     companion object {
