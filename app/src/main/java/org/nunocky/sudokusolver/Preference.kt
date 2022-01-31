@@ -5,9 +5,11 @@ import android.content.Context
 import javax.inject.Inject
 import javax.inject.Singleton
 
+// TODO Jetpackの新しいやつに書き換える
+// https://proandroiddev.com/is-jetpack-datastore-a-replacement-for-sharedpreferences-efe92d02fcb3
 @Singleton
 class Preference @Inject constructor(
-    private val application: Application
+    application: Application
 ) {
     private val sharedPreference = application.getSharedPreferences("app", Context.MODE_PRIVATE)
 

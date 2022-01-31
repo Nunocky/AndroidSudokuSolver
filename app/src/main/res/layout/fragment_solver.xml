@@ -76,7 +76,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginBottom="8dp"
-            android:enabled="@{viewModel.solverStatus == Status.INIT}"
+            android:enabled="@{viewModel.solverStatus == Status.READY}"
             android:padding="16dp"
             android:src="@drawable/play_arrow"
             app:layout_constraintBottom_toBottomOf="parent"

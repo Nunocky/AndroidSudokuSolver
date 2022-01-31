@@ -12,6 +12,7 @@ import androidx.navigation.fragment.navArgs
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import org.nunocky.sudokusolver.R
+import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.databinding.FragmentEditBinding
 import org.nunocky.sudokusolver.view.NumberCellView
 
@@ -20,6 +21,10 @@ class EditFragment : Fragment() {
     private val args: EditFragmentArgs by navArgs()
     private lateinit var binding: FragmentEditBinding
     private val viewModel: EditViewModel by viewModels()
+//    private val userViewModel: UserViewModel by activityViewModels()
+
+    private val navController by lazy { findNavController() }
+    private val previousSavedStateHandle by lazy { navController.previousBackStackEntry!!.savedStateHandle }
 
     private var currentCell: NumberCellView? = null
 
@@ -45,8 +50,12 @@ class EditFragment : Fragment() {
             onBackButtonClicked()
         }
 
-        val navController = findNavController()
-        val previousSavedStateHandle = navController.previousBackStackEntry!!.savedStateHandle
+        viewModel.entityId.observe(viewLifecycleOwner) { entity ->
+            entity?.let {
+                loadSudoku(it)
+            }
+        }
+
         previousSavedStateHandle.set(KEY_SAVED, false)
 
         binding.sudokuBoardView.showCandidates = false
@@ -72,10 +81,6 @@ class EditFragment : Fragment() {
             clearAllCells()
         }
 
-//        binding.btnSolve.setOnClickListener {
-//            saveEntityAndMoveToSolveFragment()
-//        }
-
         viewModel.currentValue.observe(this) { num ->
             currentCell?.let {
                 it.fixedNum = num
@@ -88,19 +93,6 @@ class EditFragment : Fragment() {
             viewModel.sudokuSolver.load(list)
         }
 
-        viewModel.entity.observe(this) {
-            it?.cells?.let { cells ->
-                val cellList = ArrayList<org.nunocky.sudokulib.Cell>()
-                cells.toCharArray().forEach {
-                    val cell = org.nunocky.sudokulib.Cell().apply {
-                        value = it - '0'
-                    }
-                    cellList.add(cell)
-                }
-                binding.sudokuBoardView.updateCells(cellList)
-                binding.sudokuBoardView.updated = false
-            }
-        }
     }
 
     private val cellClickedListener = View.OnClickListener {
@@ -146,7 +138,15 @@ class EditFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.currentValue.value = 0
+
+        // ここでやるのが正しい?
+        lifecycleScope.launch(Dispatchers.IO) {
+            viewModel.loadSudoku(args.entityId)
+
+            withContext(Dispatchers.Main) {
+                viewModel.currentValue.value = 0
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -170,36 +170,52 @@ class EditFragment : Fragment() {
         }
     }
 
-    private fun saveSudoku() = lifecycleScope.launch(Dispatchers.IO) {
-        val cells =
-            binding.sudokuBoardView.cellViews.joinToString("") { it.fixedNum.toString() }
+    /**
+     * 指定 idの 数独を読み込み、UIにセットする
+     */
+    private fun loadSudoku(id: Long) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val entity = viewModel.loadSudoku(id)
 
-        val id = viewModel.saveSudoku(cells)
-
-        withContext(Dispatchers.Main) {
-            val previousSavedStateHandle =
-                findNavController().previousBackStackEntry!!.savedStateHandle
-            previousSavedStateHandle.set(KEY_SAVED, true)
-            previousSavedStateHandle.set("entityId", id)
+            withContext(Dispatchers.Main) {
+                updateUI(entity)
+            }
         }
     }
 
-//    private fun saveEntityAndMoveToSolveFragment() = lifecycleScope.launch(Dispatchers.IO) {
-//
-//        val cells = binding.sudokuBoardView.cellViews.joinToString("") {
-//            it.fixedNum.toString()
-//        }
-//
-//        val entityId = viewModel.saveSudoku(cells)
-//
-//        withContext(Dispatchers.Main) {
-//            val previousSavedStateHandle =
-//                findNavController().previousBackStackEntry!!.savedStateHandle
-//            previousSavedStateHandle.set(KEY_SAVED, true)
-//            previousSavedStateHandle.set("entityId", entityId)
-//            findNavController().popBackStack()
-//        }
-//    }
+    /**
+     * UIを更新する
+     */
+    private fun updateUI(entity: SudokuEntity) {
+        entity.cells.let { cells ->
+            val cellList = ArrayList<org.nunocky.sudokulib.Cell>()
+            cells.toCharArray().forEach {
+                val cell = org.nunocky.sudokulib.Cell().apply {
+                    value = it - '0'
+                }
+                cellList.add(cell)
+            }
+            binding.sudokuBoardView.updateCells(cellList)
+            binding.sudokuBoardView.updated = false
+        }
+    }
+
+    /**
+     *
+     */
+    private fun saveSudoku() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val cells =
+                binding.sudokuBoardView.cellViews.joinToString("") { it.fixedNum.toString() }
+
+            val newId = viewModel.saveSudoku(args.entityId, cells)
+
+            withContext(Dispatchers.Main) {
+                previousSavedStateHandle.set(KEY_SAVED, true)
+                previousSavedStateHandle.set("entityId", newId)
+            }
+        }
+    }
 
     private fun clearAllCells() {
         binding.sudokuBoardView.cellViews.forEach { cellView ->
@@ -215,15 +231,8 @@ class EditFragment : Fragment() {
     }
 
     private fun onBackButtonClicked() {
-        val navController = findNavController()
-        val previousSavedStateHandle = navController.previousBackStackEntry!!.savedStateHandle
-
-        // 既存のアイテム編集時は保存の如何に関わらずソルバー画面に戻る
-        if (args.entityId != 0L) {
-            previousSavedStateHandle.set(KEY_SAVED, true)
-        }
-
-        findNavController().popBackStack()
+        previousSavedStateHandle.set(KEY_SAVED, true)
+        navController.popBackStack()
     }
 
     companion object {

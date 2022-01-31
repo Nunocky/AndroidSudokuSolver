@@ -1,66 +1,45 @@
 package org.nunocky.sudokusolver.ui.main
 
-import androidx.lifecycle.*
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.database.SudokuRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class EditViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val repository: SudokuRepository
 ) : ViewModel() {
 
+    val entityId = savedStateHandle.getLiveData("entityId", 0L)
+
     var currentValue = MutableLiveData(0)
 
-    //val entity = MutableLiveData<SudokuEntity?>(null)
-    private val entityId = savedStateHandle.getLiveData<Long>("entityId")
-    val entity = MediatorLiveData<SudokuEntity>()
-
     val sudokuSolver = org.nunocky.sudokulib.SudokuSolver()
-    val isValid = sudokuSolver.isValid
 
-    init {
-        entity.addSource(entityId) {
-            viewModelScope.launch(Dispatchers.IO) {
-                if (it == 0L) {
-                    setNewSudoku()
-                } else {
-                    loadSudoku(it)
-                }
+    fun loadSudoku(id: Long): SudokuEntity {
+        if (id == 0L) {
+            return SudokuEntity()
+        } else {
+            repository.findById(id).let { ent ->
+                ent ?: throw RuntimeException("entity $id not found")
+                return ent
             }
         }
     }
 
-    private fun setNewSudoku() {
-        val ent = SudokuEntity()
-        entity.postValue(ent)
-    }
+    fun saveSudoku(id: Long, cells: String): Long {
+        val entity = repository.findById(id) ?: SudokuEntity(id = 0)
 
-    private fun loadSudoku(id: Long) {
-        repository.findById(id).let { ent ->
-            entity.postValue(ent)
+        entity.cells = cells
+        if (entity.id == 0L) {
+            entity.id = repository.insert(entity)
+        } else {
+            repository.update(entity)
         }
-    }
-
-    fun saveSudoku(cells: String) : Long{
-        // TODO もうちょっとなんとかする
-        var id = 0L
-        entity.value?.let {
-            it.cells = cells
-            if (it.id == 0L) {
-                it.id = repository.insert(it)
-                id = it.id
-            } else {
-                repository.update(it)
-                id = it.id
-            }
-            entity.postValue(it)
-        }
-
-        return id
+        return entity.id
     }
 }

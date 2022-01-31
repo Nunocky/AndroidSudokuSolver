@@ -1,6 +1,9 @@
 package org.nunocky.sudokusolver.ui.main
 
-import androidx.lifecycle.*
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import org.nunocky.sudokulib.SudokuSolver
@@ -15,19 +18,23 @@ class SolverViewModel @Inject constructor(
     private val preference: Preference
 ) : ViewModel() {
 
+    // 解析機の状態
     enum class Status {
-        INIT,
-        WORKING,
-        SUCCESS,
-        FAILED,
-        INTERRUPTED,
-        ERROR
+        INIT, // 初期状態、データにロードしていない
+        READY, // データをロードして解析が可能な状態
+        WORKING, // 解析実行中
+        SUCCESS, // 解析成功 (終了)
+        FAILED, // 解析失敗 (終了)
+        INTERRUPTED, // 解析を中断した (終了)
+        ERROR // エラーが発生した (終了)
     }
 
     val solverStatus = MutableLiveData(Status.INIT)
-    val elapsedTime = MutableLiveData("00:00.000")
-    val stepSpeed = savedStateHandle.getLiveData<Int>("stepSpeed", preference.stepSpeed)
-    val solverMethod = savedStateHandle.getLiveData<Int>("solverMethod", preference.solverMethod)
+    val elapsedTime = MutableLiveData((0L).toTimeStr())
+
+    val entityId = savedStateHandle.getLiveData("entityId", 0L)
+    val stepSpeed = savedStateHandle.getLiveData("stepSpeed", preference.stepSpeed)
+    val solverMethod = savedStateHandle.getLiveData("solverMethod", preference.solverMethod)
 
     private var startTime = 0L
     private var currentTime = 0L
@@ -37,38 +44,49 @@ class SolverViewModel @Inject constructor(
 
     val solver = SudokuSolver()
 
-    val entityId = savedStateHandle.getLiveData("entityId", 0L)
+    fun loadSudoku(id: Long) {
+        solverStatus.postValue(Status.INIT)
+        val entity = repository.findById(id)
+        if (entity != null) {
+            solver.load(entity.cells)
+            solverStatus.postValue(Status.READY)
+        } else {
+            solverStatus.postValue(Status.ERROR)
+        }
+    }
 
-//    fun loadSudoku(entityId: Long) = viewModelScope.launch(Dispatchers.IO) {
-//    fun loadSudoku() = viewModelScope.launch(Dispatchers.IO) {
-//        repository.findById(entityId)?.let { entity ->
-//            solver.load(entity.cells)
+    /**
+     * 解析機をリセット
+     */
+//    suspend fun resetSolver() {
+//        solverStatus.postValue(Status.INIT)
+//    }
+
+//    fun resetSolver() = viewModelScope.launch(Dispatchers.IO) {
+//        solverStatus.postValue(Status.INIT)
+//    }
+
+//    val solverReady = MediatorLiveData<Boolean>()
+
+//    init {
+//        solverReady.addSource(entityId) {
+//            viewModelScope.launch(Dispatchers.IO) {
+//                if (it != 0L) {
+//                    val entity = repository.findById(it)
+//                    if (entity != null) {
+//                        solver.load(entity.cells)
+//                        solverReady.postValue(true)
+//                    } else {
+//                        throw IllegalArgumentException("load failed")
+//                    }
+//                }
+//            }
 //        }
 //    }
-    suspend fun loadSudoku(entityId: Long) {
-        repository.findById(entityId)?.let { entity ->
-            solver.load(entity.cells)
-        }
-    }
 
-    val solverReady = MediatorLiveData<Boolean>()
-
-    init {
-        solverReady.addSource(entityId) {
-            viewModelScope.launch(Dispatchers.IO) {
-                if (it != 0L) {
-                    val entity = repository.findById(it)
-                    if (entity != null) {
-                        solver.load(entity.cells)
-                        solverReady.postValue(true)
-                    } else {
-                        throw IllegalArgumentException("load failed")
-                    }
-                }
-            }
-        }
-    }
-
+    /**
+     * 解析開始
+     */
     fun startSolver(callback: SudokuSolver.ProgressCallback) {
         solverJob = viewModelScope.launch(Dispatchers.IO) {
             solverStatus.postValue(Status.WORKING)
@@ -120,18 +138,17 @@ class SolverViewModel @Inject constructor(
 //        solverJob.cancel()
 //        stopTimer()
 //    }
-    suspend fun stopSolver() {
+    /**
+     * 解析停止
+     */
+    fun stopSolver() {
         solverJob.cancel()
         stopTimer()
     }
 
-//    fun resetSolver() = viewModelScope.launch(Dispatchers.IO) {
-//        solverStatus.postValue(Status.INIT)
-//    }
-    suspend fun resetSolver() {
-        solverStatus.postValue(Status.INIT)
-    }
-
+    /**
+     * カウンタの開始
+     */
     private fun startTimer() {
         timerJob = viewModelScope.launch(Dispatchers.IO) {
             startTime = System.currentTimeMillis()
@@ -146,22 +163,28 @@ class SolverViewModel @Inject constructor(
         }
     }
 
+    /**
+     * カウンタの停止
+     */
     private fun stopTimer() {
         timerJob.cancel()
     }
 
-    fun updateDifficulty(entityId: Long, difficulty: Int) = viewModelScope.launch(Dispatchers.IO) {
-        repository.findById(entityId)?.let { entity ->
+    /**
+     * 難易度の更新
+     */
+    fun updateDifficulty(difficulty: Int) = viewModelScope.launch(Dispatchers.IO) {
+        repository.findById(entityId.value!!)?.let { entity ->
             entity.difficulty = difficulty
             repository.update(entity)
         }
     }
-
-    companion object {
-        private const val TAG = "SolverViewModel"
-    }
 }
 
+/**
+ * Long型を時間形式に変換
+ * TODO Utilsに移動する
+ */
 private fun Long.toTimeStr(): String {
     val milsecs = this % 1000
     var second = this / 1000 // second

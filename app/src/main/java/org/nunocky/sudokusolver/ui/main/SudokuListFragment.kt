@@ -75,9 +75,10 @@ class SudokuListFragment : Fragment() {
 
         adapter.listener = object : SudokuListAdapter.OnItemClickListener {
             override fun onItemClicked(view: View, position: Int) {
+                // 指定の問題を解くための画面遷移
                 val entity = adapter.list[position]
                 val action =
-                    SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(entityId = entity.id)
+                    SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(entity.id)
                 findNavController().navigate(action)
             }
         }
@@ -128,9 +129,10 @@ class SudokuListFragment : Fragment() {
 
         adapter.tracker = tracker
 
+        // 問題を新規作成するための画面遷移
         binding.floatingActionButton.setOnClickListener {
             val action =
-                SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(entityId = 0L)
+                SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(0L)
             findNavController().navigate(action)
         }
     }
@@ -218,11 +220,6 @@ class SudokuListFragment : Fragment() {
             viewModel.filterHard.value = prefs.getBoolean("filterHard", true)
             viewModel.filterExtreme.value = prefs.getBoolean("filterExtreme", true)
         }
-
-    }
-
-    companion object {
-        private const val TAG = "SudokuListFragment"
     }
 }
 

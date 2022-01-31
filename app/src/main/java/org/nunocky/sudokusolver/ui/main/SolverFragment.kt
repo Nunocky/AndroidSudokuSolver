@@ -11,13 +11,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import org.nunocky.sudokulib.Cell
 import org.nunocky.sudokulib.SudokuSolver
-import org.nunocky.sudokusolver.NavigationMainDirections
 import org.nunocky.sudokusolver.Preference
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.databinding.FragmentSolverBinding
@@ -30,32 +26,34 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class SolverFragment : Fragment() {
-    private val args: SolverFragmentArgs by navArgs()
     private lateinit var binding: FragmentSolverBinding
+    private val args: SolverFragmentArgs by navArgs()
     private val viewModel: SolverViewModel by viewModels()
+//    private val userViewModel: UserViewModel by activityViewModels()
 
     @Inject
     lateinit var preference: Preference
+
+    private val navController by lazy { findNavController() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
 
-        val navController = findNavController()
         val currentBackStackEntry = navController.currentBackStackEntry!!
         val savedStateHandle = currentBackStackEntry.savedStateHandle
 
         savedStateHandle.getLiveData<Boolean>(EditFragment.KEY_SAVED)
             .observe(currentBackStackEntry, { success ->
                 if (!success) {
-                    val startDestination = navController.graph.startDestination
-                    val navOptions = NavOptions.Builder()
-                        .setPopUpTo(startDestination, true)
-                        .build()
-                    navController.navigate(startDestination, null, navOptions)
-                } else {
-                    // TODO SAVE時の entityIdを受け取る方法
-                    reset()
+                    // 編集画面で保存しなかった -> リスト画面に (id!=0ならここにとどまる)
+                    if (savedStateHandle.get<Long>("entityId") != 0L) {
+                        val startDestination = navController.graph.startDestination
+                        val navOptions = NavOptions.Builder()
+                            .setPopUpTo(startDestination, true)
+                            .build()
+                        navController.navigate(startDestination, null, navOptions)
+                    }
                 }
             })
     }
@@ -75,11 +73,28 @@ class SolverFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.entityId.observe(viewLifecycleOwner) { entityId ->
-            if (entityId == 0L) {
-                val action = NavigationMainDirections.actionGlobalEditFragment(entityId = 0L)
-                findNavController().navigate(action)
+            entityId?.let {
+                loadSudoku(it)
             }
         }
+
+        // TODO これがよくなさそう
+        //      前画面でセットした entityIdが反映されていないか、その後にどこかで0がセットされている?
+//        if (viewModel.entityId.value!! <= 0L) {
+//            val action = NavigationMainDirections.actionGlobalEditFragment(entityId = 0L)
+//            findNavController().navigate(action)
+//        }
+
+//        userViewModel.entityId.observe(viewLifecycleOwner) { entityId ->
+//            if (entityId == 0L) {
+//                val action = NavigationMainDirections.actionGlobalEditFragment(entityId = 0L)
+//                findNavController().navigate(action)
+//            } else {
+//                lifecycleScope.launch(Dispatchers.IO) {
+//                    loadSudoku(entityId)
+//                }
+//            }
+//        }
 
         binding.btnStart.setOnClickListener {
             viewModel.startSolver(callback)
@@ -97,51 +112,32 @@ class SolverFragment : Fragment() {
             reset()
         }
 
-        viewModel.solverReady.observe(viewLifecycleOwner) {
-            binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
-                cellView.apply {
-                    fixedNum = viewModel.solver.cells[n].value
-                    if (fixedNum != 0) {
-                        setBackgroundColor(
-                            ContextCompat.getColor(
-                                requireActivity(),
-                                R.color.fixedCell
-                            )
-                        )
-                        candidates = IntArray(0)
-                        showCandidates = false
-                    } else {
-                        candidates = arrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9).toIntArray()
-                    }
+        viewModel.solverStatus.observe(viewLifecycleOwner) { status ->
+            when (status) {
+                SolverViewModel.Status.READY -> {
+                    syncBoard()
                 }
+                SolverViewModel.Status.WORKING -> {}
+                SolverViewModel.Status.SUCCESS -> {}
+                SolverViewModel.Status.FAILED -> {}
+                SolverViewModel.Status.INTERRUPTED -> {}
+                SolverViewModel.Status.ERROR -> {}
+                else -> {}
             }
-            binding.sudokuBoard.updated = false
         }
-    }
+//        viewModel.solverReady.observe(viewLifecycleOwner) {
+//            // 盤面を初期化
+//            syncBoard()
+//            binding.sudokuBoard.updated = false
+//        }
 
-    override fun onResume() {
-        super.onResume()
-        // 速度を sharedPreferenceから復元
-         viewModel.stepSpeed.value= preference.stepSpeed
-         viewModel.solverMethod.value = preference.solverMethod
 
-//        viewModel.stepSpeed.value =
-//            requireActivity().getPreferences(Context.MODE_PRIVATE).getInt("stepSpeed", 0)
-//
-//        viewModel.solverMethod.value =
-//            requireActivity().getPreferences(Context.MODE_PRIVATE).getInt("solverMethod", 1)
     }
 
     override fun onPause() {
         super.onPause()
-        // 速度を保存
         preference.stepSpeed = viewModel.stepSpeed.value ?: 0
         preference.solverMethod = viewModel.solverMethod.value ?: 0
-//        requireActivity().getPreferences(Context.MODE_PRIVATE).edit {
-//            putInt("stepSpeed", viewModel.stepSpeed.value ?: 0)
-//            putInt("solverMethod", viewModel.solverMethod.value ?: 0)
-//            commit()
-//        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -152,29 +148,27 @@ class SolverFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_edit) {
             val action = SolverFragmentDirections.actionGlobalEditFragment(args.entityId)
-            findNavController().navigate(action)
+            navController.navigate(action)
         }
         return super.onOptionsItemSelected(item)
     }
 
-    private fun stopSolve() = lifecycleScope.launch {
-        viewModel.stopSolver()
-    }
-
-    private fun reset() = lifecycleScope.launch(Dispatchers.IO) {
-     // TODO 遷移時にここが3回呼ばれている ... solverMethodが3回変更になっている
-        loadSudoku()
-        viewModel.resetSolver()
-    }
-
-    private suspend fun loadSudoku() {
-        viewModel.loadSudoku(viewModel.entityId.value!!)
+    /**
+     * [SolverViewModel]の情報を UIに反映する
+     */
+    private fun syncBoard() {
+        // 盤面を初期化
         // TODO セルの色を初期化する
         binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
             cellView.apply {
                 fixedNum = viewModel.solver.cells[n].value
                 if (fixedNum != 0) {
-                    setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.fixedCell))
+                    setBackgroundColor(
+                        ContextCompat.getColor(
+                            requireActivity(),
+                            R.color.fixedCell
+                        )
+                    )
                     candidates = IntArray(0)
                     showCandidates = false
                 } else {
@@ -182,6 +176,35 @@ class SolverFragment : Fragment() {
                 }
             }
         }
+        binding.sudokuBoard.updated = false
+    }
+
+    private fun stopSolve() = lifecycleScope.launch {
+        viewModel.stopSolver()
+    }
+
+    private fun reset() = lifecycleScope.launch(Dispatchers.IO) {
+        // TODO 遷移時にここが3回呼ばれている ... solverMethodが3回変更されている
+
+        viewModel.entityId.value?.let {
+            loadSudoku(it)
+        }
+    }
+
+    /**
+     * 指定 idの数独をロードし画面に反映する
+     * @param id SudokuEntityの id
+     */
+    private fun loadSudoku(id: Long) {
+        // 非同期で viewModel.loadSudokuを行い、それが終わったらセルの設定をおこなう。
+        lifecycleScope.launch(Dispatchers.IO) {
+            viewModel.loadSudoku(id)
+
+            withContext(Dispatchers.Main) {
+                syncBoard()
+            }
+        }
+
         binding.sudokuBoard.updated = false
     }
 
@@ -217,7 +240,7 @@ class SolverFragment : Fragment() {
             if (success) {
                 when (viewModel.solverMethod.value ?: 1) {
                     0, 1 -> {
-                        viewModel.updateDifficulty(args.entityId, difficulty)
+                        viewModel.updateDifficulty(difficulty)
                     }
                 }
             }
