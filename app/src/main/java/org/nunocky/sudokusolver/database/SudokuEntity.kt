@@ -11,6 +11,7 @@ data class SudokuEntity(
     @PrimaryKey(autoGenerate = true) var id: Long = 0L,
     var cells: String = "0".repeat(81),
     var createdAt: Calendar = Calendar.getInstance(),
-    var difficulty: Int? = 1 // "UNTESTED"
+    var difficulty: Int? = 1, // "UNTESTED"
+    var thumbnail: String? = ""
 )
 
