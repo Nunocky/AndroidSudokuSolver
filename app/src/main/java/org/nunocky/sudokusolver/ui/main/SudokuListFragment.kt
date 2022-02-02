@@ -18,8 +18,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import org.nunocky.sudokusolver.R
+import org.nunocky.sudokusolver.adapter.OnItemClickListener
 import org.nunocky.sudokusolver.adapter.SudokuEntityDetailsLookup
 import org.nunocky.sudokusolver.adapter.SudokuListAdapter
+import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.databinding.FragmentSudokuListBinding
 
 
@@ -70,15 +72,14 @@ class SudokuListFragment : Fragment() {
         binding.recyclerView.layoutManager =
             GridLayoutManager(requireActivity(), 2, RecyclerView.VERTICAL, false)
 
-        adapter = SudokuListAdapter(emptyList())
+//        adapter = SudokuListAdapter(emptyList())
+        adapter = SudokuListAdapter()
         binding.recyclerView.adapter = adapter
 
-        adapter.listener = object : SudokuListAdapter.OnItemClickListener {
-            override fun onItemClicked(view: View, position: Int) {
+        adapter.listener = object : OnItemClickListener {
+            override fun onItemClicked(view: View, entity: SudokuEntity) {
                 // 指定の問題を解くための画面遷移
-                val entity = adapter.list[position]
-                val action =
-                    SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(entity.id)
+                val action = SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(entity.id)
                 findNavController().navigate(action)
             }
         }
