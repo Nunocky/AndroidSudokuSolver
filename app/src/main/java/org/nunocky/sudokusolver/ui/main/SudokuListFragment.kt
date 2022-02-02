@@ -9,8 +9,6 @@ import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.selection.StableIdKeyProvider
@@ -18,28 +16,24 @@ import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import org.nunocky.sudokusolver.MyApplication
+import dagger.hilt.android.AndroidEntryPoint
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.adapter.SudokuEntityDetailsLookup
 import org.nunocky.sudokusolver.adapter.SudokuListAdapter
-import org.nunocky.sudokusolver.database.SudokuRepository
 import org.nunocky.sudokusolver.databinding.FragmentSudokuListBinding
 
 
 /**
  * 登録した問題一覧
  */
+@AndroidEntryPoint
 class SudokuListFragment : Fragment() {
     private lateinit var binding: FragmentSudokuListBinding
     private lateinit var adapter: SudokuListAdapter
     private var actionMode: ActionMode? = null
     private lateinit var tracker: SelectionTracker<Long>
 
-    private val viewModel: SudokuListViewModel by viewModels {
-        val app = (requireActivity().application as MyApplication)
-        val appDatabase = app.appDatabase
-        SudokuListViewModel.Factory(SudokuRepository(appDatabase))
-    }
+    private val viewModel: SudokuListViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,15 +52,6 @@ class SudokuListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        val navController = findNavController()
-        val appBarConfiguration = AppBarConfiguration(navController.graph)
-        binding.toolbar.setupWithNavController(navController, appBarConfiguration)
-
-        // Fragment に Toolbar を持たせるのはやめなさい
-        // http://y-anz-m.blogspot.com/2016/10/fragment-toolbar.html
-        // これを回避する方法がよくわからない
-        (activity as AppCompatActivity).setSupportActionBar(binding.toolbar)
 
         viewModel.filter.observe(requireActivity()) {
             requireActivity().let { activity ->
@@ -90,9 +75,10 @@ class SudokuListFragment : Fragment() {
 
         adapter.listener = object : SudokuListAdapter.OnItemClickListener {
             override fun onItemClicked(view: View, position: Int) {
+                // 指定の問題を解くための画面遷移
                 val entity = adapter.list[position]
                 val action =
-                    SudokuListFragmentDirections.actionSudokuListFragmentToEditFragment(entity.id)
+                    SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(entity.id)
                 findNavController().navigate(action)
             }
         }
@@ -143,8 +129,10 @@ class SudokuListFragment : Fragment() {
 
         adapter.tracker = tracker
 
+        // 問題を新規作成するための画面遷移
         binding.floatingActionButton.setOnClickListener {
-            val action = SudokuListFragmentDirections.actionSudokuListFragmentToEditFragment(0)
+            val action =
+                SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(0L)
             findNavController().navigate(action)
         }
     }
@@ -156,9 +144,10 @@ class SudokuListFragment : Fragment() {
             return true
         }
 
+        // TODO 修正する
         override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
             // Log.d(TAG, "onPrepareActionMode")
-            binding.filterList.root.visibility = View.GONE
+//            binding.filterList.root.visibility = View.GONE
             return false
         }
 
@@ -171,7 +160,8 @@ class SudokuListFragment : Fragment() {
 
                 // Snackbar表示。復元機能も
                 Snackbar.make(binding.root, "deleted", Snackbar.LENGTH_SHORT)
-                    .setAction("restore"
+                    .setAction(
+                        "restore"
                     ) {
                         viewModel.restoreDeletedItems()
                     }
@@ -185,7 +175,8 @@ class SudokuListFragment : Fragment() {
 
         override fun onDestroyActionMode(mode: ActionMode?) {
             //Log.d(TAG, "onDestroyActionMode")
-            binding.filterList.root.visibility = View.VISIBLE
+            // TODO 修正する
+//            binding.filterList.root.visibility = View.VISIBLE
             actionMode = null
 
             // ActionModeを解除したときに RecyclerViewの選択状態も解除
@@ -229,11 +220,6 @@ class SudokuListFragment : Fragment() {
             viewModel.filterHard.value = prefs.getBoolean("filterHard", true)
             viewModel.filterExtreme.value = prefs.getBoolean("filterExtreme", true)
         }
-
-    }
-
-    companion object {
-        private const val TAG = "SudokuListFragment"
     }
 }
 

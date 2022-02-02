@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/nav_graph"
+    android:id="@+id/navigation_main"
     app:startDestination="@id/sudokuListFragment">
     <fragment
         android:id="@+id/sudokuListFragment"
         android:name="org.nunocky.sudokusolver.ui.main.SudokuListFragment"
         android:label="Sudoku Solver">
-        <action
-            android:id="@+id/action_sudokuListFragment_to_editFragment"
-            app:destination="@id/editFragment" />
         <action
             android:id="@+id/action_sudokuListFragment_to_exportSudokuFragment"
             app:destination="@id/exportSudokuFragment" />
@@ -19,14 +16,14 @@
         <action
             android:id="@+id/action_sudokuListFragment_to_aboutFragment"
             app:destination="@id/aboutFragment" />
+        <action
+            android:id="@+id/action_sudokuListFragment_to_solverFragment"
+            app:destination="@id/solverFragment" />
     </fragment>
     <fragment
         android:id="@+id/editFragment"
         android:name="org.nunocky.sudokusolver.ui.main.EditFragment"
         android:label="Edit / New">
-        <action
-            android:id="@+id/action_editFragment_to_solverFragment"
-            app:destination="@id/solverFragment" />
         <argument
             android:name="entityId"
             app:argType="long" />
@@ -51,4 +48,7 @@
         android:id="@+id/importSudokuFragment"
         android:name="org.nunocky.sudokusolver.ui.main.ImportSudokuFragment"
         android:label="Import Data" />
+    <action
+        android:id="@+id/action_global_editFragment"
+        app:destination="@id/editFragment" />
 </navigation>

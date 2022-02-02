@@ -15,6 +15,8 @@ import org.nunocky.sudokusolver.databinding.SudokuListItemBinding
 import org.nunocky.sudokulib.Cell
 import org.nunocky.sudokulib.SudokuSolver
 
+// TODO ListAdapterに変更する
+//     -> https://qiita.com/chohas/items/acbf3787cd80b5277af7
 class SudokuListAdapter(var list: List<SudokuEntity>) :
     RecyclerView.Adapter<SudokuListAdapter.ViewHolder>() {
 

@@ -2,35 +2,37 @@ package org.nunocky.sudokusolver.ui.main
 
 import android.app.Application
 import android.net.Uri
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.nunocky.sudokulib.SudokuSolver
 import org.nunocky.sudokusolver.CalenderJsonAdapter
-import org.nunocky.sudokusolver.MyApplication
 import org.nunocky.sudokusolver.SudokuJsonAdapterFactory
 import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.database.SudokuRepository
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.util.*
+import javax.inject.Inject
 import kotlin.collections.ArrayList
 
-class ImportSudokuViewModel(
-    application: Application,
+@HiltViewModel
+class ImportSudokuViewModel @Inject constructor(
+    private val application: Application,
+    private val savedStateHandle: SavedStateHandle,
     private val repository: SudokuRepository
-) : AndroidViewModel(application) {
-    class Factory(private val application: Application, private val repository: SudokuRepository) :
-        ViewModelProvider.NewInstanceFactory() {
-        @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return ImportSudokuViewModel(application, repository) as T
-        }
-    }
+) : ViewModel() {
+//    class Factory(private val application: Application, private val repository: SudokuRepository) :
+//        ViewModelProvider.NewInstanceFactory() {
+//        @Suppress("unchecked_cast")
+//        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+//            return ImportSudokuViewModel(application, repository) as T
+//        }
+//    }
 
     suspend fun execImport(uri: Uri) = withContext(Dispatchers.IO) {
         kotlin.runCatching {
@@ -41,9 +43,9 @@ class ImportSudokuViewModel(
     }
 
     private fun readAsJson(uri: Uri) {
-        val app = getApplication() as MyApplication
+        //val app = getApplication() as MyApplication
 
-        app.contentResolver.openInputStream(uri).use { iStream ->
+        application.contentResolver.openInputStream(uri).use { iStream ->
             if (iStream == null) {
                 throw IOException()
             }
@@ -86,8 +88,8 @@ class ImportSudokuViewModel(
     }
 
     private fun readAsText(uri: Uri) {
-        val app = getApplication() as MyApplication
-        app.contentResolver.openInputStream(uri).use { iStream ->
+        //val app = getApplication() as MyApplication
+        application.contentResolver.openInputStream(uri).use { iStream ->
             iStream?.bufferedReader()?.use { reader ->
 
                 val list = ArrayList<SudokuEntity>()

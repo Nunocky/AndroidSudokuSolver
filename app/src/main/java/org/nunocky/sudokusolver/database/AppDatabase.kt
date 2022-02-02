@@ -17,3 +17,4 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         database.execSQL("ALTER TABLE sudoku ADD COLUMN difficulty INTEGER")
     }
 }
+

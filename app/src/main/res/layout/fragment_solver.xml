@@ -8,19 +8,6 @@
         android:layout_height="match_parent"
         tools:context=".ui.main.SolverFragment">
 
-        <com.google.android.material.appbar.AppBarLayout
-            android:id="@+id/appbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:layout_scrollFlags="scroll|enterAlways" />
-        </com.google.android.material.appbar.AppBarLayout>
-
         <SeekBar
             android:id="@+id/seekBar"
             android:layout_width="0dp"
@@ -29,14 +16,12 @@
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="1dp"
             android:max="10"
-            android:progress="@={viewModel.stepSpeed}"
             app:layout_constraintBottom_toBottomOf="@+id/textView3"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/textView3"
             app:layout_constraintTop_toTopOf="@+id/guideline2" />
 
         <Spinner
-            android:selectedItemPosition="@={viewModel.solverMethod}"
             android:id="@+id/spinner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -89,7 +74,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginBottom="8dp"
-            android:enabled="@{viewModel.solverStatus == Status.INIT}"
+            android:enabled="@{viewModel.solverStatus == Status.READY}"
             android:padding="16dp"
             android:src="@drawable/play_arrow"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -122,15 +107,13 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
             app:layout_constraintBottom_toTopOf="@+id/seekBar"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/appbar" />
-
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
