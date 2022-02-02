@@ -1,5 +1,7 @@
 package org.nunocky.sudokusolver.adapter
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -12,8 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.databinding.SudokuListItemBinding
-import org.nunocky.sudokulib.Cell
-import org.nunocky.sudokulib.SudokuSolver
+import java.io.File
 
 // TODO ListAdapterに変更する
 //     -> https://qiita.com/chohas/items/acbf3787cd80b5277af7
@@ -39,57 +40,88 @@ class SudokuListAdapter(var list: List<SudokuEntity>) :
 
         fun bind(entity: SudokuEntity, isActivated: Boolean = false) {
 
-            // TODO ここの処理をコルーチンにできる?
-            //  https://stackoverflow.com/questions/64398097/coroutine-inside-viewholder-kotlin
-            //  https://engawapg.net/android/180/
-            binding.sudokuBoardView.apply {
-                showCandidates = false
-
-                val text = entity.cells
-                val cellList = ArrayList<org.nunocky.sudokulib.Cell>()
-                text.toCharArray().forEach {
-                    val cell = org.nunocky.sudokulib.Cell().apply {
-                        value = it - '0'
-                    }
-                    cellList.add(cell)
-                }
-
-                updateCells(cellList)
-                binding.sudokuBoardView.cellViews.forEach { cellView ->
-                    if (cellView.fixedNum != 0) {
-                        cellView.setBackgroundColor(
-                            ContextCompat.getColor(
-                                context,
-                                R.color.fixedCell
-                            )
-                        )
-                    }
-                }
-
-                val difficulty = entity.difficulty ?: org.nunocky.sudokulib.SudokuSolver.DIFFICULTY_UNDEF
-
-                binding.text1.apply {
-                    val textArray = context.resources.getTextArray(R.array.difficulty)
-                    this.text = textArray[difficulty]
-
-                    val text1Color = when (difficulty) {
-                        1 -> R.color.difficulty_undef
-                        2 -> R.color.difficulty_easy
-                        3 -> R.color.difficulty_medium
-                        4 -> R.color.difficulty_hard
-                        5 -> R.color.difficulty_extreme
-                        else -> R.color.difficulty_impossible
-                    }
-
-                    if (Build.VERSION_CODES.M <= Build.VERSION.SDK_INT) {
-                        this.setTextColor(ContextCompat.getColor(context, text1Color))
-                    } else {
-                        this.setTextColor(context.resources.getColor(text1Color))
-                    }
-                }
-
-                updated = false
+            val context = binding.imageView.context
+            val bitmap: Bitmap? = if (entity.thumbnail.isNullOrBlank()) {
+                BitmapFactory.decodeResource(context.resources, R.drawable.noimage)
+            } else {
+                val imageDir = File(context.filesDir, "images")
+                val file = File(imageDir, entity.thumbnail!!)
+                BitmapFactory.decodeFile(file.absolutePath)
             }
+
+            binding.imageView.setImageBitmap(bitmap)
+
+            val difficulty =
+                entity.difficulty ?: org.nunocky.sudokulib.SudokuSolver.DIFFICULTY_UNDEF
+
+            binding.text1.apply {
+                val textArray = context.resources.getTextArray(R.array.difficulty)
+                this.text = textArray[difficulty]
+
+                val text1Color = when (difficulty) {
+                    1 -> R.color.difficulty_undef
+                    2 -> R.color.difficulty_easy
+                    3 -> R.color.difficulty_medium
+                    4 -> R.color.difficulty_hard
+                    5 -> R.color.difficulty_extreme
+                    else -> R.color.difficulty_impossible
+                }
+
+                if (Build.VERSION_CODES.M <= Build.VERSION.SDK_INT) {
+                    this.setTextColor(ContextCompat.getColor(context, text1Color))
+                } else {
+                    this.setTextColor(context.resources.getColor(text1Color))
+                }
+            }
+
+//            binding.sudokuBoardView.apply {
+//                showCandidates = false
+//
+//                val text = entity.cells
+//                val cellList = ArrayList<org.nunocky.sudokulib.Cell>()
+//                text.toCharArray().forEach {
+//                    val cell = org.nunocky.sudokulib.Cell().apply {
+//                        value = it - '0'
+//                    }
+//                    cellList.add(cell)
+//                }
+//
+//                updateCells(cellList)
+//                binding.sudokuBoardView.cellViews.forEach { cellView ->
+//                    if (cellView.fixedNum != 0) {
+//                        cellView.setBackgroundColor(
+//                            ContextCompat.getColor(
+//                                context,
+//                                R.color.fixedCell
+//                            )
+//                        )
+//                    }
+//                }
+//
+//                val difficulty = entity.difficulty ?: org.nunocky.sudokulib.SudokuSolver.DIFFICULTY_UNDEF
+//
+//                binding.text1.apply {
+//                    val textArray = context.resources.getTextArray(R.array.difficulty)
+//                    this.text = textArray[difficulty]
+//
+//                    val text1Color = when (difficulty) {
+//                        1 -> R.color.difficulty_undef
+//                        2 -> R.color.difficulty_easy
+//                        3 -> R.color.difficulty_medium
+//                        4 -> R.color.difficulty_hard
+//                        5 -> R.color.difficulty_extreme
+//                        else -> R.color.difficulty_impossible
+//                    }
+//
+//                    if (Build.VERSION_CODES.M <= Build.VERSION.SDK_INT) {
+//                        this.setTextColor(ContextCompat.getColor(context, text1Color))
+//                    } else {
+//                        this.setTextColor(context.resources.getColor(text1Color))
+//                    }
+//                }
+//
+//                updated = false
+//            }
 
             itemView.isActivated = isActivated
         }

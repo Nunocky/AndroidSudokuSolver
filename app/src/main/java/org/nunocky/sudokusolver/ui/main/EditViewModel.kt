@@ -44,13 +44,17 @@ class EditViewModel @Inject constructor(
 
         // サムネイルの保存
         val imageDir = File("${application.filesDir}/images")
-        val filename = entity.thumbnail ?: createNewFilename()
+        var filename = entity.thumbnail
+        if (filename.isNullOrBlank()) {
+            filename = createNewFilename()
+        }
         FileOutputStream(File(imageDir, filename)).use { oStream ->
             thumbnail.compress(Bitmap.CompressFormat.PNG, 100, oStream)
         }
 
+        entity.thumbnail = filename
+
         if (entity.id == 0L) {
-            entity.thumbnail = filename
             entity.id = repository.insert(entity)
         } else {
             repository.update(entity)
