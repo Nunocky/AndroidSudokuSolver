@@ -56,35 +56,6 @@ class SolverViewModel @Inject constructor(
     }
 
     /**
-     * 解析機をリセット
-     */
-//    suspend fun resetSolver() {
-//        solverStatus.postValue(Status.INIT)
-//    }
-
-//    fun resetSolver() = viewModelScope.launch(Dispatchers.IO) {
-//        solverStatus.postValue(Status.INIT)
-//    }
-
-//    val solverReady = MediatorLiveData<Boolean>()
-
-//    init {
-//        solverReady.addSource(entityId) {
-//            viewModelScope.launch(Dispatchers.IO) {
-//                if (it != 0L) {
-//                    val entity = repository.findById(it)
-//                    if (entity != null) {
-//                        solver.load(entity.cells)
-//                        solverReady.postValue(true)
-//                    } else {
-//                        throw IllegalArgumentException("load failed")
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-    /**
      * 解析開始
      */
     fun startSolver(callback: SudokuSolver.ProgressCallback) {

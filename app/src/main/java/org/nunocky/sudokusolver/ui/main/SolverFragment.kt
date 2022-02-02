@@ -6,7 +6,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.snackbar.Snackbar
@@ -30,7 +29,6 @@ class SolverFragment : Fragment() {
     private lateinit var binding: FragmentSolverBinding
     private val args: SolverFragmentArgs by navArgs()
     private val viewModel: SolverViewModel by viewModels()
-//    private val userViewModel: UserViewModel by activityViewModels()
 
     @Inject
     lateinit var preference: Preference
@@ -44,23 +42,19 @@ class SolverFragment : Fragment() {
         val currentBackStackEntry = navController.currentBackStackEntry!!
         val savedStateHandle = currentBackStackEntry.savedStateHandle
 
-        // TODO この文のあるべき位置をドキュメントで確かめる
-        if (viewModel.entityId.value == 0L) {
-            val action = NavigationMainDirections.actionGlobalEditFragment(entityId = 0L)
-            findNavController().navigate(action)
-            return
-        }
-
         savedStateHandle.getLiveData<Boolean>(EditFragment.KEY_SAVED)
             .observe(currentBackStackEntry, { success ->
-                if (!success) {
-                    // 編集画面で保存しなかった -> リスト画面に (id!=0ならここにとどまる)
-                    if (savedStateHandle.get<Long>("entityId") != 0L) {
-                        val startDestination = navController.graph.startDestination
-                        val navOptions = NavOptions.Builder()
-                            .setPopUpTo(startDestination, true)
-                            .build()
-                        navController.navigate(startDestination, null, navOptions)
+
+                // TODO この辺の処理に問題 savedStateHandleの使い方?
+                val entityId = savedStateHandle.get<Long>("entityId")
+                if (success) {
+                    viewModel.entityId.value = entityId
+                } else {
+                    // 編集画面で保存しなかった -> リスト画面に戻る。ただし id!=0ならとどまる
+                    if (entityId == 0L) {
+                        navController.popBackStack()
+                    } else {
+                        viewModel.entityId.value = entityId
                     }
                 }
             })
@@ -80,9 +74,16 @@ class SolverFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.entityId.observe(viewLifecycleOwner) { entityId ->
-            entityId?.let {
-                loadSudoku(it)
+        viewModel.entityId.observe(viewLifecycleOwner) { id ->
+            if (id != null && id != 0L) {
+                loadSudoku(id)
+            } else {
+
+                // TODO エディタから戻ってきたとき、 id=0でここを通りまたエディタに行ってしまう
+                //  誰が viewModel.entityIdを操作しているのか?
+                //      -> savedStateHandleの仕業らしい
+                val action = NavigationMainDirections.actionGlobalEditFragment(entityId = 0L)
+                findNavController().navigate(action)
             }
         }
 
@@ -98,9 +99,10 @@ class SolverFragment : Fragment() {
             stopSolve()
         }
 
-        viewModel.solverMethod.observe(viewLifecycleOwner) {
-            reset()
-        }
+        // UIのリスナーで実装し直す
+//        viewModel.solverMethod.observe(viewLifecycleOwner) {
+//            reset()
+//        }
 
         viewModel.solverStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
@@ -119,8 +121,8 @@ class SolverFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        preference.stepSpeed = viewModel.stepSpeed.value ?: 0
-        preference.solverMethod = viewModel.solverMethod.value ?: 0
+        preference.stepSpeed = viewModel.stepSpeed.value!!
+        preference.solverMethod = viewModel.solverMethod.value!!
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -166,7 +168,7 @@ class SolverFragment : Fragment() {
         viewModel.stopSolver()
     }
 
-    private fun reset() = lifecycleScope.launch(Dispatchers.IO) {
+    private fun reset() {
         // TODO 遷移時にここが3回呼ばれている ... solverMethodが3回変更されている
         viewModel.entityId.value?.let {
             loadSudoku(it)
@@ -178,6 +180,10 @@ class SolverFragment : Fragment() {
      * @param id SudokuEntityの id
      */
     private fun loadSudoku(id: Long) {
+        if (id == 0L) {
+            return
+        }
+
         // 非同期で viewModel.loadSudokuを行い、それが終わったらセルの設定をおこなう。
         lifecycleScope.launch(Dispatchers.IO) {
             viewModel.loadSudoku(id)
@@ -200,7 +206,7 @@ class SolverFragment : Fragment() {
 
             runBlocking {
                 // TODO ノーウェイト / ウェイトあり くらいの区分で良さそう
-                delay((viewModel.stepSpeed.value ?: 1) * 100L)
+                delay(viewModel.stepSpeed.value!! * 100L)
             }
         }
 
@@ -220,7 +226,7 @@ class SolverFragment : Fragment() {
 
             // 成功したときは難易度をデータベースに反映する
             if (success) {
-                when (viewModel.solverMethod.value ?: 1) {
+                when (viewModel.solverMethod.value) {
                     0, 1 -> {
                         viewModel.updateDifficulty(difficulty)
                     }

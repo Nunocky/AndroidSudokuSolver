@@ -140,7 +140,7 @@ class EditFragment : Fragment() {
     override fun onResume() {
         super.onResume()
 
-        // ここでやるのが正しい?
+        // TODO ここでやるのが正しい?
         lifecycleScope.launch(Dispatchers.IO) {
             viewModel.loadSudoku(args.entityId)
 
@@ -238,6 +238,12 @@ class EditFragment : Fragment() {
             navController.popBackStack(R.id.sudokuListFragment, false)
         } else {
             previousSavedStateHandle.set(KEY_SAVED, true)
+
+            viewModel.entityId.value?.let { entityId ->
+                if (entityId != 0L) {
+                    previousSavedStateHandle.set("entityId", entityId)
+                }
+            }
             navController.popBackStack()
         }
     }
