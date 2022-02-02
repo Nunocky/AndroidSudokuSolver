@@ -1,9 +1,11 @@
 package org.nunocky.sudokusolver.ui.main
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.*
 import android.widget.CompoundButton
 import androidx.activity.addCallback
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -209,7 +211,8 @@ class EditFragment : Fragment() {
             val cells =
                 binding.sudokuBoardView.cellViews.joinToString("") { it.fixedNum.toString() }
 
-            val newId = viewModel.saveSudoku(args.entityId, cells)
+            val thumbnail = createImage()
+            val newId = viewModel.saveSudoku(args.entityId, cells, thumbnail)
 
             withContext(Dispatchers.Main) {
                 previousSavedStateHandle.set(KEY_SAVED, true)
@@ -247,6 +250,33 @@ class EditFragment : Fragment() {
             navController.popBackStack()
         }
     }
+
+    private fun createImage() : Bitmap{
+        binding.sudokuBoardView.cellViews.forEach { cellView ->
+            val color = if (cellView.fixedNum != 0) {
+                R.color.fixedCell
+            } else {
+                R.color.white
+            }
+
+            cellView.setBackgroundColor(
+                ContextCompat.getColor(requireActivity(), color)
+            )
+        }
+
+        val thumbnail = binding.sudokuBoardView.getThumbNail()
+
+        binding.sudokuBoardView.cellViews.forEach { cellView ->
+            val color =                         R.color.white
+
+            cellView.setBackgroundColor(
+                ContextCompat.getColor(requireActivity(), color)
+            )
+        }
+
+        return thumbnail
+    }
+
 
     companion object {
         const val KEY_SAVED = "saved"

@@ -8,12 +8,15 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="../../Library/Android/sdk/platforms/android-31/data/res/layout/simple_list_item_1.xml" value="0.171875" />
+        <entry key="../../Library/Android/sdk/platforms/android-31/data/res/layout/simple_list_item_2.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_edit.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_export_sudoku.xml" value="0.15438950554994954" />
         <entry key="app/src/main/res/layout/fragment_import_sudoku.xml" value="0.15438950554994954" />
         <entry key="app/src/main/res/layout/fragment_solver.xml" value="0.15438950554994954" />
         <entry key="app/src/main/res/layout/fragment_sudoku_list.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/sudoku_list_item.xml" value="0.171875" />
         <entry key="app/src/main/res/menu/menu_solver.xml" value="0.2064814814814815" />
       </map>
     </option>
