@@ -23,7 +23,7 @@ private val diffCallback = object : DiffUtil.ItemCallback<SudokuEntity>() {
         oldItem.id == newItem.id
 
     override fun areContentsTheSame(oldItem: SudokuEntity, newItem: SudokuEntity) =
-        oldItem == newItem // check contents
+        oldItem == newItem
 }
 
 class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -32,7 +32,7 @@ class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     fun getItemIdDetails(): ItemDetailsLookup.ItemDetails<Long> =
         object : ItemDetailsLookup.ItemDetails<Long>() {
             // https://stackoverflow.com/questions/63068519/getadapterposition-is-deprecated
-            override fun getPosition(): Int = adapterPosition
+            override fun getPosition(): Int = bindingAdapterPosition  // adapterPosition
             override fun getSelectionKey(): Long = itemId
         }
 
@@ -81,26 +81,18 @@ class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 }
 
 interface OnItemClickListener {
-    //        fun onItemClicked(view: View, position: Int)
     fun onItemClicked(view: View, entity: SudokuEntity)
 }
 
-//class SudokuListAdapter(var list: List<SudokuEntity>) :
 class SudokuListAdapter :
     ListAdapter<SudokuEntity, ViewHolder>(diffCallback), OnItemClickListener {
-
 
     var listener: OnItemClickListener? = null
     var tracker: SelectionTracker<Long>? = null
 
-//    init {
-//        setHasStableIds(true)
-//    }
-
-//    fun updateList(newList: List<SudokuEntity>) {
-//        list = newList
-//        notifyDataSetChanged()
-//    }
+    init {
+        setHasStableIds(true)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -115,10 +107,19 @@ class SudokuListAdapter :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bindTo(getItem(position), this)
-//        holder.itemView.setOnClickListener {
-//            listener?.onItemClicked(it, position)
-//        }
     }
+
+    // ロングタップ時の選択操作に必要
+    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
+        super.onBindViewHolder(holder, position, payloads)
+
+        val entity = getItem(position)
+        val selected = tracker?.isSelected(entity.id) ?: false
+        holder.bindTo(entity, this, selected)
+    }
+
+    // ロングタップ時の選択操作に必要
+    override fun getItemId(position: Int) = getItem(position).id
 
     /**
      * ViewHolderから受け取ったイベントをリスナーに返す
@@ -126,19 +127,6 @@ class SudokuListAdapter :
     override fun onItemClicked(view: View, entity: SudokuEntity) {
         listener?.onItemClicked(view, entity)
     }
-
-//    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
-//        super.onBindViewHolder(holder, position, payloads)
-//
-//        val entity = list[position]
-//        val selected = tracker?.isSelected(entity.id) ?: false
-//        holder.bind(entity, selected)
-//    }
-
-//    override fun getItemCount() = list.size
-//
-//    override fun getItemId(position: Int) = list[position].id
-
 }
 
 /**
