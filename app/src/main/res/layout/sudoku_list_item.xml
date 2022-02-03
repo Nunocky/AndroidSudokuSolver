@@ -25,28 +25,44 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <TextView
-                    android:id="@+id/text1"
+                <CheckBox
+                    android:id="@+id/checkBox"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="TextView"
-                    android:textStyle="bold"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:checked="@{sudokuEntity.checked}"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:visibility="@{viewModel.isActionMode? View.VISIBLE : View.INVISIBLE}"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.0"
-                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <ImageView
                     android:id="@+id/imageView"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
+                    android:contentDescription="sudoku"
                     android:padding="16dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintDimensionRatio="1:1"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.5"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/text1" />
+                    app:layout_constraintTop_toBottomOf="@+id/checkBox" />
+
+                <TextView
+                    android:id="@+id/text1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="14dp"
+                    android:text="Difficulty"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.cardview.widget.CardView>
@@ -54,6 +70,12 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="viewModel"
+            type="org.nunocky.sudokusolver.ui.main.SudokuListViewModel" />
 
         <variable
             name="sudokuEntity"
