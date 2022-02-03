@@ -20,9 +20,7 @@ class SudokuListViewModel @Inject constructor(
     val filterMedium = MutableLiveData(true)
     val filterHard = MutableLiveData(true)
     val filterExtreme = MutableLiveData(true)
-
     val filter = MediatorLiveData<SudokuRepository.Filter?>()
-
     val isActionMode = MutableLiveData(false)
 
     init {
@@ -58,10 +56,6 @@ class SudokuListViewModel @Inject constructor(
                 repository.findAllAsLiveData()
             }
         }
-
-//    fun deleteItem(entity: SudokuEntity) = viewModelScope.launch(Dispatchers.IO) {
-//        repository.delete(entity)
-//    }
 
     private var deletedItems: List<SudokuEntity>? = null
 
