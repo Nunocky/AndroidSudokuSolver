@@ -3,27 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/navigation_main"
     app:startDestination="@id/sudokuListFragment">
-    <fragment
-        android:id="@+id/sudokuListFragment"
-        android:name="org.nunocky.sudokusolver.ui.main.SudokuListFragment"
-        android:label="Sudoku Solver">
-        <action
-            android:id="@+id/action_sudokuListFragment_to_exportSudokuFragment"
-            app:destination="@id/exportSudokuFragment" />
-        <action
-            android:id="@+id/action_sudokuListFragment_to_importSudokuFragment"
-            app:destination="@id/importSudokuFragment" />
-        <action
-            android:id="@+id/action_sudokuListFragment_to_aboutFragment"
-            app:destination="@id/aboutFragment" />
-        <action
-            android:id="@+id/action_sudokuListFragment_to_solverFragment"
-            app:destination="@id/solverFragment" />
-    </fragment>
+    <action
+        android:id="@+id/action_global_editFragment"
+        app:destination="@id/editFragment" />
     <fragment
         android:id="@+id/editFragment"
         android:name="org.nunocky.sudokusolver.ui.main.EditFragment"
-        android:label="Edit / New">
+        android:label="{title}">
+        <argument
+            android:name="title"
+            app:argType="string" />
         <argument
             android:name="entityId"
             app:argType="long" />
@@ -48,7 +37,21 @@
         android:id="@+id/importSudokuFragment"
         android:name="org.nunocky.sudokusolver.ui.main.ImportSudokuFragment"
         android:label="Import Data" />
-    <action
-        android:id="@+id/action_global_editFragment"
-        app:destination="@id/editFragment" />
+    <fragment
+        android:id="@+id/sudokuListFragment"
+        android:name="org.nunocky.sudokusolver.ui.main.SudokuListFragment"
+        android:label="Sudoku Solver">
+        <action
+            android:id="@+id/action_sudokuListFragment_to_exportSudokuFragment"
+            app:destination="@id/exportSudokuFragment" />
+        <action
+            android:id="@+id/action_sudokuListFragment_to_importSudokuFragment"
+            app:destination="@id/importSudokuFragment" />
+        <action
+            android:id="@+id/action_sudokuListFragment_to_aboutFragment"
+            app:destination="@id/aboutFragment" />
+        <action
+            android:id="@+id/action_sudokuListFragment_to_solverFragment"
+            app:destination="@id/solverFragment" />
+    </fragment>
 </navigation>

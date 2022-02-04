@@ -77,7 +77,10 @@ class SolverFragment : Fragment() {
                 loadSudoku(id)
             } else {
 
-                val action = NavigationMainDirections.actionGlobalEditFragment(entityId = 0L)
+                val action = NavigationMainDirections.actionGlobalEditFragment(
+                    title = resources.getString(R.string.newItem),
+                    entityId = 0L
+                )
                 findNavController().navigate(action)
             }
         }
@@ -124,7 +127,10 @@ class SolverFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_edit) {
-            val action = SolverFragmentDirections.actionGlobalEditFragment(args.entityId)
+            val action = SolverFragmentDirections.actionGlobalEditFragment(
+                title = resources.getString(R.string.editItem),
+                entityId = args.entityId
+            )
             navController.navigate(action)
         }
         return super.onOptionsItemSelected(item)
