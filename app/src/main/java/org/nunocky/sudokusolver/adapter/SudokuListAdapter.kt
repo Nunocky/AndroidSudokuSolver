@@ -8,6 +8,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.selection.ItemDetailsLookup
 import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.widget.DiffUtil
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.databinding.SudokuListItemBinding
+import org.nunocky.sudokusolver.ui.main.SudokuListViewModel
 import java.io.File
 
 private val diffCallback = object : DiffUtil.ItemCallback<SudokuEntity>() {
@@ -36,7 +38,13 @@ class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             override fun getSelectionKey(): Long = itemId
         }
 
-    fun bindTo(entity: SudokuEntity, listener: OnItemClickListener?, isActivated: Boolean = false) {
+    fun bindTo(
+        entity: SudokuEntity, listener: OnItemClickListener?,
+        viewLifecycleOwner: LifecycleOwner,
+        viewModel: SudokuListViewModel,
+        isActivated: Boolean = false
+    ) {
+        entity.isChecked = isActivated
 
         itemView.setOnClickListener {
             listener?.onItemClicked(it, entity)
@@ -51,7 +59,10 @@ class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             BitmapFactory.decodeFile(file.absolutePath)
         }
 
+        binding.lifecycleOwner = viewLifecycleOwner
+        binding.viewModel = viewModel
         binding.imageView.setImageBitmap(bitmap)
+        binding.sudokuEntity = entity
 
         val difficulty =
             entity.difficulty ?: org.nunocky.sudokulib.SudokuSolver.DIFFICULTY_UNDEF
@@ -77,6 +88,8 @@ class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         }
 
         itemView.isActivated = isActivated
+
+        binding.executePendingBindings()
     }
 }
 
@@ -84,7 +97,10 @@ interface OnItemClickListener {
     fun onItemClicked(view: View, entity: SudokuEntity)
 }
 
-class SudokuListAdapter :
+class SudokuListAdapter(
+    private val viewLifecycleOwner: LifecycleOwner,
+    private val viewModel: SudokuListViewModel
+) :
     ListAdapter<SudokuEntity, ViewHolder>(diffCallback), OnItemClickListener {
 
     var listener: OnItemClickListener? = null
@@ -106,7 +122,7 @@ class SudokuListAdapter :
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bindTo(getItem(position), this)
+        holder.bindTo(getItem(position), this, viewLifecycleOwner, viewModel)
     }
 
     // ロングタップ時の選択操作に必要
@@ -115,7 +131,7 @@ class SudokuListAdapter :
 
         val entity = getItem(position)
         val selected = tracker?.isSelected(entity.id) ?: false
-        holder.bindTo(entity, this, selected)
+        holder.bindTo(entity, this, viewLifecycleOwner, viewModel, selected)
     }
 
     // ロングタップ時の選択操作に必要
