@@ -13,7 +13,7 @@ class Preference @Inject constructor(
 ) {
     private val sharedPreference = application.getSharedPreferences("app", Context.MODE_PRIVATE)
 
-    var stepSpeed : Int
+    var stepSpeed: Int
         get() =
             sharedPreference.getInt("stepSpeed", 0)
         set(value) {
@@ -24,7 +24,7 @@ class Preference @Inject constructor(
 
     var solverMethod: Int
         get() =
-            sharedPreference.getInt("solverMethod", 0)
+            sharedPreference.getInt("solverMethod", 1)
         set(value) {
             sharedPreference.edit()
                 .putInt("solverMethod", value)

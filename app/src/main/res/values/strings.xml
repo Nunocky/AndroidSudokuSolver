@@ -13,6 +13,7 @@
     <string name="github_page">GitHub Page</string>
     <string name="delete">Delete</string>
     <string name="saved">saved</string>
+    <string name="step_speed">Step Speed</string>
 
   <string-array name="solve_method">
         <item>only Standard Solver</item>
