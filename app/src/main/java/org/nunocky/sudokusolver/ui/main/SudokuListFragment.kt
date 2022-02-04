@@ -115,6 +115,8 @@ class SudokuListFragment : Fragment() {
                             (requireActivity() as AppCompatActivity).startSupportActionMode(
                                 actionModeCallback
                             )
+
+                        actionMode?.title = resources.getString(R.string.delete)
                     }
 
                     !tracker.hasSelection() && actionMode != null -> {
