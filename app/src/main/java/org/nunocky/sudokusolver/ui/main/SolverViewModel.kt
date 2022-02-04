@@ -1,9 +1,6 @@
 package org.nunocky.sudokusolver.ui.main
 
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import org.nunocky.sudokulib.SudokuSolver
@@ -31,6 +28,7 @@ class SolverViewModel @Inject constructor(
 
     val solverStatus = MutableLiveData(Status.INIT)
     val elapsedTime = MutableLiveData((0L).toTimeStr())
+    val isReady = MediatorLiveData<Boolean>()
 
     val entityId = savedStateHandle.getLiveData("entityId", 0L)
     val stepSpeed = savedStateHandle.getLiveData("stepSpeed", preference.stepSpeed)
@@ -43,6 +41,12 @@ class SolverViewModel @Inject constructor(
     private var timerJob: Job = Job().apply { cancel() }
 
     val solver = SudokuSolver()
+
+    init {
+        isReady.addSource(solverStatus) {
+            isReady.value = (it != Status.INIT && it != Status.WORKING)
+        }
+    }
 
     fun loadSudoku(id: Long) {
         solverStatus.postValue(Status.INIT)

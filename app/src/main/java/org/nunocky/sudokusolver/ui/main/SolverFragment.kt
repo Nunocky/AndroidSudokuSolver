@@ -118,11 +118,20 @@ class SolverFragment : Fragment() {
         viewModel.solverMethod.observe(viewLifecycleOwner) {
             preference.solverMethod = viewModel.solverMethod.value!!
         }
+
+        viewModel.isReady.observe(viewLifecycleOwner) {
+            requireActivity().invalidateOptionsMenu()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.menu_solver, menu)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
+        menu.findItem(R.id.action_edit).isEnabled = (viewModel.isReady.value == true)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
