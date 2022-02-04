@@ -44,8 +44,6 @@ class SolverFragment : Fragment() {
 
         savedStateHandle.getLiveData<Boolean>(EditFragment.KEY_SAVED)
             .observe(currentBackStackEntry, { success ->
-
-                // TODO この辺の処理に問題 savedStateHandleの使い方?
                 val entityId = savedStateHandle.get<Long>("entityId")
                 if (success) {
                     viewModel.entityId.value = entityId
@@ -79,9 +77,6 @@ class SolverFragment : Fragment() {
                 loadSudoku(id)
             } else {
 
-                // TODO エディタから戻ってきたとき、 id=0でここを通りまたエディタに行ってしまう
-                //  誰が viewModel.entityIdを操作しているのか?
-                //      -> savedStateHandleの仕業らしい
                 val action = NavigationMainDirections.actionGlobalEditFragment(entityId = 0L)
                 findNavController().navigate(action)
             }
@@ -99,11 +94,6 @@ class SolverFragment : Fragment() {
             stopSolve()
         }
 
-        // UIのリスナーで実装し直す
-//        viewModel.solverMethod.observe(viewLifecycleOwner) {
-//            reset()
-//        }
-
         viewModel.solverStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
                 SolverViewModel.Status.READY -> {
@@ -117,12 +107,14 @@ class SolverFragment : Fragment() {
                 else -> {}
             }
         }
-    }
 
-    override fun onPause() {
-        super.onPause()
-        preference.stepSpeed = viewModel.stepSpeed.value!!
-        preference.solverMethod = viewModel.solverMethod.value!!
+        viewModel.stepSpeed.observe(viewLifecycleOwner) {
+            preference.stepSpeed = viewModel.stepSpeed.value!!
+        }
+
+        viewModel.solverMethod.observe(viewLifecycleOwner) {
+            preference.solverMethod = viewModel.solverMethod.value!!
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -169,7 +161,6 @@ class SolverFragment : Fragment() {
     }
 
     private fun reset() {
-        // TODO 遷移時にここが3回呼ばれている ... solverMethodが3回変更されている
         viewModel.entityId.value?.let {
             loadSudoku(it)
         }
@@ -205,7 +196,7 @@ class SolverFragment : Fragment() {
             }
 
             runBlocking {
-                // TODO ノーウェイト / ウェイトあり くらいの区分で良さそう
+                // MEMO ノーウェイト / ウェイトあり くらいの区分で良さそう
                 delay(viewModel.stepSpeed.value!! * 100L)
             }
         }
