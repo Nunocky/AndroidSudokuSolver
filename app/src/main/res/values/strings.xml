@@ -11,10 +11,10 @@
     <string name="current_version">Current Version</string>
     <string name="open_source_license">Open Source License</string>
     <string name="github_page">GitHub Page</string>
-    <string name="delete">delete</string>
+    <string name="delete">Delete</string>
     <string name="saved">saved</string>
 
-    <string-array name="solve_method">
+  <string-array name="solve_method">
         <item>only Standard Solver</item>
         <item>Standard + DFS</item>
         <item>only DFS</item>
