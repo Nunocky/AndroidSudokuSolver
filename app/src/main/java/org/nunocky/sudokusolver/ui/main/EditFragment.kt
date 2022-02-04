@@ -11,6 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import org.nunocky.sudokusolver.R
@@ -215,11 +216,20 @@ class EditFragment : Fragment() {
             val newId = viewModel.saveSudoku(args.entityId, cells, thumbnail)
 
             withContext(Dispatchers.Main) {
+                shouldReturnToList = false
                 previousSavedStateHandle.set(KEY_SAVED, true)
                 previousSavedStateHandle.set("entityId", newId)
-            }
 
-            shouldReturnToList = false
+                // SnackBarを表示して前画面に戻る
+                val snackBar = Snackbar.make(
+                    binding.root,
+                    resources.getString(R.string.saved),
+                    Snackbar.LENGTH_SHORT
+                )
+                snackBar.show()
+
+                findNavController().popBackStack()
+            }
         }
     }
 
@@ -237,7 +247,7 @@ class EditFragment : Fragment() {
     }
 
     private fun onBackButtonClicked() {
-        if ( shouldReturnToList ) {
+        if (shouldReturnToList) {
             navController.popBackStack(R.id.sudokuListFragment, false)
         } else {
             previousSavedStateHandle.set(KEY_SAVED, true)
@@ -251,7 +261,7 @@ class EditFragment : Fragment() {
         }
     }
 
-    private fun createImage() : Bitmap{
+    private fun createImage(): Bitmap {
         binding.sudokuBoardView.cellViews.forEach { cellView ->
             val color = if (cellView.fixedNum != 0) {
                 R.color.fixedCell
@@ -267,7 +277,7 @@ class EditFragment : Fragment() {
         val thumbnail = binding.sudokuBoardView.getThumbNail()
 
         binding.sudokuBoardView.cellViews.forEach { cellView ->
-            val color =                         R.color.white
+            val color = R.color.white
 
             cellView.setBackgroundColor(
                 ContextCompat.getColor(requireActivity(), color)

@@ -12,6 +12,7 @@
     <string name="open_source_license">Open Source License</string>
     <string name="github_page">GitHub Page</string>
     <string name="delete">delete</string>
+    <string name="saved">saved</string>
 
     <string-array name="solve_method">
         <item>only Standard Solver</item>

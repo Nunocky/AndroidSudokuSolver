@@ -79,7 +79,8 @@ class SudokuListFragment : Fragment() {
         adapter.listener = object : OnItemClickListener {
             override fun onItemClicked(view: View, entity: SudokuEntity) {
                 // 指定の問題を解くための画面遷移
-                val action = SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(entity.id)
+                val action =
+                    SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(entity.id)
                 findNavController().navigate(action)
             }
         }
@@ -160,13 +161,14 @@ class SudokuListFragment : Fragment() {
                 viewModel.deleteItems(ids)
 
                 // Snackbar表示。復元機能も
-                Snackbar.make(binding.root, "deleted", Snackbar.LENGTH_SHORT)
+                val snackBar = Snackbar.make(binding.root, "deleted", Snackbar.LENGTH_SHORT)
                     .setAction(
                         "restore"
                     ) {
                         viewModel.restoreDeletedItems()
                     }
-                    .show()
+
+                snackBar.show()
             }
 
             // ActionModeを解除したときに RecyclerViewの選択状態も解除
