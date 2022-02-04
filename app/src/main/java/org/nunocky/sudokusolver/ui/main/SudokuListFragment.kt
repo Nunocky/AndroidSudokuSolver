@@ -166,6 +166,7 @@ class SudokuListFragment : Fragment() {
                     ) {
                         viewModel.restoreDeletedItems()
                     }
+
                     .show()
             }
 
