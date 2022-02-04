@@ -116,7 +116,7 @@ class SudokuListFragment : Fragment() {
                                 actionModeCallback
                             )
 
-                        actionMode?.title = resources.getString(R.string.delete)
+                        actionMode?.title = resources.getString(R.string.deleteItem)
                     }
 
                     !tracker.hasSelection() && actionMode != null -> {
