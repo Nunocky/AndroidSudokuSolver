@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.SudokuSolver" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.SudokuSolver" parent="Theme.MaterialComponents.DayNight">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
@@ -17,6 +17,15 @@
 
         <item name="actionModeStyle">@style/ActionModeStyle</item>
         <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+
+
+        <!-- Style to use for Snackbars in this theme. -->
+        <item name="snackbarStyle">@style/CustomSnackbarStyle</item>
+        <!-- Style to use for action button within a Snackbar in this theme. -->
+        <item name="snackbarButtonStyle">@style/CustomSnackbarButtonStyle</item>
+        <!-- Style to use for message text within a Snackbar in this theme. -->
+        <item name="snackbarTextViewStyle">@style/CustomSnackbarTextViewStyle</item>
+
     </style>
 
     <style name="Theme.SudokuSolver.NoActionBar">
@@ -36,5 +45,17 @@
 
     <style name="ActionModeTitleTextStyle" parent="@style/TextAppearance.AppCompat.Widget.ActionMode.Title">
         <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="CustomSnackbarStyle" parent="Widget.MaterialComponents.Snackbar">
+        <item name="android:background">?attr/colorPrimary</item>
+    </style>
+
+    <style name="CustomSnackbarButtonStyle" parent="@style/Widget.MaterialComponents.Button.TextButton.Snackbar">
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="CustomSnackbarTextViewStyle" parent="@style/Widget.MaterialComponents.Snackbar.TextView">
+        <item name="textColor">@color/white</item>
     </style>
 </resources>

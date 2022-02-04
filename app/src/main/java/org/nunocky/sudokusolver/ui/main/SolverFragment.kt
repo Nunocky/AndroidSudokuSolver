@@ -231,7 +231,6 @@ class SolverFragment : Fragment() {
 
             val snackBar = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT)
             snackBar.view.setBackgroundColor(bgColor)
-
             snackBar.show()
         }
 //

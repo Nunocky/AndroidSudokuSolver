@@ -1,6 +1,7 @@
 package org.nunocky.sudokusolver.database
 
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import se.ansman.kotshi.JsonSerializable
 import java.util.*
@@ -12,6 +13,9 @@ data class SudokuEntity(
     var cells: String = "0".repeat(81),
     var createdAt: Calendar = Calendar.getInstance(),
     var difficulty: Int? = 1, // "UNTESTED"
-    var thumbnail: String? = ""
+    var thumbnail: String? = "",
+
+    @Ignore
+    var isChecked: Boolean = false
 )
 
