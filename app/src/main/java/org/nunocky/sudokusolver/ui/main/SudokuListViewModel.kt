@@ -9,16 +9,10 @@ import org.nunocky.sudokusolver.database.SudokuRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class SudokuListViewModel @Inject constructor (
-    val savesStateHandle: SavedStateHandle,
-    val repository: SudokuRepository) : ViewModel() {
-//    class Factory(private val repository: SudokuRepository) :
-//        ViewModelProvider.NewInstanceFactory() {
-//        @Suppress("unchecked_cast")
-//        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-//            return SudokuListViewModel(repository) as T
-//        }
-//    }
+class SudokuListViewModel @Inject constructor(
+//    val savesStateHandle: SavedStateHandle,
+    val repository: SudokuRepository
+) : ViewModel() {
 
     val filterImpossible = MutableLiveData(true)
     val filterUnTested = MutableLiveData(true)
@@ -26,8 +20,8 @@ class SudokuListViewModel @Inject constructor (
     val filterMedium = MutableLiveData(true)
     val filterHard = MutableLiveData(true)
     val filterExtreme = MutableLiveData(true)
-
     val filter = MediatorLiveData<SudokuRepository.Filter?>()
+    val isActionMode = MutableLiveData(false)
 
     init {
         arrayOf(
@@ -62,10 +56,6 @@ class SudokuListViewModel @Inject constructor (
                 repository.findAllAsLiveData()
             }
         }
-
-    fun deleteItem(entity: SudokuEntity) = viewModelScope.launch(Dispatchers.IO) {
-        repository.delete(entity)
-    }
 
     private var deletedItems: List<SudokuEntity>? = null
 

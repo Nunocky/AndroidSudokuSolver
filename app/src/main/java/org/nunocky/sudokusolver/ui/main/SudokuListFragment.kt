@@ -72,8 +72,7 @@ class SudokuListFragment : Fragment() {
         binding.recyclerView.layoutManager =
             GridLayoutManager(requireActivity(), 2, RecyclerView.VERTICAL, false)
 
-//        adapter = SudokuListAdapter(emptyList())
-        adapter = SudokuListAdapter()
+        adapter = SudokuListAdapter(viewLifecycleOwner, viewModel)
         binding.recyclerView.adapter = adapter
 
         adapter.listener = object : OnItemClickListener {
@@ -144,13 +143,14 @@ class SudokuListFragment : Fragment() {
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
             // Log.d(TAG, "onCreateActionMode")
             mode.menuInflater.inflate(R.menu.menu_item_select, menu)
+            viewModel.isActionMode.value = true
             return true
         }
 
-        // TODO 修正する
         override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
             // Log.d(TAG, "onPrepareActionMode")
-//            binding.filterList.root.visibility = View.GONE
+            // TODO filterListの見え隠れはアニメーションにしたい
+            binding.filterList.root.visibility = View.GONE
             return false
         }
 
@@ -179,12 +179,12 @@ class SudokuListFragment : Fragment() {
 
         override fun onDestroyActionMode(mode: ActionMode?) {
             //Log.d(TAG, "onDestroyActionMode")
-            // TODO 修正する
-//            binding.filterList.root.visibility = View.VISIBLE
+            binding.filterList.root.visibility = View.VISIBLE
             actionMode = null
 
             // ActionModeを解除したときに RecyclerViewの選択状態も解除
             tracker.clearSelection()
+            viewModel.isActionMode.value = false
         }
     }
 
