@@ -81,7 +81,7 @@ class SolverFragment : Fragment() {
                     title = resources.getString(R.string.newItem),
                     entityId = 0L
                 )
-                findNavController().navigate(action)
+                navController.navigate(action)
             }
         }
 
@@ -192,6 +192,7 @@ class SolverFragment : Fragment() {
 
         // 非同期で viewModel.loadSudokuを行い、それが終わったらセルの設定をおこなう。
         lifecycleScope.launch(Dispatchers.IO) {
+            viewModel.elapsedTime.postValue(0L)
             viewModel.loadSudoku(id)
 
             withContext(Dispatchers.Main) {

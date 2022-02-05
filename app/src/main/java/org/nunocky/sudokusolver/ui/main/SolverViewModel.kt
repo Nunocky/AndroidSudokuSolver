@@ -27,7 +27,8 @@ class SolverViewModel @Inject constructor(
     }
 
     val solverStatus = MutableLiveData(Status.INIT)
-    val elapsedTime = MutableLiveData((0L).toTimeStr())
+    val elapsedTime = MutableLiveData(0L)
+    val elapsedTimeStr = MediatorLiveData<String>()
     val isReady = MediatorLiveData<Boolean>()
 
     val entityId = savedStateHandle.getLiveData("entityId", 0L)
@@ -45,6 +46,10 @@ class SolverViewModel @Inject constructor(
     init {
         isReady.addSource(solverStatus) {
             isReady.value = (it != Status.INIT && it != Status.WORKING)
+        }
+
+        elapsedTimeStr.addSource(elapsedTime) {
+            elapsedTimeStr.value = it.toTimeStr()
         }
     }
 
@@ -105,7 +110,7 @@ class SolverViewModel @Inject constructor(
 
             stopTimer()
             val solverElapsedTime = solver.getElapsedTime()
-            elapsedTime.postValue(solverElapsedTime.toTimeStr())
+            elapsedTime.postValue(solverElapsedTime)
         }
     }
 
@@ -128,11 +133,11 @@ class SolverViewModel @Inject constructor(
         timerJob = viewModelScope.launch(Dispatchers.IO) {
             startTime = System.currentTimeMillis()
             currentTime = System.currentTimeMillis()
-            elapsedTime.postValue("0")
+            elapsedTime.postValue(0L)
 
             while (isActive) {
                 currentTime = System.currentTimeMillis()
-                elapsedTime.postValue((currentTime - startTime).toTimeStr())
+                elapsedTime.postValue((currentTime - startTime))
                 delay(100)
             }
         }
