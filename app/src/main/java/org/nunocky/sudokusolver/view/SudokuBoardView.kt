@@ -7,7 +7,11 @@ import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.CHAIN_PACKED
 import org.nunocky.sudokusolver.R
-import org.nunocky.sudokusolver.solver.Cell
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.widget.TextView
+import java.lang.RuntimeException
+
 
 class SudokuBoardView : ConstraintLayout {
     val cellViews = ArrayList<NumberCellView>()
@@ -187,8 +191,9 @@ class SudokuBoardView : ConstraintLayout {
         }
     }
 
-    fun updateCells(cells: List<Cell>) {
+    fun updateCells(cells: List<org.nunocky.sudokulib.Cell>) {
         cellViews.forEachIndexed { n, cellView ->
+            cellView.onFocus = false
             cellView.fixedNum = cells[n].value
             cellView.candidates = cells[n].candidates.toIntArray()
         }
@@ -242,4 +247,13 @@ class SudokuBoardView : ConstraintLayout {
             }
            field = value
         }
+
+    fun getThumbNail() : Bitmap {
+        val v: View = this
+
+        val bmp = Bitmap.createBitmap(v.width, v.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp) // bmp をターゲットにした Canvas を作成
+        v.draw(canvas)
+        return bmp
+    }
 }

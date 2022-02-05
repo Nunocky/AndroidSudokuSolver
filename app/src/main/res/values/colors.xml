@@ -9,4 +9,13 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="fixedCell">#cccccc</color>
+    <color name="solverSuccess">#009688</color>
+    <color name="solverFail">#515151</color>
+
+    <color name="difficulty_impossible">#515151</color>
+    <color name="difficulty_undef">#000000</color>
+    <color name="difficulty_easy">#0003FF</color>
+    <color name="difficulty_medium">#009600</color>
+    <color name="difficulty_hard">#FF5722</color>
+    <color name="difficulty_extreme">#FF0000</color>
 </resources>

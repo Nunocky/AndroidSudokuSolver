@@ -1,55 +1,67 @@
 package org.nunocky.sudokusolver.ui.main
 
-import android.util.Log
+import android.app.Application
+import android.graphics.Bitmap
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import org.nunocky.sudokusolver.SudokuRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import org.nunocky.sudokusolver.IMAGEDIR
 import org.nunocky.sudokusolver.database.SudokuEntity
-import org.nunocky.sudokusolver.solver.SudokuSolver
+import org.nunocky.sudokusolver.database.SudokuRepository
+import java.io.File
+import java.io.FileOutputStream
+import java.util.*
+import javax.inject.Inject
 
-class EditViewModel(private val repository: SudokuRepository) : ViewModel() {
-    companion object {
-        private const val TAG = "EditViewModel"
-    }
+@HiltViewModel
+class EditViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val repository: SudokuRepository,
+    private val application: Application
+) : ViewModel() {
 
-    class Factory(private val repository: SudokuRepository) :
-        ViewModelProvider.NewInstanceFactory() {
-        @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return EditViewModel(repository) as T
-        }
-    }
+    val entityId = savedStateHandle.getLiveData("entityId", 0L)
 
     var currentValue = MutableLiveData(0)
-    val entity = MutableLiveData<SudokuEntity?>(null)
 
-    val sudokuSolver = SudokuSolver()
-    val isValid = sudokuSolver.isValid
+    val sudokuSolver = org.nunocky.sudokulib.SudokuSolver()
 
-    fun setNewSudoku() {
-        val ent = SudokuEntity()
-        entity.postValue(ent)
-    }
-
-    fun loadSudoku(id: Long) = viewModelScope.launch(Dispatchers.IO) {
-        val ent = repository.findById(id)
-        entity.postValue(ent)
-    }
-
-    fun saveSudoku(cells: String) = viewModelScope.launch(Dispatchers.IO) {
-        Log.d(TAG, cells)
-
-        entity.value?.let {
-            it.cells = cells
-            if (it.id == 0L) {
-                it.id = repository.insert(it)
-            } else {
-                repository.update(it)
+    fun loadSudoku(id: Long): SudokuEntity {
+        if (id == 0L) {
+            return SudokuEntity()
+        } else {
+            repository.findById(id).let { ent ->
+                ent ?: throw RuntimeException("entity $id not found")
+                return ent
             }
         }
     }
+
+    fun saveSudoku(id: Long, cells: String, thumbnail: Bitmap): Long {
+        val entity = repository.findById(id) ?: SudokuEntity(id = 0)
+
+        entity.cells = cells
+
+        // サムネイルの保存
+        val imageDir = File("${application.filesDir}", IMAGEDIR)
+        var filename = entity.thumbnail
+        if (filename.isNullOrBlank()) {
+            filename = createNewFilename()
+        }
+        FileOutputStream(File(imageDir, filename)).use { oStream ->
+            thumbnail.compress(Bitmap.CompressFormat.PNG, 100, oStream)
+        }
+
+        entity.thumbnail = filename
+
+        if (entity.id == 0L) {
+            entity.id = repository.insert(entity)
+        } else {
+            repository.update(entity)
+        }
+        return entity.id
+    }
+
+    private fun createNewFilename() = UUID.randomUUID().toString()
 }

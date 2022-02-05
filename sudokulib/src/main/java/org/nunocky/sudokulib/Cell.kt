@@ -1,10 +1,11 @@
-package org.nunocky.sudokusolver.solver
+package org.nunocky.sudokulib
 
 /**
  * 数字のマス目のデータ
  * value : 0は未確定、 1~9が入っていたら確定
  */
 class Cell {
+    var id: Int = 0
     var value: Int = 0
         set(value) {
             if (value < 0 || 9 < value) {
