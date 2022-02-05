@@ -262,6 +262,7 @@ class EditFragment : Fragment() {
     }
 
     private fun createImage(): Bitmap {
+        binding.sudokuBoardView.visibility = View.INVISIBLE
         binding.sudokuBoardView.cellViews.forEach { cellView ->
             val color = if (cellView.fixedNum != 0) {
                 R.color.fixedCell
