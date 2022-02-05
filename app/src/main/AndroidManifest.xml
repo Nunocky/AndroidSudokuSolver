@@ -12,6 +12,7 @@
         android:theme="@style/Theme.SudokuSolver">
         <activity
             android:name=".MainActivity"
+            android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.SudokuSolver.NoActionBar">
             <intent-filter>
@@ -20,6 +21,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
 
+        <service
+            android:name=".MyApplication$DestroyingService"
+            android:stopWithTask="false" />
+
+        <service
+            android:name=".CleanupService"
+            android:stopWithTask="false" />
+    </application>
 </manifest>
