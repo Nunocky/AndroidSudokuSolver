@@ -21,5 +21,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".MyApplication$DestroyingService"
+            android:stopWithTask="false" />
+
+        <service
+            android:name=".CleanupService"
+            android:stopWithTask="false" />
     </application>
 </manifest>
