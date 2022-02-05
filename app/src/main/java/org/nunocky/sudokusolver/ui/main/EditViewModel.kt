@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import org.nunocky.sudokusolver.IMAGEDIR
 import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.database.SudokuRepository
 import java.io.File
@@ -43,7 +44,7 @@ class EditViewModel @Inject constructor(
         entity.cells = cells
 
         // サムネイルの保存
-        val imageDir = File("${application.filesDir}/images")
+        val imageDir = File("${application.filesDir}", IMAGEDIR)
         var filename = entity.thumbnail
         if (filename.isNullOrBlank()) {
             filename = createNewFilename()

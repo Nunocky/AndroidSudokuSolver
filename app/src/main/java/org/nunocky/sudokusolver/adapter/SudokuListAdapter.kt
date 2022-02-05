@@ -14,6 +14,7 @@ import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import org.nunocky.sudokusolver.IMAGEDIR
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.databinding.SudokuListItemBinding
@@ -54,7 +55,7 @@ class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val bitmap: Bitmap? = if (entity.thumbnail.isNullOrBlank()) {
             BitmapFactory.decodeResource(context.resources, R.drawable.noimage)
         } else {
-            val imageDir = File(context.filesDir, "images")
+            val imageDir = File(context.filesDir, IMAGEDIR)
             val file = File(imageDir, entity.thumbnail!!)
             BitmapFactory.decodeFile(file.absolutePath)
         }
