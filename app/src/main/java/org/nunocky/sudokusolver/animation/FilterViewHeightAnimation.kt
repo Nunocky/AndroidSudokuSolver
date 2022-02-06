@@ -19,13 +19,6 @@ class FilterViewHeightAnimation(
     fun applyTransformation(interpolatedTime: Float, t: Transformation?) {
         val newHeight = (startHeight + addHeight * interpolatedTime).toInt()
         view.layoutParams.height = newHeight
-
-        if(newHeight == 0) {
-            view.visibility = View.GONE
-        } else {
-            view.visibility = View.VISIBLE
-        }
-
         view.requestLayout()
     }
 

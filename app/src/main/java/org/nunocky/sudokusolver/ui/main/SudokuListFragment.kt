@@ -155,10 +155,34 @@ class SudokuListFragment : Fragment() {
                 filterViewHeight = v.height
 
                 collapseAnimation =
-                    FilterViewHeightAnimation(v, -filterViewHeight, filterViewHeight)
+                    FilterViewHeightAnimation(v, -filterViewHeight, filterViewHeight).apply {
+                        setAnimationListener(object : Animation.AnimationListener {
+                            override fun onAnimationStart(animation: Animation?) {
+                            }
+
+                            override fun onAnimationEnd(animation: Animation?) {
+                                binding.filterList.root.visibility = View.GONE
+                            }
+
+                            override fun onAnimationRepeat(animation: Animation?) {
+                            }
+                        })
+                    }
                 collapseAnimation.duration = FILTER_ANIMATION_DURATION
 
-                expandAnimation = FilterViewHeightAnimation(v, filterViewHeight, 0)
+                expandAnimation = FilterViewHeightAnimation(v, filterViewHeight, 0).apply {
+                    setAnimationListener(object : Animation.AnimationListener {
+                        override fun onAnimationStart(animation: Animation?) {
+                            binding.filterList.root.visibility = View.VISIBLE
+                        }
+
+                        override fun onAnimationEnd(animation: Animation?) {
+                        }
+
+                        override fun onAnimationRepeat(animation: Animation?) {
+                        }
+                    })
+                }
                 expandAnimation.duration = FILTER_ANIMATION_DURATION
             }
         } else {
