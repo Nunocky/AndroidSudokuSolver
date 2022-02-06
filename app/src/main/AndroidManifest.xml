@@ -27,7 +27,7 @@
             android:stopWithTask="false" />
 
         <service
-            android:name=".CleanupService"
+            android:name=".service.CleanupService"
             android:stopWithTask="false" />
     </application>
 </manifest>

@@ -1,10 +1,11 @@
-package org.nunocky.sudokusolver
+package org.nunocky.sudokusolver.service
 
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
+import org.nunocky.sudokusolver.IMAGEDIR
 import org.nunocky.sudokusolver.database.SudokuRepository
 import java.io.File
 import javax.inject.Inject
