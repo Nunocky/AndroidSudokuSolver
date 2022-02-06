@@ -130,6 +130,7 @@ class SudokuListAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
         super.onBindViewHolder(holder, position, payloads)
 
+        // TODO ロングタップ時の処理 アニメーションでフィルタがたたまれたときに余計なアイテムもロングタップ状態になるのに対応する
         val entity = getItem(position)
         val selected = tracker?.isSelected(entity.id) ?: false
         holder.bindTo(entity, this, viewLifecycleOwner, viewModel, selected)
