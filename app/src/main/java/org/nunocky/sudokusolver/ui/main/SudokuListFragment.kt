@@ -2,6 +2,7 @@ package org.nunocky.sudokusolver.ui.main
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.view.animation.Animation
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.selects.select
 import org.nunocky.sudokusolver.FILTER_ANIMATION_DURATION
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.adapter.OnItemClickListener
@@ -116,6 +118,17 @@ class SudokuListFragment : Fragment() {
 
             override fun onSelectionChanged() {
                 super.onSelectionChanged()
+
+                // TODO ロングタップ時の処理 アニメーションでフィルタがたたまれたときに他のアイテムもロングタップ状態になるのに対応する
+                //      多分この辺
+//                if (2 < tracker.selection.size()) {
+//                    tracker.selection.forEach { id ->
+//                        if (tracker.selection.first() != id) {
+//                            tracker.deselect(id)
+//                        }
+//                    }
+//                }
+
                 when {
                     tracker.hasSelection() && actionMode == null -> {
                         actionMode =
