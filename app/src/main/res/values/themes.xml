@@ -18,14 +18,11 @@
         <item name="actionModeStyle">@style/ActionModeStyle</item>
         <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
 
-
-        <!-- Style to use for Snackbars in this theme. -->
+<!--
         <item name="snackbarStyle">@style/CustomSnackbarStyle</item>
-        <!-- Style to use for action button within a Snackbar in this theme. -->
         <item name="snackbarButtonStyle">@style/CustomSnackbarButtonStyle</item>
-        <!-- Style to use for message text within a Snackbar in this theme. -->
         <item name="snackbarTextViewStyle">@style/CustomSnackbarTextViewStyle</item>
-
+-->
     </style>
 
     <style name="Theme.SudokuSolver.NoActionBar">
