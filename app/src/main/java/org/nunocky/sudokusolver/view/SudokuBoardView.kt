@@ -9,8 +9,6 @@ import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.CHAIN_PACK
 import org.nunocky.sudokusolver.R
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.widget.TextView
-import java.lang.RuntimeException
 
 
 class SudokuBoardView : ConstraintLayout {

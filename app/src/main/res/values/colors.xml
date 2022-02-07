@@ -18,4 +18,7 @@
     <color name="difficulty_medium">#009600</color>
     <color name="difficulty_hard">#FF5722</color>
     <color name="difficulty_extreme">#FF0000</color>
+
+    <color name="board_invalid">#FFE0E0</color>
+
 </resources>
