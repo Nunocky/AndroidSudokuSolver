@@ -2,7 +2,9 @@ package org.nunocky.sudokusolver.ui.main
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.*
+import android.view.animation.Animation
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.core.content.edit
@@ -17,10 +19,13 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.selects.select
+import org.nunocky.sudokusolver.FILTER_ANIMATION_DURATION
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.adapter.OnItemClickListener
 import org.nunocky.sudokusolver.adapter.SudokuEntityDetailsLookup
 import org.nunocky.sudokusolver.adapter.SudokuListAdapter
+import org.nunocky.sudokusolver.animation.FilterViewHeightAnimation
 import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.databinding.FragmentSudokuListBinding
 
@@ -31,11 +36,15 @@ import org.nunocky.sudokusolver.databinding.FragmentSudokuListBinding
 @AndroidEntryPoint
 class SudokuListFragment : Fragment() {
     private lateinit var binding: FragmentSudokuListBinding
+    private val viewModel: SudokuListViewModel by viewModels()
+
     private lateinit var adapter: SudokuListAdapter
     private var actionMode: ActionMode? = null
     private lateinit var tracker: SelectionTracker<Long>
 
-    private val viewModel: SudokuListViewModel by viewModels()
+    private var filterViewHeight = 0
+    private lateinit var expandAnimation: Animation
+    private lateinit var collapseAnimation: Animation
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -109,6 +118,17 @@ class SudokuListFragment : Fragment() {
 
             override fun onSelectionChanged() {
                 super.onSelectionChanged()
+
+                // TODO ロングタップ時の処理 アニメーションでフィルタがたたまれたときに他のアイテムもロングタップ状態になるのに対応する
+                //      多分この辺
+//                if (2 < tracker.selection.size()) {
+//                    tracker.selection.forEach { id ->
+//                        if (tracker.selection.first() != id) {
+//                            tracker.deselect(id)
+//                        }
+//                    }
+//                }
+
                 when {
                     tracker.hasSelection() && actionMode == null -> {
                         actionMode =
@@ -138,6 +158,57 @@ class SudokuListFragment : Fragment() {
                 SudokuListFragmentDirections.actionSudokuListFragmentToSolverFragment(0L)
             findNavController().navigate(action)
         }
+
+        addFilterViewObserver()
+    }
+
+    private val filterViewObserver = ViewTreeObserver.OnWindowFocusChangeListener {
+        if (it) {
+            binding.filterList.root.also { v ->
+                filterViewHeight = v.height
+
+                collapseAnimation =
+                    FilterViewHeightAnimation(v, -filterViewHeight, filterViewHeight).apply {
+                        setAnimationListener(object : Animation.AnimationListener {
+                            override fun onAnimationStart(animation: Animation?) {
+                            }
+
+                            override fun onAnimationEnd(animation: Animation?) {
+                                binding.filterList.root.visibility = View.GONE
+                            }
+
+                            override fun onAnimationRepeat(animation: Animation?) {
+                            }
+                        })
+                    }
+                collapseAnimation.duration = FILTER_ANIMATION_DURATION
+
+                expandAnimation = FilterViewHeightAnimation(v, filterViewHeight, 0).apply {
+                    setAnimationListener(object : Animation.AnimationListener {
+                        override fun onAnimationStart(animation: Animation?) {
+                            binding.filterList.root.visibility = View.VISIBLE
+                        }
+
+                        override fun onAnimationEnd(animation: Animation?) {
+                        }
+
+                        override fun onAnimationRepeat(animation: Animation?) {
+                        }
+                    })
+                }
+                expandAnimation.duration = FILTER_ANIMATION_DURATION
+            }
+        } else {
+            removeFilterViewObserver()
+        }
+    }
+
+    private fun addFilterViewObserver() {
+        view?.viewTreeObserver?.addOnWindowFocusChangeListener(filterViewObserver)
+    }
+
+    private fun removeFilterViewObserver() {
+        view?.viewTreeObserver?.removeOnWindowFocusChangeListener(filterViewObserver)
     }
 
     private val actionModeCallback = object : ActionMode.Callback {
@@ -149,17 +220,14 @@ class SudokuListFragment : Fragment() {
         }
 
         override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
-            // Log.d(TAG, "onPrepareActionMode")
-            // TODO filterListの見え隠れはアニメーションにしたい
-            binding.filterList.root.visibility = View.GONE
+            binding.filterList.root.clearAnimation()
+            binding.filterList.root.startAnimation(collapseAnimation)
             return false
         }
 
         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
-            //Log.d(TAG, "onActionItemClicked")
             if (item.itemId == R.id.action_delete) {
                 val ids = tracker.selection.toList()
-                //Log.d(TAG, ids.joinToString(" "))
                 viewModel.deleteItems(ids)
 
                 // Snackbar表示。復元機能も
@@ -178,12 +246,15 @@ class SudokuListFragment : Fragment() {
             return false
         }
 
+        // アクションモード解除
         override fun onDestroyActionMode(mode: ActionMode?) {
-            //Log.d(TAG, "onDestroyActionMode")
-            binding.filterList.root.visibility = View.VISIBLE
+            // フィルタ選択ビューを再表示
+            binding.filterList.root.clearAnimation()
+            binding.filterList.root.startAnimation(expandAnimation)
+
             actionMode = null
 
-            // ActionModeを解除したときに RecyclerViewの選択状態も解除
+            // RecyclerViewの選択状態を解除
             tracker.clearSelection()
             viewModel.isActionMode.value = false
         }

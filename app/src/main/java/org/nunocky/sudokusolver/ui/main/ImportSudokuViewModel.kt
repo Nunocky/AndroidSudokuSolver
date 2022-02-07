@@ -10,8 +10,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.nunocky.sudokulib.SudokuSolver
-import org.nunocky.sudokusolver.CalenderJsonAdapter
-import org.nunocky.sudokusolver.SudokuJsonAdapterFactory
+import org.nunocky.sudokusolver.adapter.CalenderJsonAdapter
+import org.nunocky.sudokusolver.adapter.SudokuJsonAdapterFactory
 import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.database.SudokuRepository
 import java.io.ByteArrayOutputStream

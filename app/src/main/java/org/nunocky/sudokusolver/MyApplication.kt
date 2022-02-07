@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.IBinder
 import dagger.hilt.android.HiltAndroidApp
+import org.nunocky.sudokusolver.service.CleanupService
 import java.io.File
 import javax.inject.Singleton
 
@@ -23,8 +24,10 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
         val imageDir = File("${filesDir}/images")
         imageDir.mkdir()
 
-        registerActivityLifecycleCallbacks(this)
-        startService(Intent(this, DestroyingService::class.java))
+        if(!BuildConfig.DEBUG) {
+            registerActivityLifecycleCallbacks(this)
+            startService(Intent(this, DestroyingService::class.java))
+        }
     }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {

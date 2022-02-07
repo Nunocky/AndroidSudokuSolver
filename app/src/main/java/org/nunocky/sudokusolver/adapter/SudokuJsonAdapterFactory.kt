@@ -1,4 +1,4 @@
-package org.nunocky.sudokusolver
+package org.nunocky.sudokusolver.adapter
 
 import com.squareup.moshi.JsonAdapter
 import se.ansman.kotshi.KotshiJsonAdapterFactory
