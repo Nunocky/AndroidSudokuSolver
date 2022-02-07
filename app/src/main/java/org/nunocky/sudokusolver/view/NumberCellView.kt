@@ -303,7 +303,7 @@ class NumberCellView : View {
                     // TODO 選択・非選択状態の色をアトリビュートで設定
                     Color.parseColor("#ffffb0")
                 } else {
-                    Color.WHITE
+                    Color.TRANSPARENT
                 }
             )
             invalidate()

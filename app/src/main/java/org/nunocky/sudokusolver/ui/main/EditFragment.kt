@@ -1,6 +1,8 @@
 package org.nunocky.sudokusolver.ui.main
 
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.view.*
 import android.widget.CompoundButton
@@ -97,6 +99,29 @@ class EditFragment : Fragment() {
             viewModel.sudokuSolver.load(list)
         }
 
+        viewModel.sudokuSolver.isValid.observe(viewLifecycleOwner) {
+            requireActivity().invalidateMenu()
+
+            if (it) {
+                binding.sudokuBoardView.setBackgroundColor(Color.WHITE)
+            } else {
+                if (binding.sudokuBoardView.cellViews.filter { cellView -> cellView.fixedNum != 0 }
+                        .count() != 0) {
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        binding.sudokuBoardView.setBackgroundColor(
+                            resources.getColor(
+                                R.color.board_invalid,
+                                requireActivity().theme
+                            )
+                        )
+                    } else {
+                        binding.sudokuBoardView.setBackgroundColor(resources.getColor(R.color.board_invalid))
+                    }
+                    binding.sudokuBoardView.invalidate()
+                }
+            }
+        }
     }
 
     private val cellClickedListener = View.OnClickListener {
@@ -140,22 +165,16 @@ class EditFragment : Fragment() {
         viewModel.currentValue.value = buttonIndex
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        // TODO ここでやるのが正しい?
-        lifecycleScope.launch(Dispatchers.IO) {
-            viewModel.loadSudoku(args.entityId)
-
-            withContext(Dispatchers.Main) {
-                viewModel.currentValue.value = 0
-            }
-        }
-    }
-
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.menu_edit, menu)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
+        menu.findItem(R.id.action_save)?.let {
+            it.isEnabled = viewModel.sudokuSolver.isValid.value ?: false
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
