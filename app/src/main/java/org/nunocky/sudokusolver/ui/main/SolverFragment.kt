@@ -193,6 +193,7 @@ class SolverFragment : Fragment() {
         // 非同期で viewModel.loadSudokuを行い、それが終わったらセルの設定をおこなう。
         lifecycleScope.launch(Dispatchers.IO) {
             viewModel.elapsedTime.postValue(0L)
+            viewModel.steps.postValue(0)
             viewModel.loadSudoku(id)
 
             withContext(Dispatchers.Main) {
@@ -215,6 +216,8 @@ class SolverFragment : Fragment() {
                 // MEMO ノーウェイト / ウェイトあり くらいの区分で良さそう
                 delay(viewModel.stepSpeed.value!! * 100L)
             }
+
+            viewModel.steps.postValue(viewModel.steps.value!! + 1)
         }
 
         override fun onComplete(success: Boolean) {

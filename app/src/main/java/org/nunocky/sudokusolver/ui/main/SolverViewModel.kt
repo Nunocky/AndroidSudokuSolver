@@ -30,6 +30,7 @@ class SolverViewModel @Inject constructor(
     val elapsedTime = MutableLiveData(0L)
     val elapsedTimeStr = MediatorLiveData<String>()
     val isReady = MediatorLiveData<Boolean>()
+    val steps = MutableLiveData(0)
 
     val entityId = savedStateHandle.getLiveData("entityId", 0L)
     val stepSpeed = savedStateHandle.getLiveData("stepSpeed", preference.stepSpeed)
