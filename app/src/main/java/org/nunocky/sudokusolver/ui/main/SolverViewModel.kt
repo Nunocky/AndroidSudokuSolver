@@ -29,7 +29,8 @@ class SolverViewModel @Inject constructor(
     val solverStatus = MutableLiveData(Status.INIT)
     val elapsedTime = MutableLiveData(0L)
     val elapsedTimeStr = MediatorLiveData<String>()
-    val isReady = MediatorLiveData<Boolean>()
+    val canReset = MediatorLiveData<Boolean>() // リセット・編集可能
+    val canStart = MediatorLiveData<Boolean>() // 解析可能
     val steps = MutableLiveData(0)
 
     val entityId = savedStateHandle.getLiveData("entityId", 0L)
@@ -45,8 +46,12 @@ class SolverViewModel @Inject constructor(
     val solver = SudokuSolver()
 
     init {
-        isReady.addSource(solverStatus) {
-            isReady.value = (it != Status.INIT && it != Status.WORKING)
+        canReset.addSource(solverStatus) {
+            canReset.value = (it != Status.INIT && it != Status.WORKING)
+        }
+
+        canStart.addSource(solverStatus) {
+            canStart.value = (it == Status.READY)
         }
 
         elapsedTimeStr.addSource(elapsedTime) {

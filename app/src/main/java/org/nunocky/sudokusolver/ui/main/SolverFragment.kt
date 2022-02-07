@@ -119,7 +119,7 @@ class SolverFragment : Fragment() {
             preference.solverMethod = viewModel.solverMethod.value!!
         }
 
-        viewModel.isReady.observe(viewLifecycleOwner) {
+        viewModel.canReset.observe(viewLifecycleOwner) {
             requireActivity().invalidateOptionsMenu()
         }
     }
@@ -131,7 +131,7 @@ class SolverFragment : Fragment() {
 
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
-        menu.findItem(R.id.action_edit).isEnabled = (viewModel.isReady.value == true)
+        menu.findItem(R.id.action_edit).isEnabled = (viewModel.canReset.value == true)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
