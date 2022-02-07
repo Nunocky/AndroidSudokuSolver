@@ -5,7 +5,9 @@ import android.view.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.snackbar.Snackbar
@@ -35,12 +37,15 @@ class SolverFragment : Fragment() {
 
     private val navController by lazy { findNavController() }
 
+    private lateinit var currentBackStackEntry: NavBackStackEntry
+    private lateinit var savedStateHandle : SavedStateHandle
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
 
-        val currentBackStackEntry = navController.currentBackStackEntry!!
-        val savedStateHandle = currentBackStackEntry.savedStateHandle
+        currentBackStackEntry = navController.currentBackStackEntry!!
+        savedStateHandle = currentBackStackEntry.savedStateHandle
 
         savedStateHandle.getLiveData<Boolean>(EditFragment.KEY_SAVED)
             .observe(currentBackStackEntry, { success ->
@@ -136,9 +141,11 @@ class SolverFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_edit) {
+            val entityId = savedStateHandle.get<Long>("entityId") ?: args.entityId
+
             val action = SolverFragmentDirections.actionGlobalEditFragment(
                 title = resources.getString(R.string.editItem),
-                entityId = args.entityId
+                entityId = entityId
             )
             navController.navigate(action)
         }
