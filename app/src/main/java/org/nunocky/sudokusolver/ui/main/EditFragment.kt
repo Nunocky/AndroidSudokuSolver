@@ -1,7 +1,7 @@
 package org.nunocky.sudokusolver.ui.main
 
+import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.*
@@ -15,7 +15,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.database.SudokuEntity
 import org.nunocky.sudokusolver.databinding.FragmentEditBinding
@@ -87,7 +89,7 @@ class EditFragment : Fragment() {
             clearAllCells()
         }
 
-        viewModel.currentValue.observe(this) { num ->
+        viewModel.currentValue.observe(viewLifecycleOwner) { num ->
             currentCell?.let {
                 it.fixedNum = num
                 it.updated = false
@@ -103,21 +105,12 @@ class EditFragment : Fragment() {
             requireActivity().invalidateMenu()
 
             if (it) {
-                binding.sudokuBoardView.setBackgroundColor(Color.WHITE)
+                setBGColor(requireActivity(), binding.sudokuBoardView, R.color.board_valid)
             } else {
                 if (binding.sudokuBoardView.cellViews.filter { cellView -> cellView.fixedNum != 0 }
                         .count() != 0) {
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        binding.sudokuBoardView.setBackgroundColor(
-                            resources.getColor(
-                                R.color.board_invalid,
-                                requireActivity().theme
-                            )
-                        )
-                    } else {
-                        binding.sudokuBoardView.setBackgroundColor(resources.getColor(R.color.board_invalid))
-                    }
+                    setBGColor(requireActivity(), binding.sudokuBoardView, R.color.board_invalid)
                     binding.sudokuBoardView.invalidate()
                 }
             }
@@ -310,5 +303,18 @@ class EditFragment : Fragment() {
 
     companion object {
         const val KEY_SAVED = "saved"
+    }
+}
+
+private fun setBGColor(context: Context, view: View, colorId: Int) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        view.setBackgroundColor(
+            context.resources.getColor(
+                colorId,
+                context.theme
+            )
+        )
+    } else {
+        view.setBackgroundColor(context.resources.getColor(colorId))
     }
 }
