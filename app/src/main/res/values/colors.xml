@@ -19,6 +19,6 @@
     <color name="difficulty_hard">#FF5722</color>
     <color name="difficulty_extreme">#FF0000</color>
 
+    <color name="board_valid">#FFFFFF</color>
     <color name="board_invalid">#FFE0E0</color>
-
 </resources>
