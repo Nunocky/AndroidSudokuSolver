@@ -3,8 +3,6 @@ package org.nunocky.sudokusolver.ui.main
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.Build
-import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.view.*
 import android.widget.CompoundButton
