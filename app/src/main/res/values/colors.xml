@@ -21,5 +21,4 @@
 
     <color name="board_valid">#FFFFFF</color>
     <color name="board_invalid">#FFE0E0</color>
-
 </resources>
