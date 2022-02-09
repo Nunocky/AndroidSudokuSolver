@@ -53,5 +53,12 @@
         <action
             android:id="@+id/action_sudokuListFragment_to_solverFragment"
             app:destination="@id/solverFragment" />
+        <action
+            android:id="@+id/action_sudokuListFragment_to_filterDialogFragment"
+            app:destination="@id/filterDialogFragment" />
     </fragment>
+    <dialog
+        android:id="@+id/filterDialogFragment"
+        android:name="org.nunocky.sudokusolver.ui.dialog.FilterDialogFragment"
+        android:label="FilterDialogFragment" />
 </navigation>

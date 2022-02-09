@@ -5,6 +5,7 @@
     <string name="editItem">Edit</string>
     <string name="deleteItem">Delete</string>
 
+    <string name="action_filter">Filter</string>
     <string name="action_import">import</string>
     <string name="action_export">export</string>
     <string name="action_about">About</string>
