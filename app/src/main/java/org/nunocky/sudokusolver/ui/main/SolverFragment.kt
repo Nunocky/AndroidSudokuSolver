@@ -48,7 +48,7 @@ class SolverFragment : Fragment() {
         savedStateHandle = currentBackStackEntry.savedStateHandle
 
         savedStateHandle.getLiveData<Boolean>(EditFragment.KEY_SAVED)
-            .observe(currentBackStackEntry, { success ->
+            .observe(currentBackStackEntry) { success ->
                 val entityId = savedStateHandle.get<Long>("entityId")
                 if (success) {
                     viewModel.entityId.value = entityId
@@ -60,7 +60,7 @@ class SolverFragment : Fragment() {
                         viewModel.entityId.value = entityId
                     }
                 }
-            })
+            }
     }
 
     override fun onCreateView(
@@ -219,10 +219,10 @@ class SolverFragment : Fragment() {
                 cellView.candidates = cells[n].candidates.toIntArray()
             }
 
-            runBlocking {
-                // MEMO ノーウェイト / ウェイトあり くらいの区分で良さそう
-                delay(viewModel.stepSpeed.value!! * 100L)
-            }
+//            runBlocking {
+//                // MEMO ノーウェイト / ウェイトあり くらいの区分で良さそう
+//                delay(viewModel.stepSpeed.value!! * 100L)
+//            }
 
             viewModel.steps.postValue(viewModel.steps.value!! + 1)
         }
