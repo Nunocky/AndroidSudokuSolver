@@ -38,7 +38,13 @@ class SolverFragment : Fragment() {
     private val navController by lazy { findNavController() }
 
     private lateinit var currentBackStackEntry: NavBackStackEntry
-    private lateinit var savedStateHandle : SavedStateHandle
+    private lateinit var savedStateHandle: SavedStateHandle
+
+    // 解析の途中経過を格納するキュー
+    private val cellsQueue = ArrayDeque<List<Cell>>()
+
+    // cellsQueueの更新を受けて再描画を行うジョブ
+    var updateJob: Job = Job().apply { cancel() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,6 +98,9 @@ class SolverFragment : Fragment() {
 
         binding.btnStart.setOnClickListener {
             viewModel.startSolver(callback)
+
+            // ボードの描画(非同期で繰り返し)
+            updateJob = launchBoardRedrawTask()
         }
 
         binding.btnReset.setOnClickListener {
@@ -107,11 +116,11 @@ class SolverFragment : Fragment() {
                 SolverViewModel.Status.READY -> {
                     syncBoard()
                 }
-                SolverViewModel.Status.WORKING -> {}
-                SolverViewModel.Status.SUCCESS -> {}
-                SolverViewModel.Status.FAILED -> {}
-                SolverViewModel.Status.INTERRUPTED -> {}
-                SolverViewModel.Status.ERROR -> {}
+//                SolverViewModel.Status.WORKING -> {}
+//                SolverViewModel.Status.SUCCESS -> {}
+//                SolverViewModel.Status.FAILED -> {}
+//                SolverViewModel.Status.INTERRUPTED -> {}
+//                SolverViewModel.Status.ERROR -> {}
                 else -> {}
             }
         }
@@ -178,8 +187,11 @@ class SolverFragment : Fragment() {
         binding.sudokuBoard.updated = false
     }
 
-    private fun stopSolve() = lifecycleScope.launch {
+    private fun stopSolve() {
+//    private fun stopSolve() = lifecycleScope.launch {
+        updateJob.cancel()
         viewModel.stopSolver()
+//        viewModel.stopSolver()
     }
 
     private fun reset() {
@@ -213,51 +225,48 @@ class SolverFragment : Fragment() {
 
     private val callback = object : SudokuSolver.ProgressCallback {
         override fun onProgress(cells: List<Cell>) {
-            binding.sudokuBoard.updated = false
-            binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
-                cellView.fixedNum = cells[n].value
-                cellView.candidates = cells[n].candidates.toIntArray()
+            synchronized(this) {
+                val newList = mutableListOf<Cell>()
+                cells.forEach {
+                    val newCell = Cell()
+                    newCell.value = it.value
+                    newList.add(newCell)
+                }
+
+                cellsQueue.addLast(newList)
             }
-
-//            runBlocking {
-//                // MEMO ノーウェイト / ウェイトあり くらいの区分で良さそう
-//                delay(viewModel.stepSpeed.value!! * 100L)
-//            }
-
-            viewModel.steps.postValue(viewModel.steps.value!! + 1)
         }
 
         override fun onComplete(success: Boolean) {
-
-            val difficulty = viewModel.solver.difficulty
-
-            val difficultyStr =
-                requireActivity().resources.getStringArray(R.array.difficulty).let {
-                    it[difficulty]
-                }
-
-            val message = if (success)
-                requireActivity().resources.getString(R.string.solver_success) + " ($difficultyStr)"
-            else
-                requireActivity().resources.getString(R.string.solver_fail)
-
-            // 成功したときは難易度をデータベースに反映する
-            if (success) {
-                when (viewModel.solverMethod.value) {
-                    0, 1 -> {
-                        viewModel.updateDifficulty(difficulty)
-                    }
-                }
-            }
-
-            val bgColor = if (success)
-                ContextCompat.getColor(requireContext(), R.color.solverSuccess)
-            else
-                ContextCompat.getColor(requireContext(), R.color.solverFail)
-
-            val snackBar = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT)
-            snackBar.view.setBackgroundColor(bgColor)
-            snackBar.show()
+//            val difficulty = viewModel.solver.difficulty
+//
+//            val difficultyStr =
+//                requireActivity().resources.getStringArray(R.array.difficulty).let {
+//                    it[difficulty]
+//                }
+//
+//            val message = if (success)
+//                requireActivity().resources.getString(R.string.solver_success) + " ($difficultyStr)"
+//            else
+//                requireActivity().resources.getString(R.string.solver_fail)
+//
+//            // 成功したときは難易度をデータベースに反映する
+//            if (success) {
+//                when (viewModel.solverMethod.value) {
+//                    0, 1 -> {
+//                        viewModel.updateDifficulty(difficulty)
+//                    }
+//                }
+//            }
+//
+//            val bgColor = if (success)
+//                ContextCompat.getColor(requireContext(), R.color.solverSuccess)
+//            else
+//                ContextCompat.getColor(requireContext(), R.color.solverFail)
+//
+//            val snackBar = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT)
+//            snackBar.view.setBackgroundColor(bgColor)
+//            snackBar.show()
         }
 //
 //        override fun onInterrupted() {
@@ -275,6 +284,88 @@ class SolverFragment : Fragment() {
 //            snackBar.view.setBackgroundColor(bgColor)
 //            snackBar.show()
 //        }
+    }
+
+    /**
+     * 解析と結果の表示 (非同期実行)
+     */
+    private var lastCells: List<Cell>? = null
+    private fun launchBoardRedrawTask() = lifecycleScope.launch(Dispatchers.IO) {
+        while (viewModel.solverJob.isActive || cellsQueue.isNotEmpty()) {
+            binding.sudokuBoard.updated = false
+
+            if (cellsQueue.isNotEmpty()) {
+                val cells = synchronized(this) {
+                    cellsQueue.removeFirst()
+                }
+
+                if (0 < viewModel.stepSpeed.value ?: 0) {
+                    drawSudokuBoard(cells)
+                }
+
+                viewModel.steps.postValue(viewModel.steps.value!! + 1)
+                lastCells = cells
+            }
+
+            //val tm = max(30L, viewModel.stepSpeed.value!! * 100L)
+            val tm = viewModel.stepSpeed.value!! * 100L
+            delay(tm)
+        }
+
+        // 解析完了
+        onComplete()
+    }
+
+    private fun drawSudokuBoard(cells: List<Cell>) {
+        binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
+            cellView.fixedNum = cells[n].value
+            cellView.candidates = cells[n].candidates.toIntArray()
+        }
+    }
+
+    private fun onComplete() {
+        drawSudokuBoard(lastCells!!)
+        viewModel.stopTimer()
+//        val solverElapsedTime = viewModel.solver.getElapsedTime()
+//        viewModel.elapsedTime.postValue(solverElapsedTime)
+
+        val difficulty = viewModel.solver.difficulty
+
+        val difficultyStr =
+            requireActivity().resources.getStringArray(R.array.difficulty).let {
+                it[difficulty]
+            }
+
+        val success = viewModel.solver.isSolved()
+
+        if (success) {
+            viewModel.solverStatus.postValue(SolverViewModel.Status.SUCCESS)
+        } else {
+            viewModel.solverStatus.postValue(SolverViewModel.Status.FAILED)
+        }
+
+        val message = if (success)
+            requireActivity().resources.getString(R.string.solver_success) + " ($difficultyStr)"
+        else
+            requireActivity().resources.getString(R.string.solver_fail)
+
+        // 成功したときは難易度をデータベースに反映する
+        if (success) {
+            when (viewModel.solverMethod.value) {
+                0, 1 -> {
+                    viewModel.updateDifficulty(difficulty)
+                }
+            }
+        }
+
+        val bgColor = if (success)
+            ContextCompat.getColor(requireContext(), R.color.solverSuccess)
+        else
+            ContextCompat.getColor(requireContext(), R.color.solverFail)
+
+        val snackBar = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT)
+        snackBar.view.setBackgroundColor(bgColor)
+        snackBar.show()
     }
 }
 

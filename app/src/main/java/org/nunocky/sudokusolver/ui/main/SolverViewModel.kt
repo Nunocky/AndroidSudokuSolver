@@ -40,7 +40,7 @@ class SolverViewModel @Inject constructor(
     private var startTime = 0L
     private var currentTime = 0L
 
-    private var solverJob: Job = Job().apply { cancel() }
+    var solverJob: Job = Job().apply { cancel() }
     private var timerJob: Job = Job().apply { cancel() }
 
     val solver = SudokuSolver()
@@ -90,11 +90,11 @@ class SolverViewModel @Inject constructor(
                     }
 
                     override fun onComplete(success: Boolean) {
-                        if (success) {
-                            solverStatus.postValue(Status.SUCCESS)
-                        } else {
-                            solverStatus.postValue(Status.FAILED)
-                        }
+//                        if (success) {
+//                            solverStatus.postValue(Status.SUCCESS)
+//                        } else {
+//                            solverStatus.postValue(Status.FAILED)
+//                        }
                         callback.onComplete(success)
                     }
                 }
@@ -114,9 +114,9 @@ class SolverViewModel @Inject constructor(
                 }
             }
 
-            stopTimer()
-            val solverElapsedTime = solver.getElapsedTime()
-            elapsedTime.postValue(solverElapsedTime)
+//            stopTimer()
+//            val solverElapsedTime = solver.getElapsedTime()
+//            elapsedTime.postValue(solverElapsedTime)
         }
     }
 
@@ -129,7 +129,9 @@ class SolverViewModel @Inject constructor(
      */
     fun stopSolver() {
         solverJob.cancel()
-        stopTimer()
+        timerJob.cancel()
+        solverStatus.value = Status.INTERRUPTED
+//        stopTimer()
     }
 
     /**
@@ -152,7 +154,7 @@ class SolverViewModel @Inject constructor(
     /**
      * カウンタの停止
      */
-    private fun stopTimer() {
+    fun stopTimer() {
         timerJob.cancel()
     }
 
