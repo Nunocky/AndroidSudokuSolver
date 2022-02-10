@@ -46,6 +46,9 @@ class SolverFragment : Fragment() {
     // cellsQueueの更新を受けて再描画を行うジョブ
     var updateJob: Job = Job().apply { cancel() }
 
+    // 最後に表示するセル群
+    private var lastCells: List<Cell>? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
@@ -123,6 +126,8 @@ class SolverFragment : Fragment() {
 //                SolverViewModel.Status.ERROR -> {}
                 else -> {}
             }
+
+            requireActivity().invalidateOptionsMenu()
         }
 
         viewModel.stepSpeed.observe(viewLifecycleOwner) {
@@ -145,7 +150,10 @@ class SolverFragment : Fragment() {
 
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
-        menu.findItem(R.id.action_edit).isEnabled = (viewModel.canReset.value == true)
+        menu.findItem(R.id.action_edit).apply {
+            //isEnabled = (viewModel.canReset.value == true)
+            isVisible = (viewModel.canReset.value == true)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -226,14 +234,15 @@ class SolverFragment : Fragment() {
     private val callback = object : SudokuSolver.ProgressCallback {
         override fun onProgress(cells: List<Cell>) {
             synchronized(this) {
-                val newList = mutableListOf<Cell>()
-                cells.forEach {
+                // ここの処理が結構遅い
+                val newList = arrayOfNulls<Cell>(cells.size)
+                cells.forEachIndexed { n, c ->
                     val newCell = Cell()
-                    newCell.value = it.value
-                    newList.add(newCell)
+                    newCell.value = c.value
+                    newList[n] = newCell
                 }
 
-                cellsQueue.addLast(newList)
+                cellsQueue.addLast(newList.toList() as List<Cell>)
             }
         }
 
@@ -289,7 +298,6 @@ class SolverFragment : Fragment() {
     /**
      * 解析と結果の表示 (非同期実行)
      */
-    private var lastCells: List<Cell>? = null
     private fun launchBoardRedrawTask() = lifecycleScope.launch(Dispatchers.IO) {
         while (viewModel.solverJob.isActive || cellsQueue.isNotEmpty()) {
             binding.sudokuBoard.updated = false
@@ -308,7 +316,7 @@ class SolverFragment : Fragment() {
             }
 
             //val tm = max(30L, viewModel.stepSpeed.value!! * 100L)
-            val tm = viewModel.stepSpeed.value!! * 100L
+            val tm = viewModel.stepSpeed.value!! * 30L
             delay(tm)
         }
 
