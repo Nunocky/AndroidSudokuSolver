@@ -104,24 +104,24 @@ class SolverFragment : Fragment() {
                     .buffer(Channel.UNLIMITED)
                     .collect { cellStr ->
 
-                    val cells = mutableListOf<Cell>()
+                        val cells = mutableListOf<Cell>()
 
-                    cellStr.forEach { c ->
-                        val newCell = Cell()
-                        newCell.value = c.digitToInt()
-                        cells.add(newCell)
-                    }
+                        cellStr.forEach { c ->
+                            val newCell = Cell()
+                            newCell.value = c.digitToInt()
+                            cells.add(newCell)
+                        }
 
-                    // ボードの描画
-                    withContext(Dispatchers.Main) {
-                        drawSudokuBoard(cells)
-                    }
-                    viewModel.steps.postValue(viewModel.steps.value!! + 1)
+                        // ボードの描画
+                        withContext(Dispatchers.Main) {
+                            drawSudokuBoard(cells)
+                        }
+                        viewModel.steps.postValue(viewModel.steps.value!! + 1)
 
 //                    val tm = viewModel.stepSpeed.value!! * 30L
-                    val tm = 0L
-                    delay(tm)
-                }
+                        val tm = 0L
+                        delay(tm)
+                    }
             }
         }
 
@@ -135,13 +135,13 @@ class SolverFragment : Fragment() {
 
         viewModel.solverStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
-//                SolverViewModel.Status.INIT -> {}
+                SolverViewModel.Status.INIT -> {}
 
                 SolverViewModel.Status.READY -> {
                     syncBoard()
                 }
 
-//                SolverViewModel.Status.WORKING -> {}
+                SolverViewModel.Status.WORKING -> {}
 
                 SolverViewModel.Status.SUCCESS -> {
                     val difficulty = viewModel.solver.difficulty
@@ -175,9 +175,10 @@ class SolverFragment : Fragment() {
                 SolverViewModel.Status.ERROR -> {
                     showSnackbar(false, "ERROR")
                 }
-//                else -> {
-//                    throw RuntimeException("unknown status")
-//                }
+
+                else -> {
+                    throw RuntimeException("unknown status")
+                }
             }
 
             requireActivity().invalidateOptionsMenu()

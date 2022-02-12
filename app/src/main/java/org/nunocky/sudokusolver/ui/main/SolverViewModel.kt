@@ -32,8 +32,8 @@ class SolverViewModel @Inject constructor(
         ERROR // エラーが発生した (終了)
     }
 
-    private val _solverStatus = MutableStateFlow(Status.INIT)
-    val solverStatus = _solverStatus.asLiveData()
+    val solverStatusFlow = MutableStateFlow(Status.INIT)
+    val solverStatus = solverStatusFlow.asLiveData()
 
     val elapsedTime = MutableLiveData(0L)
     val elapsedTimeStr = MediatorLiveData<String>()
@@ -67,13 +67,13 @@ class SolverViewModel @Inject constructor(
     }
 
     fun loadSudoku(id: Long) {
-        _solverStatus.value = Status.INIT
+        solverStatusFlow.value = Status.INIT
         val entity = repository.findById(id)
         if (entity != null) {
             solver.load(entity.cells)
-            _solverStatus.value = Status.READY
+            solverStatusFlow.value = Status.READY
         } else {
-            _solverStatus.value = Status.ERROR
+            solverStatusFlow.value = Status.ERROR
         }
     }
 
@@ -86,23 +86,25 @@ class SolverViewModel @Inject constructor(
 
         solver.callback = object : SudokuSolver.ProgressCallback {
             override fun onProgress(cells: List<Cell>) {
-                _solverStatus.value = Status.WORKING
+                if (solverStatusFlow.value != Status.WORKING) {
+                    solverStatusFlow.value = Status.WORKING
+                }
                 trySend(cells.joinToString(""))
             }
 
             override fun onComplete(success: Boolean) {
                 stopTimer()
-                _solverStatus.value = Status.SUCCESS
+                solverStatusFlow.value = Status.SUCCESS
             }
 
             override fun onInterrupted() {
                 stopTimer()
-                _solverStatus.value = Status.INTERRUPTED
+                solverStatusFlow.value = Status.INTERRUPTED
             }
 
             override fun onSolverError() {
                 stopTimer()
-                _solverStatus.value = Status.ERROR
+                solverStatusFlow.value = Status.ERROR
             }
         }
 
@@ -119,7 +121,6 @@ class SolverViewModel @Inject constructor(
             }
         }
 
-        // TODO ここですぐ閉じてしまうのが原因。送るものがある間は閉じないようにしたい
         awaitClose {
             solver.callback = null
         }
