@@ -22,6 +22,7 @@ import org.nunocky.sudokusolver.Preference
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.databinding.FragmentSolverBinding
 import javax.inject.Inject
+import kotlin.math.max
 
 /**
  * 問題を解く
@@ -118,8 +119,8 @@ class SolverFragment : Fragment() {
                         }
                         viewModel.steps.postValue(viewModel.steps.value!! + 1)
 
-//                    val tm = viewModel.stepSpeed.value!! * 30L
-                        val tm = 0L
+                        //val tm = max(30L, viewModel.stepSpeed.value!! * 50L)
+                        val tm = viewModel.stepSpeed.value!! * 50L
                         delay(tm)
                     }
             }
