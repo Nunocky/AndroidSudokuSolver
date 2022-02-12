@@ -1,8 +1,14 @@
 package org.nunocky.sudokusolver.ui.main
 
+import android.util.Log
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.callbackFlow
+import org.nunocky.sudokulib.Cell
 import org.nunocky.sudokulib.SudokuSolver
 import org.nunocky.sudokusolver.Preference
 import org.nunocky.sudokusolver.database.SudokuRepository
@@ -26,7 +32,9 @@ class SolverViewModel @Inject constructor(
         ERROR // エラーが発生した (終了)
     }
 
-    val solverStatus = MutableLiveData(Status.INIT)
+    private val _solverStatus = MutableStateFlow(Status.INIT)
+    val solverStatus = _solverStatus.asLiveData()
+
     val elapsedTime = MutableLiveData(0L)
     val elapsedTimeStr = MediatorLiveData<String>()
     val canReset = MediatorLiveData<Boolean>() // リセット・編集可能
@@ -40,7 +48,6 @@ class SolverViewModel @Inject constructor(
     private var startTime = 0L
     private var currentTime = 0L
 
-    var solverJob: Job = Job().apply { cancel() }
     private var timerJob: Job = Job().apply { cancel() }
 
     val solver = SudokuSolver()
@@ -60,78 +67,69 @@ class SolverViewModel @Inject constructor(
     }
 
     fun loadSudoku(id: Long) {
-        solverStatus.postValue(Status.INIT)
+        _solverStatus.value = Status.INIT
         val entity = repository.findById(id)
         if (entity != null) {
             solver.load(entity.cells)
-            solverStatus.postValue(Status.READY)
+            _solverStatus.value = Status.READY
         } else {
-            solverStatus.postValue(Status.ERROR)
+            _solverStatus.value = Status.ERROR
         }
     }
 
     /**
      * 解析開始
      */
-    fun startSolver(callback: SudokuSolver.ProgressCallback) {
-        solverJob = viewModelScope.launch(Dispatchers.IO) {
-            solverStatus.postValue(Status.WORKING)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun startSolveAsFlow(): Flow<String> = callbackFlow {
+        startTimer()
 
-            startTimer()
-
-            runCatching {
-                solver.callback = object : SudokuSolver.ProgressCallback {
-                    override fun onProgress(cells: List<org.nunocky.sudokulib.Cell>) {
-                        if (!isActive) {
-                            solverStatus.postValue(Status.INTERRUPTED)
-                            throw InterruptedException()
-                        }
-                        callback.onProgress(cells)
-                    }
-
-                    override fun onComplete(success: Boolean) {
-//                        if (success) {
-//                            solverStatus.postValue(Status.SUCCESS)
-//                        } else {
-//                            solverStatus.postValue(Status.FAILED)
-//                        }
-                        callback.onComplete(success)
-                    }
-                }
-
-                solver.trySolve(solverMethod.value ?: 0)
-            }.onFailure {
-                when (it) {
-                    is SudokuSolver.SolverError -> {
-                        solverStatus.postValue(Status.ERROR)
-                        callback.onSolverError()
-                    }
-
-                    is InterruptedException -> {
-                        solverStatus.postValue(Status.INTERRUPTED)
-                        callback.onInterrupted()
-                    }
-                }
+        solver.callback = object : SudokuSolver.ProgressCallback {
+            override fun onProgress(cells: List<Cell>) {
+                _solverStatus.value = Status.WORKING
+                trySend(cells.joinToString(""))
             }
 
-//            stopTimer()
-//            val solverElapsedTime = solver.getElapsedTime()
-//            elapsedTime.postValue(solverElapsedTime)
+            override fun onComplete(success: Boolean) {
+                stopTimer()
+                _solverStatus.value = Status.SUCCESS
+            }
+
+            override fun onInterrupted() {
+                stopTimer()
+                _solverStatus.value = Status.INTERRUPTED
+            }
+
+            override fun onSolverError() {
+                stopTimer()
+                _solverStatus.value = Status.ERROR
+            }
+        }
+
+        runCatching {
+            solver.trySolve(solverMethod.value ?: 0)
+        }.onFailure {
+            Log.d("SolverViewModel", "onFailure")
+            when (it) {
+                is SudokuSolver.SolverError -> {
+                }
+
+                is InterruptedException -> {
+                }
+            }
+        }
+
+        // TODO ここですぐ閉じてしまうのが原因。送るものがある間は閉じないようにしたい
+        awaitClose {
+            solver.callback = null
         }
     }
 
-//    fun stopSolver() = viewModelScope.launch(Dispatchers.IO) {
-//        solverJob.cancel()
-//        stopTimer()
-//    }
     /**
      * 解析停止
      */
     fun stopSolver() {
-        solverJob.cancel()
         timerJob.cancel()
-        solverStatus.value = Status.INTERRUPTED
-//        stopTimer()
     }
 
     /**

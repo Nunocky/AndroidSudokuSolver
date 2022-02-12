@@ -13,8 +13,10 @@ import androidx.navigation.fragment.navArgs
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.collect
 import org.nunocky.sudokulib.Cell
-import org.nunocky.sudokulib.SudokuSolver
 import org.nunocky.sudokusolver.NavigationMainDirections
 import org.nunocky.sudokusolver.Preference
 import org.nunocky.sudokusolver.R
@@ -40,14 +42,7 @@ class SolverFragment : Fragment() {
     private lateinit var currentBackStackEntry: NavBackStackEntry
     private lateinit var savedStateHandle: SavedStateHandle
 
-    // 解析の途中経過を格納するキュー
-    private val cellsQueue = ArrayDeque<List<Cell>>()
-
-    // cellsQueueの更新を受けて再描画を行うジョブ
-    var updateJob: Job = Job().apply { cancel() }
-
-    // 最後に表示するセル群
-    private var lastCells: List<Cell>? = null
+    private var solverJob: Job = Job().apply { cancel() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,10 +95,34 @@ class SolverFragment : Fragment() {
         }
 
         binding.btnStart.setOnClickListener {
-            viewModel.startSolver(callback)
+            if (solverJob.isActive) {
+                return@setOnClickListener
+            }
 
-            // ボードの描画(非同期で繰り返し)
-            updateJob = launchBoardRedrawTask()
+            solverJob = lifecycleScope.launch(Dispatchers.IO) {
+                viewModel.startSolveAsFlow()
+                    .buffer(Channel.UNLIMITED)
+                    .collect { cellStr ->
+
+                    val cells = mutableListOf<Cell>()
+
+                    cellStr.forEach { c ->
+                        val newCell = Cell()
+                        newCell.value = c.digitToInt()
+                        cells.add(newCell)
+                    }
+
+                    // ボードの描画
+                    withContext(Dispatchers.Main) {
+                        drawSudokuBoard(cells)
+                    }
+                    viewModel.steps.postValue(viewModel.steps.value!! + 1)
+
+//                    val tm = viewModel.stepSpeed.value!! * 30L
+                    val tm = 0L
+                    delay(tm)
+                }
+            }
         }
 
         binding.btnReset.setOnClickListener {
@@ -116,15 +135,49 @@ class SolverFragment : Fragment() {
 
         viewModel.solverStatus.observe(viewLifecycleOwner) { status ->
             when (status) {
+//                SolverViewModel.Status.INIT -> {}
+
                 SolverViewModel.Status.READY -> {
                     syncBoard()
                 }
+
 //                SolverViewModel.Status.WORKING -> {}
-//                SolverViewModel.Status.SUCCESS -> {}
-//                SolverViewModel.Status.FAILED -> {}
-//                SolverViewModel.Status.INTERRUPTED -> {}
-//                SolverViewModel.Status.ERROR -> {}
-                else -> {}
+
+                SolverViewModel.Status.SUCCESS -> {
+                    val difficulty = viewModel.solver.difficulty
+
+                    val difficultyStr =
+                        requireActivity().resources.getStringArray(R.array.difficulty).let {
+                            it[difficulty]
+                        }
+
+                    // 難易度をデータベースに反映する (総当り方法だけのときは行わない)
+                    when (viewModel.solverMethod.value) {
+                        0, 1 -> {
+                            viewModel.updateDifficulty(difficulty)
+                        }
+                    }
+
+                    // TODO フォーマット付き文字列リソースにする
+                    val message =
+                        requireActivity().resources.getString(R.string.solver_success) + " ($difficultyStr)"
+                    showSnackbar(true, message)
+                }
+
+                SolverViewModel.Status.FAILED -> {
+                    showSnackbar(false, "FAILED")
+                }
+
+                SolverViewModel.Status.INTERRUPTED -> {
+                    showSnackbar(false, "INTERRUPTED")
+                }
+
+                SolverViewModel.Status.ERROR -> {
+                    showSnackbar(false, "ERROR")
+                }
+//                else -> {
+//                    throw RuntimeException("unknown status")
+//                }
             }
 
             requireActivity().invalidateOptionsMenu()
@@ -196,10 +249,8 @@ class SolverFragment : Fragment() {
     }
 
     private fun stopSolve() {
-//    private fun stopSolve() = lifecycleScope.launch {
-        updateJob.cancel()
+        solverJob.cancel()
         viewModel.stopSolver()
-//        viewModel.stopSolver()
     }
 
     private fun reset() {
@@ -231,99 +282,6 @@ class SolverFragment : Fragment() {
         binding.sudokuBoard.updated = false
     }
 
-    private val callback = object : SudokuSolver.ProgressCallback {
-        override fun onProgress(cells: List<Cell>) {
-            synchronized(this) {
-                // ここの処理が結構遅い
-                val newList = arrayOfNulls<Cell>(cells.size)
-                cells.forEachIndexed { n, c ->
-                    val newCell = Cell()
-                    newCell.value = c.value
-                    newList[n] = newCell
-                }
-
-                cellsQueue.addLast(newList.toList() as List<Cell>)
-            }
-        }
-
-        override fun onComplete(success: Boolean) {
-//            val difficulty = viewModel.solver.difficulty
-//
-//            val difficultyStr =
-//                requireActivity().resources.getStringArray(R.array.difficulty).let {
-//                    it[difficulty]
-//                }
-//
-//            val message = if (success)
-//                requireActivity().resources.getString(R.string.solver_success) + " ($difficultyStr)"
-//            else
-//                requireActivity().resources.getString(R.string.solver_fail)
-//
-//            // 成功したときは難易度をデータベースに反映する
-//            if (success) {
-//                when (viewModel.solverMethod.value) {
-//                    0, 1 -> {
-//                        viewModel.updateDifficulty(difficulty)
-//                    }
-//                }
-//            }
-//
-//            val bgColor = if (success)
-//                ContextCompat.getColor(requireContext(), R.color.solverSuccess)
-//            else
-//                ContextCompat.getColor(requireContext(), R.color.solverFail)
-//
-//            val snackBar = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT)
-//            snackBar.view.setBackgroundColor(bgColor)
-//            snackBar.show()
-        }
-//
-//        override fun onInterrupted() {
-//            val snackBar = Snackbar.make(binding.root, "interrupted", Snackbar.LENGTH_SHORT)
-//            val bgColor = ContextCompat.getColor(requireContext(), R.color.solverFail)
-//
-//            snackBar.view.setBackgroundColor(bgColor)
-//            snackBar.show()
-//        }
-//
-//        override fun onSolverError() {
-//            val snackBar = Snackbar.make(binding.root, "solver error", Snackbar.LENGTH_SHORT)
-//            val bgColor = ContextCompat.getColor(requireContext(), R.color.solverFail)
-//
-//            snackBar.view.setBackgroundColor(bgColor)
-//            snackBar.show()
-//        }
-    }
-
-    /**
-     * 解析と結果の表示 (非同期実行)
-     */
-    private fun launchBoardRedrawTask() = lifecycleScope.launch(Dispatchers.IO) {
-        while (viewModel.solverJob.isActive || cellsQueue.isNotEmpty()) {
-            binding.sudokuBoard.updated = false
-
-            if (cellsQueue.isNotEmpty()) {
-                val cells = synchronized(this) {
-                    cellsQueue.removeFirst()
-                }
-
-                if (0 < viewModel.stepSpeed.value ?: 0) {
-                    drawSudokuBoard(cells)
-                }
-
-                viewModel.steps.postValue(viewModel.steps.value!! + 1)
-                lastCells = cells
-            }
-
-            //val tm = max(30L, viewModel.stepSpeed.value!! * 100L)
-            val tm = viewModel.stepSpeed.value!! * 30L
-            delay(tm)
-        }
-
-        // 解析完了
-        onComplete()
-    }
-
     private fun drawSudokuBoard(cells: List<Cell>) {
         binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
             cellView.fixedNum = cells[n].value
@@ -331,41 +289,7 @@ class SolverFragment : Fragment() {
         }
     }
 
-    private fun onComplete() {
-        drawSudokuBoard(lastCells!!)
-        viewModel.stopTimer()
-//        val solverElapsedTime = viewModel.solver.getElapsedTime()
-//        viewModel.elapsedTime.postValue(solverElapsedTime)
-
-        val difficulty = viewModel.solver.difficulty
-
-        val difficultyStr =
-            requireActivity().resources.getStringArray(R.array.difficulty).let {
-                it[difficulty]
-            }
-
-        val success = viewModel.solver.isSolved()
-
-        if (success) {
-            viewModel.solverStatus.postValue(SolverViewModel.Status.SUCCESS)
-        } else {
-            viewModel.solverStatus.postValue(SolverViewModel.Status.FAILED)
-        }
-
-        val message = if (success)
-            requireActivity().resources.getString(R.string.solver_success) + " ($difficultyStr)"
-        else
-            requireActivity().resources.getString(R.string.solver_fail)
-
-        // 成功したときは難易度をデータベースに反映する
-        if (success) {
-            when (viewModel.solverMethod.value) {
-                0, 1 -> {
-                    viewModel.updateDifficulty(difficulty)
-                }
-            }
-        }
-
+    private fun showSnackbar(success: Boolean, message: String) {
         val bgColor = if (success)
             ContextCompat.getColor(requireContext(), R.color.solverSuccess)
         else

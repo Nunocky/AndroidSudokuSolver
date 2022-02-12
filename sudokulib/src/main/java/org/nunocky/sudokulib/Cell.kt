@@ -24,4 +24,8 @@ class Cell {
 
     val isFixed: Boolean
         get() = (0 < value)
+
+    override fun toString(): String {
+        return "$value"
+    }
 }
