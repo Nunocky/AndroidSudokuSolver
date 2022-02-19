@@ -12,17 +12,16 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.nunocky.sudokulib.Cell
 import org.nunocky.sudokusolver.NavigationMainDirections
 import org.nunocky.sudokusolver.Preference
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.databinding.FragmentSolverBinding
 import javax.inject.Inject
-import kotlin.math.max
 
 /**
  * 問題を解く
@@ -96,34 +95,7 @@ class SolverFragment : Fragment() {
         }
 
         binding.btnStart.setOnClickListener {
-            if (solverJob.isActive) {
-                return@setOnClickListener
-            }
-
-            solverJob = lifecycleScope.launch(Dispatchers.IO) {
-                viewModel.startSolveAsFlow()
-                    .buffer(Channel.UNLIMITED)
-                    .collect { cellStr ->
-
-                        val cells = mutableListOf<Cell>()
-
-                        cellStr.forEach { c ->
-                            val newCell = Cell()
-                            newCell.value = c.digitToInt()
-                            cells.add(newCell)
-                        }
-
-                        // ボードの描画
-                        withContext(Dispatchers.Main) {
-                            drawSudokuBoard(cells)
-                        }
-                        viewModel.steps.postValue(viewModel.steps.value!! + 1)
-
-                        //val tm = max(30L, viewModel.stepSpeed.value!! * 50L)
-                        val tm = viewModel.stepSpeed.value!! * 50L
-                        delay(tm)
-                    }
-            }
+            startSolve()
         }
 
         binding.btnReset.setOnClickListener {
@@ -250,6 +222,16 @@ class SolverFragment : Fragment() {
         binding.sudokuBoard.updated = false
     }
 
+    private fun startSolve() {
+        if (solverJob.isActive) {
+            return
+        }
+
+        solverJob = viewModel.startSolve(Dispatchers.IO) { cells ->
+            drawSudokuBoard(cells)
+        }
+    }
+
     private fun stopSolve() {
         solverJob.cancel()
         viewModel.stopSolver()
@@ -270,10 +252,11 @@ class SolverFragment : Fragment() {
             return
         }
 
+        // TODO ViewModelに移動
         // 非同期で viewModel.loadSudokuを行い、それが終わったらセルの設定をおこなう。
         lifecycleScope.launch(Dispatchers.IO) {
             viewModel.elapsedTime.postValue(0L)
-            viewModel.steps.postValue(0)
+            viewModel.stepsFlow.value = 0
             viewModel.loadSudoku(id)
 
             withContext(Dispatchers.Main) {

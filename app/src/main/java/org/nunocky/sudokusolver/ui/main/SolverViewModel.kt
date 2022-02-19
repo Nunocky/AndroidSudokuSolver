@@ -4,10 +4,9 @@ import android.util.Log
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.*
 import org.nunocky.sudokulib.Cell
 import org.nunocky.sudokulib.SudokuSolver
 import org.nunocky.sudokusolver.Preference
@@ -23,7 +22,7 @@ class SolverViewModel @Inject constructor(
 
     // 解析機の状態
     enum class Status {
-        INIT, // 初期状態、データにロードしていない
+        INIT, // 初期状態、データをロードしていない
         READY, // データをロードして解析が可能な状態
         WORKING, // 解析実行中
         SUCCESS, // 解析成功 (終了)
@@ -36,10 +35,10 @@ class SolverViewModel @Inject constructor(
     val solverStatus = solverStatusFlow.asLiveData()
 
     val elapsedTime = MutableLiveData(0L)
-    val elapsedTimeStr = MediatorLiveData<String>()
     val canReset = MediatorLiveData<Boolean>() // リセット・編集可能
     val canStart = MediatorLiveData<Boolean>() // 解析可能
-    val steps = MutableLiveData(0)
+    val stepsFlow = MutableStateFlow(0)
+    val steps = stepsFlow.asLiveData()
 
     val entityId = savedStateHandle.getLiveData("entityId", 0L)
     val stepSpeed = savedStateHandle.getLiveData("stepSpeed", preference.stepSpeed)
@@ -60,10 +59,6 @@ class SolverViewModel @Inject constructor(
         canStart.addSource(solverStatus) {
             canStart.value = (it == Status.READY)
         }
-
-        elapsedTimeStr.addSource(elapsedTime) {
-            elapsedTimeStr.value = it.toTimeStr()
-        }
     }
 
     fun loadSudoku(id: Long) {
@@ -79,9 +74,41 @@ class SolverViewModel @Inject constructor(
 
     /**
      * 解析開始
+     * TODO コールバックは複数のメソッドを用意する
      */
+    fun startSolve(dispatcher: CoroutineDispatcher, callback: (List<Cell>) -> Unit): Job {
+        return viewModelScope.launch(dispatcher) {
+            val flow = solverFlow()
+                .buffer(Channel.UNLIMITED)
+                .onCompletion {
+                    Log.d("ViewModel", "Snackbar表示、ボタン更新などのコールバックをここに")
+                }
+
+            flow.collect { cellStr ->
+
+                val cells = mutableListOf<Cell>()
+
+                cellStr.forEach { c ->
+                    val newCell = Cell()
+                    newCell.value = c.digitToInt()
+                    cells.add(newCell)
+                }
+
+                // ボードの描画
+                withContext(Dispatchers.Main) {
+                    callback(cells)
+                }
+                stepsFlow.value += 1
+
+                //val tm = max(30L, viewModel.stepSpeed.value!! * 50L)
+                val tm = stepSpeed.value!! * 50L
+                delay(tm)
+            }
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun startSolveAsFlow(): Flow<String> = callbackFlow {
+    fun solverFlow(): Flow<String> = callbackFlow {
         startTimer()
 
         solver.callback = object : SudokuSolver.ProgressCallback {
@@ -95,16 +122,19 @@ class SolverViewModel @Inject constructor(
             override fun onComplete(success: Boolean) {
                 stopTimer()
                 solverStatusFlow.value = Status.SUCCESS
+                channel.close()
             }
 
             override fun onInterrupted() {
                 stopTimer()
                 solverStatusFlow.value = Status.INTERRUPTED
+                channel.close()
             }
 
             override fun onSolverError() {
                 stopTimer()
                 solverStatusFlow.value = Status.ERROR
+                channel.close()
             }
         }
 
@@ -114,9 +144,11 @@ class SolverViewModel @Inject constructor(
             Log.d("SolverViewModel", "onFailure")
             when (it) {
                 is SudokuSolver.SolverError -> {
+                    channel.close()
                 }
 
                 is InterruptedException -> {
+                    channel.close()
                 }
             }
         }
@@ -124,6 +156,7 @@ class SolverViewModel @Inject constructor(
         awaitClose {
             solver.callback = null
         }
+
     }
 
     /**
@@ -165,26 +198,5 @@ class SolverViewModel @Inject constructor(
             entity.difficulty = difficulty
             repository.update(entity)
         }
-    }
-}
-
-/**
- * Long型を時間形式に変換
- * TODO Utilsに移動する
- */
-private fun Long.toTimeStr(): String {
-    val milsecs = this % 1000
-    var second = this / 1000 // second
-
-    val hour = second / 3600
-    second -= 3600 * hour
-
-    val minute = second / 60
-    second -= 60 * minute
-
-    return if (0 < hour) {
-        String.format("%02d:%02d:%02d.%03d", hour, minute, milsecs)
-    } else {
-        String.format("%02d:%02d.%03d", minute, second, milsecs)
     }
 }
