@@ -31,8 +31,10 @@ class SolverViewModel @Inject constructor(
         ERROR // エラーが発生した (終了)
     }
 
-    val solverStatusFlow = MutableStateFlow(Status.INIT)
-    val solverStatus = solverStatusFlow.asLiveData()
+    private val solverStatusFlow = MutableStateFlow(Status.INIT)
+
+    //    val solverStatus = solverStatusFlow.asLiveData()
+    val solverStatus: MutableLiveData<Status> = MutableLiveData<Status>(Status.INIT)
 
     val elapsedTime = MutableLiveData(0L)
     val canReset = MediatorLiveData<Boolean>() // リセット・編集可能
@@ -63,12 +65,15 @@ class SolverViewModel @Inject constructor(
 
     fun loadSudoku(id: Long) {
         solverStatusFlow.value = Status.INIT
+        solverStatus.postValue(solverStatusFlow.value)
         val entity = repository.findById(id)
         if (entity != null) {
             solver.load(entity.cells)
             solverStatusFlow.value = Status.READY
+            solverStatus.postValue(solverStatusFlow.value)
         } else {
             solverStatusFlow.value = Status.ERROR
+            solverStatus.postValue(solverStatusFlow.value)
         }
     }
 
@@ -81,11 +86,10 @@ class SolverViewModel @Inject constructor(
             val flow = solverFlow()
                 .buffer(Channel.UNLIMITED)
                 .onCompletion {
-                    Log.d("ViewModel", "Snackbar表示、ボタン更新などのコールバックをここに")
+                    solverStatus.postValue(solverStatusFlow.value)
                 }
 
             flow.collect { cellStr ->
-
                 val cells = mutableListOf<Cell>()
 
                 cellStr.forEach { c ->
@@ -115,6 +119,7 @@ class SolverViewModel @Inject constructor(
             override fun onProgress(cells: List<Cell>) {
                 if (solverStatusFlow.value != Status.WORKING) {
                     solverStatusFlow.value = Status.WORKING
+                    solverStatus.postValue(Status.WORKING)
                 }
                 trySend(cells.joinToString(""))
             }
