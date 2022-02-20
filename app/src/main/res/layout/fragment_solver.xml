@@ -149,7 +149,7 @@
 
     <data>
 
-        <import type="org.nunocky.sudokusolver.ui.main.SolverViewModel.Status" />
+        <import type="org.nunocky.sudokusolver.ui.main.SolverStatus" />
 
         <import
             alias="LongUtils"

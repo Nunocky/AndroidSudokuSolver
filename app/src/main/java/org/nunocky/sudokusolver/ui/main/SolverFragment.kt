@@ -14,6 +14,7 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.nunocky.sudokulib.Cell
@@ -106,55 +107,59 @@ class SolverFragment : Fragment() {
             stopSolve()
         }
 
-        viewModel.solverStatus.observe(viewLifecycleOwner) { status ->
-            when (status) {
-                SolverViewModel.Status.INIT -> {}
+        lifecycleScope.launch {
 
-                SolverViewModel.Status.READY -> {
-                    syncBoard()
-                }
+            viewModel.solverStatusFlow.collect { status ->
+                //.observe(viewLifecycleOwner) { status ->
+                when (status) {
+                    SolverStatus.INIT -> {}
 
-                SolverViewModel.Status.WORKING -> {}
-
-                SolverViewModel.Status.SUCCESS -> {
-                    val difficulty = viewModel.solver.difficulty
-
-                    val difficultyStr =
-                        requireActivity().resources.getStringArray(R.array.difficulty).let {
-                            it[difficulty]
-                        }
-
-                    // 難易度をデータベースに反映する (総当り方法だけのときは行わない)
-                    when (viewModel.solverMethod.value) {
-                        0, 1 -> {
-                            viewModel.updateDifficulty(difficulty)
-                        }
+                    SolverStatus.READY -> {
+                        syncBoard()
                     }
 
-                    // TODO フォーマット付き文字列リソースにする
-                    val message =
-                        requireActivity().resources.getString(R.string.solver_success) + " ($difficultyStr)"
-                    showSnackbar(true, message)
+                    SolverStatus.WORKING -> {}
+
+                    SolverStatus.SUCCESS -> {
+                        val difficulty = viewModel.solver.difficulty
+
+                        val difficultyStr =
+                            requireActivity().resources.getStringArray(R.array.difficulty).let {
+                                it[difficulty]
+                            }
+
+                        // 難易度をデータベースに反映する (総当り方法だけのときは行わない)
+                        when (viewModel.solverMethod.value) {
+                            0, 1 -> {
+                                viewModel.updateDifficulty(difficulty)
+                            }
+                        }
+
+                        // TODO フォーマット付き文字列リソースにする
+                        val message =
+                            requireActivity().resources.getString(R.string.solver_success) + " ($difficultyStr)"
+                        showSnackbar(true, message)
+                    }
+
+                    SolverStatus.FAILED -> {
+                        showSnackbar(false, "FAILED")
+                    }
+
+                    SolverStatus.INTERRUPTED -> {
+                        showSnackbar(false, "INTERRUPTED")
+                    }
+
+                    SolverStatus.ERROR -> {
+                        showSnackbar(false, "ERROR")
+                    }
+
+                    else -> {
+                        throw RuntimeException("unknown status")
+                    }
                 }
 
-                SolverViewModel.Status.FAILED -> {
-                    showSnackbar(false, "FAILED")
-                }
-
-                SolverViewModel.Status.INTERRUPTED -> {
-                    showSnackbar(false, "INTERRUPTED")
-                }
-
-                SolverViewModel.Status.ERROR -> {
-                    showSnackbar(false, "ERROR")
-                }
-
-                else -> {
-                    throw RuntimeException("unknown status")
-                }
+                requireActivity().invalidateOptionsMenu()
             }
-
-            requireActivity().invalidateOptionsMenu()
         }
 
         viewModel.stepSpeed.observe(viewLifecycleOwner) {

@@ -20,25 +20,26 @@ class SolverViewModel @Inject constructor(
     private val preference: Preference
 ) : ViewModel() {
 
-    // 解析機の状態
-    enum class Status {
-        INIT, // 初期状態、データをロードしていない
-        READY, // データをロードして解析が可能な状態
-        WORKING, // 解析実行中
-        SUCCESS, // 解析成功 (終了)
-        FAILED, // 解析失敗 (終了)
-        INTERRUPTED, // 解析を中断した (終了)
-        ERROR // エラーが発生した (終了)
+    val elapsedTime = MutableLiveData(0L)
+
+    // solverStatusと solverStatusFlowは同時に変化するわけではない
+    private var solverStatus: SolverStatus = SolverStatus.INIT
+    val solverStatusFlow = MutableStateFlow(SolverStatus.INIT)
+
+    // リセットボタンの enable状態
+    private val _canResetFlow = solverStatusFlow.map {
+        it != SolverStatus.INIT && it != SolverStatus.WORKING
     }
 
-    private val solverStatusFlow = MutableStateFlow(Status.INIT)
+    val canReset = _canResetFlow.asLiveData()
 
-    //    val solverStatus = solverStatusFlow.asLiveData()
-    val solverStatus: MutableLiveData<Status> = MutableLiveData<Status>(Status.INIT)
+    // スタートボタンの enable状態
+    private val _canStartFlow = solverStatusFlow.map {
+        it == SolverStatus.READY
+    }
 
-    val elapsedTime = MutableLiveData(0L)
-    val canReset = MediatorLiveData<Boolean>() // リセット・編集可能
-    val canStart = MediatorLiveData<Boolean>() // 解析可能
+    val canStart = _canStartFlow.asLiveData()
+
     val stepsFlow = MutableStateFlow(0)
     val steps = stepsFlow.asLiveData()
 
@@ -53,27 +54,17 @@ class SolverViewModel @Inject constructor(
 
     val solver = SudokuSolver()
 
-    init {
-        canReset.addSource(solverStatus) {
-            canReset.value = (it != Status.INIT && it != Status.WORKING)
-        }
-
-        canStart.addSource(solverStatus) {
-            canStart.value = (it == Status.READY)
-        }
-    }
-
     fun loadSudoku(id: Long) {
-        solverStatusFlow.value = Status.INIT
-        solverStatus.postValue(solverStatusFlow.value)
+        solverStatus = SolverStatus.INIT
+        solverStatusFlow.value = solverStatus
         val entity = repository.findById(id)
         if (entity != null) {
             solver.load(entity.cells)
-            solverStatusFlow.value = Status.READY
-            solverStatus.postValue(solverStatusFlow.value)
+            solverStatus = SolverStatus.READY
+            solverStatusFlow.value = solverStatus
         } else {
-            solverStatusFlow.value = Status.ERROR
-            solverStatus.postValue(solverStatusFlow.value)
+            solverStatus = SolverStatus.ERROR
+            solverStatusFlow.value = solverStatus
         }
     }
 
@@ -86,7 +77,7 @@ class SolverViewModel @Inject constructor(
             val flow = solverFlow()
                 .buffer(Channel.UNLIMITED)
                 .onCompletion {
-                    solverStatus.postValue(solverStatusFlow.value)
+                    solverStatusFlow.value = solverStatus
                 }
 
             flow.collect { cellStr ->
@@ -117,28 +108,28 @@ class SolverViewModel @Inject constructor(
 
         solver.callback = object : SudokuSolver.ProgressCallback {
             override fun onProgress(cells: List<Cell>) {
-                if (solverStatusFlow.value != Status.WORKING) {
-                    solverStatusFlow.value = Status.WORKING
-                    solverStatus.postValue(Status.WORKING)
+                if (solverStatus != SolverStatus.WORKING) {
+                    solverStatus = SolverStatus.WORKING
+                    solverStatusFlow.value = SolverStatus.WORKING
                 }
                 trySend(cells.joinToString(""))
             }
 
             override fun onComplete(success: Boolean) {
                 stopTimer()
-                solverStatusFlow.value = Status.SUCCESS
+                solverStatus = SolverStatus.SUCCESS
                 channel.close()
             }
 
             override fun onInterrupted() {
                 stopTimer()
-                solverStatusFlow.value = Status.INTERRUPTED
+                solverStatus = SolverStatus.INTERRUPTED
                 channel.close()
             }
 
             override fun onSolverError() {
                 stopTimer()
-                solverStatusFlow.value = Status.ERROR
+                solverStatus = SolverStatus.ERROR
                 channel.close()
             }
         }
