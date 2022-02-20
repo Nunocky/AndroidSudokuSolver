@@ -1,8 +1,15 @@
 package org.nunocky.sudokusolver.ui.main
 
-import androidx.lifecycle.*
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.*
+import org.nunocky.sudokulib.Cell
 import org.nunocky.sudokulib.SudokuSolver
 import org.nunocky.sudokusolver.Preference
 import org.nunocky.sudokusolver.database.SudokuRepository
@@ -15,23 +22,30 @@ class SolverViewModel @Inject constructor(
     private val preference: Preference
 ) : ViewModel() {
 
-    // 解析機の状態
-    enum class Status {
-        INIT, // 初期状態、データにロードしていない
-        READY, // データをロードして解析が可能な状態
-        WORKING, // 解析実行中
-        SUCCESS, // 解析成功 (終了)
-        FAILED, // 解析失敗 (終了)
-        INTERRUPTED, // 解析を中断した (終了)
-        ERROR // エラーが発生した (終了)
-    }
+    // 解読状態
+    // 注 : solverStatusと solverStatusFlowは同時に変化するわけではない
+    private var _solverStatus: SolverStatus = SolverStatus.INIT
+    val solverStatus = MutableStateFlow(SolverStatus.INIT)
 
-    val solverStatus = MutableLiveData(Status.INIT)
-    val elapsedTime = MutableLiveData(0L)
-    val elapsedTimeStr = MediatorLiveData<String>()
-    val canReset = MediatorLiveData<Boolean>() // リセット・編集可能
-    val canStart = MediatorLiveData<Boolean>() // 解析可能
-    val steps = MutableLiveData(0)
+    // 解析ステップ数
+    private val _steps = MutableStateFlow(0)
+    val steps = _steps.asLiveData()
+
+    // 解析に要した時間
+    private val _elapsedTime = MutableStateFlow(0L)
+    val elapsedTime = _elapsedTime.asLiveData()
+
+    // リセットボタンの enable状態
+    private val _canReset = solverStatus.map {
+        it != SolverStatus.INIT && it != SolverStatus.WORKING
+    }
+    val canReset = _canReset.asLiveData()
+
+    // スタートボタンの enable状態
+    private val _canStart = solverStatus.map {
+        it == SolverStatus.READY
+    }
+    val canStart = _canStart.asLiveData()
 
     val entityId = savedStateHandle.getLiveData("entityId", 0L)
     val stepSpeed = savedStateHandle.getLiveData("stepSpeed", preference.stepSpeed)
@@ -40,96 +54,169 @@ class SolverViewModel @Inject constructor(
     private var startTime = 0L
     private var currentTime = 0L
 
-    private var solverJob: Job = Job().apply { cancel() }
-    private var timerJob: Job = Job().apply { cancel() }
-
     val solver = SudokuSolver()
+    private var timerJob: Job = Job().apply { cancel() }
+    private var solverJob: Job = Job().apply { cancel() }
 
-    init {
-        canReset.addSource(solverStatus) {
-            canReset.value = (it != Status.INIT && it != Status.WORKING)
+    /**
+     * 指定 id の問題をロードする (非同期処理)
+     *
+     * @param id entity is of sudoku]
+     * @param dispatcher コルーチンを実行するコンテキスト
+     * @param callback 処理完了時に実行するコールバック
+     *
+     */
+    fun loadSudoku(id: Long, dispatcher: CoroutineDispatcher, callback: () -> Unit) {
+        if (id == 0L) {
+            return
         }
 
-        canStart.addSource(solverStatus) {
-            canStart.value = (it == Status.READY)
-        }
+        viewModelScope.launch(dispatcher) {
+            _solverStatus = SolverStatus.INIT
+            solverStatus.value = _solverStatus
+            _elapsedTime.value = 0
+            _steps.value = 0
 
-        elapsedTimeStr.addSource(elapsedTime) {
-            elapsedTimeStr.value = it.toTimeStr()
-        }
-    }
+            solverStatus.value = _solverStatus
 
-    fun loadSudoku(id: Long) {
-        solverStatus.postValue(Status.INIT)
-        val entity = repository.findById(id)
-        if (entity != null) {
-            solver.load(entity.cells)
-            solverStatus.postValue(Status.READY)
-        } else {
-            solverStatus.postValue(Status.ERROR)
+            val entity = repository.findById(id)
+            if (entity != null) {
+                solver.load(entity.cells)
+                _solverStatus = SolverStatus.READY
+                solverStatus.value = _solverStatus
+            } else {
+                _solverStatus = SolverStatus.ERROR
+                solverStatus.value = _solverStatus
+            }
+
+            withContext(Dispatchers.Main) {
+                callback()
+            }
         }
     }
 
     /**
      * 解析開始
+     * TODO コールバックは複数のメソッドを用意する?
      */
-    fun startSolver(callback: SudokuSolver.ProgressCallback) {
-        solverJob = viewModelScope.launch(Dispatchers.IO) {
-            solverStatus.postValue(Status.WORKING)
+    fun startSolve(dispatcher: CoroutineDispatcher, callback: (List<Cell>) -> Unit) {
+        if (solverJob.isActive) {
+            return
+        }
 
+        solverJob = viewModelScope.launch(dispatcher) {
             startTimer()
 
-            runCatching {
-                solver.callback = object : SudokuSolver.ProgressCallback {
-                    override fun onProgress(cells: List<org.nunocky.sudokulib.Cell>) {
-                        if (!isActive) {
-                            solverStatus.postValue(Status.INTERRUPTED)
-                            throw InterruptedException()
-                        }
-                        callback.onProgress(cells)
-                    }
-
-                    override fun onComplete(success: Boolean) {
-                        if (success) {
-                            solverStatus.postValue(Status.SUCCESS)
-                        } else {
-                            solverStatus.postValue(Status.FAILED)
-                        }
-                        callback.onComplete(success)
+            val solvingFlow = solverFlow()
+                .buffer(Channel.UNLIMITED)
+                .onCompletion {
+                    // 中断時に別の所でセットされるため
+                    if (_solverStatus == SolverStatus.SUCCESS) {
+                        solverStatus.value = _solverStatus
                     }
                 }
 
-                solver.trySolve(solverMethod.value ?: 0)
-            }.onFailure {
-                when (it) {
-                    is SudokuSolver.SolverError -> {
-                        solverStatus.postValue(Status.ERROR)
-                        callback.onSolverError()
-                    }
+            solvingFlow.collect { cellStr ->
+                val cells = mutableListOf<Cell>()
 
-                    is InterruptedException -> {
-                        solverStatus.postValue(Status.INTERRUPTED)
-                        callback.onInterrupted()
-                    }
+                cellStr.forEach { c ->
+                    val newCell = Cell()
+                    newCell.value = c.digitToInt()
+                    cells.add(newCell)
                 }
+
+                // ボードの描画
+                withContext(Dispatchers.Main) {
+                    callback(cells)
+                }
+                _steps.value += 1
+
+                //val tm = max(30L, viewModel.stepSpeed.value!! * 50L)
+                val tm = stepSpeed.value!! * 50L
+                delay(tm)
             }
-
-            stopTimer()
-            val solverElapsedTime = solver.getElapsedTime()
-            elapsedTime.postValue(solverElapsedTime)
         }
     }
 
-//    fun stopSolver() = viewModelScope.launch(Dispatchers.IO) {
-//        solverJob.cancel()
-//        stopTimer()
-//    }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun solverFlow(): Flow<String> = callbackFlow {
+        solver.callback = object : SudokuSolver.ProgressCallback {
+            override fun onProgress(cells: List<Cell>) {
+                if (!isActive) {
+                    channel.close()
+                    return
+                }
+
+                if (_solverStatus != SolverStatus.WORKING) {
+                    _solverStatus = SolverStatus.WORKING
+                    solverStatus.value = SolverStatus.WORKING
+                }
+                trySend(cells.joinToString(""))
+            }
+
+            override fun onComplete(success: Boolean) {
+                stopTimer()
+                if (isActive) {
+                    _solverStatus = if (success) {
+                        SolverStatus.SUCCESS
+                    } else {
+                        SolverStatus.FAILED
+                    }
+                }
+                channel.close()
+            }
+
+//            override fun onInterrupted() {
+//                stopTimer()
+//                _solverStatus = SolverStatus.INTERRUPTED
+//                channel.close()
+//            }
+//
+//            override fun onSolverError() {
+//                stopTimer()
+//                _solverStatus = SolverStatus.ERROR
+//                channel.close()
+//            }
+        }
+
+//        runCatching {
+        solver.trySolve(solverMethod.value ?: 0)
+//        }.onFailure {
+//            when (it) {
+//                is SudokuSolver.SolverError -> {
+//                    channel.close()
+//                }
+//
+//                is InterruptedException -> {
+//                    _solverStatus = SolverStatus.INTERRUPTED
+//                    channel.close()
+//                }
+//            }
+//        }
+
+        awaitClose {
+            solver.callback = null
+        }
+    }
+
     /**
      * 解析停止
      */
     fun stopSolver() {
-        solverJob.cancel()
-        stopTimer()
+        viewModelScope.launch {
+            stopTimer()
+            solverJob.cancel()
+
+            // TODO 中断時に解析が終わっているときは、成功として flowの最後の値をボードに反映する
+//            if (solver.isSolved()) {
+//                _solverStatus = SolverStatus.SUCCESS
+//            } else {
+            _solverStatus = SolverStatus.INTERRUPTED
+//            }
+
+            solverStatus.value = _solverStatus
+//            solverJob.join()
+        }
     }
 
     /**
@@ -139,11 +226,11 @@ class SolverViewModel @Inject constructor(
         timerJob = viewModelScope.launch(Dispatchers.IO) {
             startTime = System.currentTimeMillis()
             currentTime = System.currentTimeMillis()
-            elapsedTime.postValue(0L)
+            _elapsedTime.value = 0L
 
             while (isActive) {
                 currentTime = System.currentTimeMillis()
-                elapsedTime.postValue((currentTime - startTime))
+                _elapsedTime.value = currentTime - startTime
                 delay(100)
             }
         }
@@ -164,26 +251,5 @@ class SolverViewModel @Inject constructor(
             entity.difficulty = difficulty
             repository.update(entity)
         }
-    }
-}
-
-/**
- * Long型を時間形式に変換
- * TODO Utilsに移動する
- */
-private fun Long.toTimeStr(): String {
-    val milsecs = this % 1000
-    var second = this / 1000 // second
-
-    val hour = second / 3600
-    second -= 3600 * hour
-
-    val minute = second / 60
-    second -= 60 * minute
-
-    return if (0 < hour) {
-        String.format("%02d:%02d:%02d.%03d", hour, minute, milsecs)
-    } else {
-        String.format("%02d:%02d.%03d", minute, second, milsecs)
     }
 }

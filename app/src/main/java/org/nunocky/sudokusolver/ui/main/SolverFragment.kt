@@ -5,16 +5,19 @@ import android.view.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import org.nunocky.sudokulib.Cell
-import org.nunocky.sudokulib.SudokuSolver
 import org.nunocky.sudokusolver.NavigationMainDirections
 import org.nunocky.sudokusolver.Preference
 import org.nunocky.sudokusolver.R
@@ -38,7 +41,9 @@ class SolverFragment : Fragment() {
     private val navController by lazy { findNavController() }
 
     private lateinit var currentBackStackEntry: NavBackStackEntry
-    private lateinit var savedStateHandle : SavedStateHandle
+    private lateinit var savedStateHandle: SavedStateHandle
+
+//    private var solverJob: Job = Job().apply { cancel() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +53,7 @@ class SolverFragment : Fragment() {
         savedStateHandle = currentBackStackEntry.savedStateHandle
 
         savedStateHandle.getLiveData<Boolean>(EditFragment.KEY_SAVED)
-            .observe(currentBackStackEntry, { success ->
+            .observe(currentBackStackEntry) { success ->
                 val entityId = savedStateHandle.get<Long>("entityId")
                 if (success) {
                     viewModel.entityId.value = entityId
@@ -60,7 +65,7 @@ class SolverFragment : Fragment() {
                         viewModel.entityId.value = entityId
                     }
                 }
-            })
+            }
     }
 
     override fun onCreateView(
@@ -91,29 +96,73 @@ class SolverFragment : Fragment() {
         }
 
         binding.btnStart.setOnClickListener {
-            viewModel.startSolver(callback)
+            viewModel.startSolve(Dispatchers.IO) { cells ->
+                drawSudokuBoard(cells)
+            }
         }
 
         binding.btnReset.setOnClickListener {
-            reset()
+            viewModel.entityId.value?.let {
+                loadSudoku(it)
+            }
         }
 
         binding.btnStop.setOnClickListener {
-            stopSolve()
+            viewModel.stopSolver()
         }
 
-        viewModel.solverStatus.observe(viewLifecycleOwner) { status ->
-            when (status) {
-                SolverViewModel.Status.READY -> {
-                    syncBoard()
+        lifecycleScope.launch {
+            viewModel.solverStatus
+                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .collect { status ->
+                    when (status) {
+                        SolverStatus.INIT -> {}
+
+                        SolverStatus.READY -> {
+                            syncBoard()
+                        }
+
+                        SolverStatus.WORKING -> {}
+
+                        SolverStatus.SUCCESS -> {
+                            val difficulty = viewModel.solver.difficulty
+
+                            val difficultyStr =
+                                requireActivity().resources.getStringArray(R.array.difficulty).let {
+                                    it[difficulty]
+                                }
+
+                            // 難易度をデータベースに反映する (総当り方法だけのときは行わない)
+                            when (viewModel.solverMethod.value) {
+                                // TODO enum に修正
+                                0, 1 -> {
+                                    viewModel.updateDifficulty(difficulty)
+                                }
+                            }
+
+                            val message =
+                                requireActivity().resources.getString(
+                                    R.string.solver_success,
+                                    difficultyStr
+                                )
+                            showSnackbar(true, message)
+                        }
+
+                        SolverStatus.FAILED -> {
+                            showSnackbar(false, "FAILED")
+                        }
+
+                        SolverStatus.INTERRUPTED -> {
+                            showSnackbar(false, "INTERRUPTED")
+                        }
+
+                        SolverStatus.ERROR -> {
+                            showSnackbar(false, "ERROR")
+                        }
+                    }
+
+                    requireActivity().invalidateOptionsMenu()
                 }
-                SolverViewModel.Status.WORKING -> {}
-                SolverViewModel.Status.SUCCESS -> {}
-                SolverViewModel.Status.FAILED -> {}
-                SolverViewModel.Status.INTERRUPTED -> {}
-                SolverViewModel.Status.ERROR -> {}
-                else -> {}
-            }
         }
 
         viewModel.stepSpeed.observe(viewLifecycleOwner) {
@@ -136,7 +185,9 @@ class SolverFragment : Fragment() {
 
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
-        menu.findItem(R.id.action_edit).isEnabled = (viewModel.canReset.value == true)
+        menu.findItem(R.id.action_edit).apply {
+            isVisible = (viewModel.canReset.value == true)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -178,16 +229,6 @@ class SolverFragment : Fragment() {
         binding.sudokuBoard.updated = false
     }
 
-    private fun stopSolve() = lifecycleScope.launch {
-        viewModel.stopSolver()
-    }
-
-    private fun reset() {
-        viewModel.entityId.value?.let {
-            loadSudoku(it)
-        }
-    }
-
     /**
      * 指定 idの数独をロードし画面に反映する
      * @param id SudokuEntityの id
@@ -198,83 +239,28 @@ class SolverFragment : Fragment() {
         }
 
         // 非同期で viewModel.loadSudokuを行い、それが終わったらセルの設定をおこなう。
-        lifecycleScope.launch(Dispatchers.IO) {
-            viewModel.elapsedTime.postValue(0L)
-            viewModel.steps.postValue(0)
-            viewModel.loadSudoku(id)
-
-            withContext(Dispatchers.Main) {
-                syncBoard()
-            }
+        viewModel.loadSudoku(id, Dispatchers.IO) {
+            syncBoard()
+            binding.sudokuBoard.updated = false
         }
-
-        binding.sudokuBoard.updated = false
     }
 
-    private val callback = object : SudokuSolver.ProgressCallback {
-        override fun onProgress(cells: List<Cell>) {
-            binding.sudokuBoard.updated = false
-            binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
-                cellView.fixedNum = cells[n].value
-                cellView.candidates = cells[n].candidates.toIntArray()
-            }
-
-            runBlocking {
-                // MEMO ノーウェイト / ウェイトあり くらいの区分で良さそう
-                delay(viewModel.stepSpeed.value!! * 100L)
-            }
-
-            viewModel.steps.postValue(viewModel.steps.value!! + 1)
+    private fun drawSudokuBoard(cells: List<Cell>) {
+        binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
+            cellView.fixedNum = cells[n].value
+            cellView.candidates = cells[n].candidates.toIntArray()
         }
+    }
 
-        override fun onComplete(success: Boolean) {
+    private fun showSnackbar(success: Boolean, message: String) {
+        val bgColor = if (success)
+            ContextCompat.getColor(requireContext(), R.color.solverSuccess)
+        else
+            ContextCompat.getColor(requireContext(), R.color.solverFail)
 
-            val difficulty = viewModel.solver.difficulty
-
-            val difficultyStr =
-                requireActivity().resources.getStringArray(R.array.difficulty).let {
-                    it[difficulty]
-                }
-
-            val message = if (success)
-                requireActivity().resources.getString(R.string.solver_success) + " ($difficultyStr)"
-            else
-                requireActivity().resources.getString(R.string.solver_fail)
-
-            // 成功したときは難易度をデータベースに反映する
-            if (success) {
-                when (viewModel.solverMethod.value) {
-                    0, 1 -> {
-                        viewModel.updateDifficulty(difficulty)
-                    }
-                }
-            }
-
-            val bgColor = if (success)
-                ContextCompat.getColor(requireContext(), R.color.solverSuccess)
-            else
-                ContextCompat.getColor(requireContext(), R.color.solverFail)
-
-            val snackBar = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT)
-            snackBar.view.setBackgroundColor(bgColor)
-            snackBar.show()
-        }
-//
-//        override fun onInterrupted() {
-//            val snackBar = Snackbar.make(binding.root, "interrupted", Snackbar.LENGTH_SHORT)
-//            val bgColor = ContextCompat.getColor(requireContext(), R.color.solverFail)
-//
-//            snackBar.view.setBackgroundColor(bgColor)
-//            snackBar.show()
-//        }
-//
-//        override fun onSolverError() {
-//            val snackBar = Snackbar.make(binding.root, "solver error", Snackbar.LENGTH_SHORT)
-//            val bgColor = ContextCompat.getColor(requireContext(), R.color.solverFail)
-//
-//            snackBar.view.setBackgroundColor(bgColor)
-//            snackBar.show()
-//        }
+        val snackBar = Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT)
+        snackBar.view.setBackgroundColor(bgColor)
+        snackBar.show()
     }
 }
 

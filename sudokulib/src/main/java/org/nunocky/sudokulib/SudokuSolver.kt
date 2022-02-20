@@ -30,8 +30,8 @@ class SudokuSolver {
         //fun onUnselectGroup(groupId: Int) {}
         //fun onCellUpdated(cellId: Int, num: Int?, candidates: List<Int>?) {}
         fun onComplete(success: Boolean) {}
-        fun onInterrupted() {}
-        fun onSolverError() {}
+        //fun onInterrupted() {}
+        //fun onSolverError() {}
     }
 
     private var elapsedTime: Long = 0

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="solve_method">
+        <item>@string/method_standard</item>
+        <item>@string/method_standard_dfs</item>
+        <item>@string/method_dfs</item>
+    </string-array>
+
+    <string-array name="difficulty">
+        <item>@string/difficulty_impossible</item>
+        <item>@string/difficulty_untested</item>
+        <item>@string/difficulty_easy</item>
+        <item>@string/difficulty_medium</item>
+        <item>@string/difficulty_hard</item>
+        <item>@string/difficulty_extreme</item>
+    </string-array>
+
+</resources>

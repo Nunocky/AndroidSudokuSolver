@@ -50,7 +50,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif"
-            android:text="@{viewModel.elapsedTimeStr}"
+            android:text="@{LongUtils.toTimeStr(viewModel.elapsedTime)}"
             android:textAlignment="center"
             android:textSize="24sp"
             android:textStyle="bold"
@@ -149,7 +149,11 @@
 
     <data>
 
-        <import type="org.nunocky.sudokusolver.ui.main.SolverViewModel.Status" />
+        <import type="org.nunocky.sudokusolver.ui.main.SolverStatus" />
+
+        <import
+            alias="LongUtils"
+            type="org.nunocky.sudokusolver.utils.LongUtilsKt" />
 
         <variable
             name="viewModel"
