@@ -114,6 +114,9 @@ class SolverViewModel @Inject constructor(
                     if (_solverStatus == SolverStatus.SUCCESS) {
                         solverStatus.value = _solverStatus
                     }
+                }.catch {
+                    _solverStatus = SolverStatus.INTERRUPTED
+                    solverStatus.value = _solverStatus
                 }
 
             solvingFlow.collect { cellStr ->
@@ -144,7 +147,7 @@ class SolverViewModel @Inject constructor(
             override fun onProgress(cells: List<Cell>) {
                 if (!isActive) {
                     channel.close()
-                    return
+                    throw InterruptedException()
                 }
 
                 if (_solverStatus != SolverStatus.WORKING) {
