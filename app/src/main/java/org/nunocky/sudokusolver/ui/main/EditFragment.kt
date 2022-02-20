@@ -99,21 +99,7 @@ class EditFragment : Fragment() {
                 cellView.fixedNum.toChar().code
             }
             viewModel.sudokuSolver.load(list)
-        }
-
-        viewModel.sudokuSolver.isValid.observe(viewLifecycleOwner) {
-            requireActivity().invalidateMenu()
-
-            if (it) {
-                setBGColor(requireActivity(), binding.sudokuBoardView, R.color.board_valid)
-            } else {
-                if (binding.sudokuBoardView.cellViews.filter { cellView -> cellView.fixedNum != 0 }
-                        .count() != 0) {
-
-                    setBGColor(requireActivity(), binding.sudokuBoardView, R.color.board_invalid)
-                    binding.sudokuBoardView.invalidate()
-                }
-            }
+            updateBackgroundColor()
         }
     }
 
@@ -156,6 +142,8 @@ class EditFragment : Fragment() {
         }
 
         viewModel.currentValue.value = buttonIndex
+
+        updateBackgroundColor()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -166,7 +154,7 @@ class EditFragment : Fragment() {
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
         menu.findItem(R.id.action_save)?.let {
-            it.isEnabled = viewModel.sudokuSolver.isValid.value ?: false
+            it.isEnabled = viewModel.sudokuSolver.isValid
         }
     }
 
@@ -298,6 +286,22 @@ class EditFragment : Fragment() {
         }
 
         return thumbnail
+    }
+
+    private fun updateBackgroundColor() {
+        requireActivity().invalidateMenu()
+
+        if (viewModel.sudokuSolver.isValid) {
+            setBGColor(requireActivity(), binding.sudokuBoardView, R.color.board_valid)
+        } else {
+            if (binding.sudokuBoardView.cellViews
+                    .filter { cellView -> cellView.fixedNum != 0 }
+                    .count() != 0
+            ) {
+                setBGColor(requireActivity(), binding.sudokuBoardView, R.color.board_invalid)
+                binding.sudokuBoardView.invalidate()
+            }
+        }
     }
 
 

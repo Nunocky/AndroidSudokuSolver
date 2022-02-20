@@ -1,8 +1,5 @@
 package org.nunocky.sudokulib
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-
 class SudokuSolver {
     companion object {
         const val DIFFICULTY_IMPOSSIBLE = 0
@@ -146,7 +143,7 @@ class SudokuSolver {
             cells[n].value = numbers[n] // 1~9なら candidatesは空集合にセットされる
         }
 
-        _isValid.postValue(calcIsValid())
+//        _isValid.postValue(calcIsValid())
     }
 
     /**
@@ -168,6 +165,7 @@ class SudokuSolver {
     fun trySolve(m: Int = 2): Boolean {
         val tmStart = System.currentTimeMillis()
 
+        val algorithmEasy = SolverEasy(this, cells, groups, callback)
         val algorithm = SolverV1(this, cells, groups, callback)
         val algorithmDFS = SolverDFS(this, cells, groups, callback)
 
@@ -176,7 +174,12 @@ class SudokuSolver {
         when (m) {
             0 -> {
                 // only standard
-                retVal = algorithm.trySolve()
+                retVal = algorithmEasy.trySolve()
+                if (retVal) {
+                    difficulty = DIFFICULTY_EASY
+                } else {
+                    retVal = algorithm.trySolve()
+                }
             }
             2 -> {
                 // only DFS
@@ -219,13 +222,16 @@ class SudokuSolver {
     }
 
     // 数の配置が正しいか
-    private val _isValid = MutableLiveData(false)
+//    private val _isValid = MutableLiveData(false)
 
     // TODO private val _isValid = calcIsValid() みたいに書けない?
 
-    val isValid: LiveData<Boolean> = _isValid
+//    val isValid: LiveData<Boolean> = _isValid
 
-    internal fun calcIsValid(): Boolean {
+    val isValid: Boolean
+        get() = calcIsValid()
+
+    private fun calcIsValid(): Boolean {
         groups.forEach { group ->
             val numbers = mutableSetOf<Int>()
             group.cells.forEach { cell ->
@@ -242,7 +248,7 @@ class SudokuSolver {
     /**
      * cellからのデータ変更通知を受ける
      */
-    internal fun notifyDataChanged() {
-        _isValid.postValue(calcIsValid())
-    }
+//    internal fun notifyDataChanged() {
+//        _isValid.postValue(calcIsValid())
+//    }
 }

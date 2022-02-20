@@ -29,43 +29,32 @@ class SolverDFS(
     private var maxDepth = 0
 
     private fun setup() {
-        // 基本的なフィルタをかける (明らかに必要でない候補をへらす)
-        var shouldRepeat: Boolean
-        do {
-            shouldRepeat = false
-
-            for (cell in cells) {
-                if (cell.isFixed) {
-                    val n = cell.value
-                    cell.groups.forEach { g ->
-                        g.cells.forEach { c ->
-                            if (c.candidates.contains(n)) {
-                                c.candidates.remove(n)
-                            }
-
-                            // そのセルの候補が残り1だったらそのセルは確定。そのときはもう一度このフィルタを繰り返す
-                            if (c.candidates.size == 1) {
-                                c.value = c.candidates.first()
-                                shouldRepeat = true
-                            }
-                        }
-                    }
-                }
-            }
-        } while (shouldRepeat)
-//        for (cell in cells) {
-//            if (cell.isFixed) {
-//                sweepCandidateForCell(cell, cell.value)
-//            }
-//        }
+        // このフィルタだけで解けてしまう問題がある
+//        // 基本的なフィルタをかける (明らかに必要でない候補をへらす)
+//        var shouldRepeat: Boolean
+//        do {
+//            shouldRepeat = false
 //
-//        // 基本的なフィルタで残り候補1となったものは確定させておく
-//        for (cell in cells) {
-//            if (cell.candidates.size == 1) {
-//                cell.value = cell.candidates.first()
+//            for (cell in cells) {
+//                if (cell.isFixed) {
+//                    val n = cell.value
+//                    cell.groups.forEach { g ->
+//                        g.cells.forEach { c ->
+//                            if (c.candidates.contains(n)) {
+//                                c.candidates.remove(n)
+//                            }
+//
+//                            // そのセルの候補が残り1だったらそのセルは確定。そのときはもう一度このフィルタを繰り返す
+//                            if (c.candidates.size == 1) {
+//                                c.value = c.candidates.first()
+//                                shouldRepeat = true
+//                            }
+//                        }
+//                    }
+//                }
 //            }
-//        }
-
+//        } while (shouldRepeat)
+//
         cellList = cells.filter { 0 < it.candidates.size } //.sort { it.candidates.size }
         //Log.d(TAG, "${cellList.size}")
 
@@ -90,7 +79,7 @@ class SolverDFS(
             cell.value = v
 
             // 矛盾がなければ進む
-            if (parent.calcIsValid()) {
+            if (parent.isValid) {
 //                Log.d(
 //                    TAG,
 //                    "${depth}/${cellList.size} [$maxDepth]: set cell ${cell.id} (${cell.id % 9}, ${cell.id / 9}) to $v"
