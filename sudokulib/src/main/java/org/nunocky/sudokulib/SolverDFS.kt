@@ -90,7 +90,7 @@ class SolverDFS(
             cell.value = v
 
             // 矛盾がなければ進む
-            if (parent.calcIsValid()) {
+            if (parent.isValid) {
 //                Log.d(
 //                    TAG,
 //                    "${depth}/${cellList.size} [$maxDepth]: set cell ${cell.id} (${cell.id % 9}, ${cell.id / 9}) to $v"

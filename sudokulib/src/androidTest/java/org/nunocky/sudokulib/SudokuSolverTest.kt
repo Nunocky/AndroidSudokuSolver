@@ -12,9 +12,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.nunocky.sudokusolver.getOrAwaitValue
 import java.io.*
-import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
 class SudokuSolverTest {
@@ -100,56 +98,6 @@ class SudokuSolverTest {
         }
     }
 
-
-    // TODO 解けない問題に対して正しい状態を返すテスト
-
-    @Test
-    fun testSolveEasy() {
-        solver.load(targetEasy)
-        assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
-
-        val solved = solver.trySolve()
-        assertTrue(solved)
-        assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
-    }
-
-    @Test
-    fun testSolveMedium() {
-        solver.load(targetMedium)
-        assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
-
-        val solved = solver.trySolve()
-        assertTrue(solved)
-        assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
-    }
-
-    @Test
-    fun testSolveHard() {
-        solver.load(targetHard)
-        assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
-
-        val solved = solver.trySolve()
-        assertTrue(solved)
-        assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
-    }
-
-    @Test
-    fun testDFS() {
-//        solver.load(targetEasy)  // 解けた
-//        solver.load(targetMedium)  // 解けた
-        solver.load(targetHard) // 解けた
-//        solver.load(targetExtreme) // 解けない (´・ω・｀)
-
-        assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
-
-        val solved = solver.trySolve(2)
-        assertTrue(solved)
-        assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
-    }
-
-    /**
-     * アセット内のテキストファイルに格納された問題をすべて解く
-     */
     @Test
     fun testSolveFile() {
         val ctx = InstrumentationRegistry.getInstrumentation().context
@@ -180,54 +128,18 @@ class SudokuSolverTest {
                 solver.load(line)
 
                 // 問題が間違っている可能性もある
-                assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
+                assertTrue(solver.isValid)
 
                 solver.trySolve()
 
                 // 解決した、かつ配置が正当であることを確認
                 assertTrue(solver.isSolved())
-                assertTrue(solver.isValid.getOrAwaitValue(100, TimeUnit.MILLISECONDS))
+                assertTrue(solver.isValid)
             } while (!done)
         }
     }
 
     companion object {
         private const val TAG = "SudokuSolverTest"
-        private const val targetEasy =
-            "001037020006090530092000170000603082000978000980201000014000860038010200060380400"
-
-        private const val targetMedium =
-            "000008500" +
-                    "000609012" +
-                    "670100040" +
-                    "000700201" +
-                    "030000050" +
-                    "104005000" +
-                    "010007026" +
-                    "580402000" +
-                    "006300000"
-
-        private const val targetHard =
-            "006038075" +
-                    "000040000" +
-                    "000790200" +
-                    "005000090" +
-                    "089000310" +
-                    "020000400" +
-                    "008065000" +
-                    "000080000" +
-                    "570320900"
-
-        private const val targetExtreme =
-            "000080109" +
-                    "902300040" +
-                    "005901700" +
-                    "100800067" +
-                    "000000000" +
-                    "520004001" +
-                    "001007900" +
-                    "060103508" +
-                    "703090002"
-
     }
 }

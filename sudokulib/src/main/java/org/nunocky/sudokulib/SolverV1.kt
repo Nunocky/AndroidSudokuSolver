@@ -54,7 +54,7 @@ class SolverV1(
                 shouldRepeat = filter.exec()
                 changed = changed or shouldRepeat
 
-                if (!parent.calcIsValid()) {
+                if (!parent.isValid) {
                     throw SudokuSolver.SolverError()
                 }
             }
@@ -88,7 +88,7 @@ class SolverV1(
                         shouldRefresh = filter.exec()
                         valueChanged = valueChanged or shouldRefresh
 
-                        if (!parent.calcIsValid()) {
+                        if (!parent.isValid) {
                             throw SudokuSolver.SolverError()
                         }
                     }
@@ -105,7 +105,7 @@ class SolverV1(
                         shouldRefresh = filter.exec()
                         valueChanged = valueChanged or shouldRefresh
 
-                        if (!parent.calcIsValid()) {
+                        if (!parent.isValid) {
                             throw SudokuSolver.SolverError()
                         }
                     }
