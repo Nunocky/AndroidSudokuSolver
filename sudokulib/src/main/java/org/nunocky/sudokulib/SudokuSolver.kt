@@ -165,6 +165,7 @@ class SudokuSolver {
     fun trySolve(m: Int = 2): Boolean {
         val tmStart = System.currentTimeMillis()
 
+        val algorithmEasy = SolverEasy(this, cells, groups, callback)
         val algorithm = SolverV1(this, cells, groups, callback)
         val algorithmDFS = SolverDFS(this, cells, groups, callback)
 
@@ -173,7 +174,12 @@ class SudokuSolver {
         when (m) {
             0 -> {
                 // only standard
-                retVal = algorithm.trySolve()
+                retVal = algorithmEasy.trySolve()
+                if (retVal) {
+                    difficulty = DIFFICULTY_EASY
+                } else {
+                    retVal = algorithm.trySolve()
+                }
             }
             2 -> {
                 // only DFS

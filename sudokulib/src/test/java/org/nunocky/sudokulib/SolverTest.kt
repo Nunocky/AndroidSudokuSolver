@@ -1,6 +1,5 @@
 package org.nunocky.sudokulib
 
-import android.util.Log
 import junit.framework.TestCase
 import org.junit.Before
 import org.junit.Test
@@ -85,10 +84,37 @@ class SolverTest {
         TestCase.assertTrue(solver.isValid)
     }
 
+    @Test
+    fun testDFS5() {
+        solver.load(
+            "008960040" +
+                    "409000003" +
+                    "561370098" +
+                    "190753004" +
+                    "000210000" +
+                    "000000507" +
+                    "984500760" +
+                    "000049080" +
+                    "013820400"
+        )
+        TestCase.assertTrue(solver.isValid)
+
+        val solved = solver.trySolve(2)
+        TestCase.assertTrue(solved)
+        TestCase.assertTrue(solver.isValid)
+    }
+
     companion object {
-        private const val TAG = "SudokuSolverTest"
         private const val targetEasy =
-            "001037020006090530092000170000603082000978000980201000014000860038010200060380400"
+            "001037020" +
+                    "006090530" +
+                    "092000170" +
+                    "000603082" +
+                    "000978000" +
+                    "980201000" +
+                    "014000860" +
+                    "038010200" +
+                    "060380400"
 
         private const val targetMedium =
             "000008500" +
@@ -147,7 +173,7 @@ class SolverTest {
                 )
             }
 
-            Log.d(TAG, sb.toString())
+            println(sb.toString())
         }
     }
 }
