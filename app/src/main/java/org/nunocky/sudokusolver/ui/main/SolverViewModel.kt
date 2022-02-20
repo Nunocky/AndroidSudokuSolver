@@ -34,16 +34,16 @@ class SolverViewModel @Inject constructor(
     val elapsedTime = _elapsedTime.asLiveData()
 
     // リセットボタンの enable状態
-    private val _canResetFlow = solverStatus.map {
+    private val _canReset = solverStatus.map {
         it != SolverStatus.INIT && it != SolverStatus.WORKING
     }
-    val canReset = _canResetFlow.asLiveData()
+    val canReset = _canReset.asLiveData()
 
     // スタートボタンの enable状態
-    private val _canStartFlow = solverStatus.map {
+    private val _canStart = solverStatus.map {
         it == SolverStatus.READY
     }
-    val canStart = _canStartFlow.asLiveData()
+    val canStart = _canStart.asLiveData()
 
     val entityId = savedStateHandle.getLiveData("entityId", 0L)
     val stepSpeed = savedStateHandle.getLiveData("stepSpeed", preference.stepSpeed)
