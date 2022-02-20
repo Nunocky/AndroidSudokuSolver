@@ -5,7 +5,9 @@ import android.view.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.fragment.findNavController
@@ -108,7 +110,7 @@ class SolverFragment : Fragment() {
 
         lifecycleScope.launch {
 
-            viewModel.solverStatus.collect { status ->
+            viewModel.solverStatus.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).collect { status ->
                 when (status) {
                     SolverStatus.INIT -> {}
 
