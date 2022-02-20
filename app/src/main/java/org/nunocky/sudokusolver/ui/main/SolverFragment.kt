@@ -247,6 +247,7 @@ class SolverFragment : Fragment() {
 
     private fun drawSudokuBoard(cells: List<Cell>) {
         binding.sudokuBoard.cellViews.forEachIndexed { n, cellView ->
+            cellView.updated = (cellView.fixedNum != cells[n].value)
             cellView.fixedNum = cells[n].value
             cellView.candidates = cells[n].candidates.toIntArray()
         }
