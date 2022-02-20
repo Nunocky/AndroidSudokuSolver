@@ -1,6 +1,5 @@
 package org.nunocky.sudokusolver.ui.main
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
@@ -74,6 +73,7 @@ class SolverViewModel @Inject constructor(
 
         viewModelScope.launch(dispatcher) {
             _solverStatus = SolverStatus.INIT
+            solverStatus.value = _solverStatus
             _elapsedTime.value = 0
             _steps.value = 0
 
@@ -106,13 +106,17 @@ class SolverViewModel @Inject constructor(
 
         solverJob = viewModelScope.launch(dispatcher) {
             startTimer()
-            val flow = solverFlow()
+
+            val solvingFlow = solverFlow()
                 .buffer(Channel.UNLIMITED)
                 .onCompletion {
-                    solverStatus.value = _solverStatus
+                    // 中断時に別の所でセットされるため
+                    if (_solverStatus == SolverStatus.SUCCESS) {
+                        solverStatus.value = _solverStatus
+                    }
                 }
 
-            flow.collect { cellStr ->
+            solvingFlow.collect { cellStr ->
                 val cells = mutableListOf<Cell>()
 
                 cellStr.forEach { c ->
@@ -138,6 +142,11 @@ class SolverViewModel @Inject constructor(
     private fun solverFlow(): Flow<String> = callbackFlow {
         solver.callback = object : SudokuSolver.ProgressCallback {
             override fun onProgress(cells: List<Cell>) {
+                if (!isActive) {
+                    channel.close()
+                    return
+                }
+
                 if (_solverStatus != SolverStatus.WORKING) {
                     _solverStatus = SolverStatus.WORKING
                     solverStatus.value = SolverStatus.WORKING
@@ -147,50 +156,67 @@ class SolverViewModel @Inject constructor(
 
             override fun onComplete(success: Boolean) {
                 stopTimer()
-                _solverStatus = SolverStatus.SUCCESS
+                if (isActive) {
+                    _solverStatus = if (success) {
+                        SolverStatus.SUCCESS
+                    } else {
+                        SolverStatus.FAILED
+                    }
+                }
                 channel.close()
             }
 
-            override fun onInterrupted() {
-                stopTimer()
-                _solverStatus = SolverStatus.INTERRUPTED
-                channel.close()
-            }
-
-            override fun onSolverError() {
-                stopTimer()
-                _solverStatus = SolverStatus.ERROR
-                channel.close()
-            }
+//            override fun onInterrupted() {
+//                stopTimer()
+//                _solverStatus = SolverStatus.INTERRUPTED
+//                channel.close()
+//            }
+//
+//            override fun onSolverError() {
+//                stopTimer()
+//                _solverStatus = SolverStatus.ERROR
+//                channel.close()
+//            }
         }
 
-        runCatching {
-            solver.trySolve(solverMethod.value ?: 0)
-        }.onFailure {
-            Log.d("SolverViewModel", "onFailure")
-            when (it) {
-                is SudokuSolver.SolverError -> {
-                    channel.close()
-                }
-
-                is InterruptedException -> {
-                    channel.close()
-                }
-            }
-        }
+//        runCatching {
+        solver.trySolve(solverMethod.value ?: 0)
+//        }.onFailure {
+//            when (it) {
+//                is SudokuSolver.SolverError -> {
+//                    channel.close()
+//                }
+//
+//                is InterruptedException -> {
+//                    _solverStatus = SolverStatus.INTERRUPTED
+//                    channel.close()
+//                }
+//            }
+//        }
 
         awaitClose {
             solver.callback = null
         }
-
     }
 
     /**
      * 解析停止
      */
     fun stopSolver() {
-        solverJob.cancel()
-        stopTimer()
+        viewModelScope.launch {
+            stopTimer()
+            solverJob.cancel()
+
+            // TODO 中断時に解析が終わっているときは、成功として flowの最後の値をボードに反映する
+//            if (solver.isSolved()) {
+//                _solverStatus = SolverStatus.SUCCESS
+//            } else {
+            _solverStatus = SolverStatus.INTERRUPTED
+//            }
+
+            solverStatus.value = _solverStatus
+//            solverJob.join()
+        }
     }
 
     /**
