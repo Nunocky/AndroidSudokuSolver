@@ -8,7 +8,7 @@ import android.graphics.Paint.ANTI_ALIAS_FLAG
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import org.nunocky.sudokusolver.R
 
 class NumberCellView : View {
