@@ -1,7 +1,10 @@
 package org.nunocky.sudokusolver.ui.main
 
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -52,9 +55,9 @@ class SolverViewModel @Inject constructor(
     private var startTime = 0L
     private var currentTime = 0L
 
-    private var timerJob: Job = Job().apply { cancel() }
-
     val solver = SudokuSolver()
+    private var timerJob: Job = Job().apply { cancel() }
+    private var solverJob: Job = Job().apply { cancel() }
 
     /**
      * 指定 id の問題をロードする (非同期処理)
@@ -94,10 +97,15 @@ class SolverViewModel @Inject constructor(
 
     /**
      * 解析開始
-     * TODO コールバックは複数のメソッドを用意する
+     * TODO コールバックは複数のメソッドを用意する?
      */
-    fun startSolve(dispatcher: CoroutineDispatcher, callback: (List<Cell>) -> Unit): Job {
-        return viewModelScope.launch(dispatcher) {
+    fun startSolve(dispatcher: CoroutineDispatcher, callback: (List<Cell>) -> Unit) {
+        if (solverJob.isActive) {
+            return
+        }
+
+        solverJob = viewModelScope.launch(dispatcher) {
+            startTimer()
             val flow = solverFlow()
                 .buffer(Channel.UNLIMITED)
                 .onCompletion {
@@ -127,9 +135,7 @@ class SolverViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun solverFlow(): Flow<String> = callbackFlow {
-        startTimer()
-
+    private fun solverFlow(): Flow<String> = callbackFlow {
         solver.callback = object : SudokuSolver.ProgressCallback {
             override fun onProgress(cells: List<Cell>) {
                 if (_solverStatus != SolverStatus.WORKING) {
@@ -183,7 +189,8 @@ class SolverViewModel @Inject constructor(
      * 解析停止
      */
     fun stopSolver() {
-        timerJob.cancel()
+        solverJob.cancel()
+        stopTimer()
     }
 
     /**
@@ -206,7 +213,7 @@ class SolverViewModel @Inject constructor(
     /**
      * カウンタの停止
      */
-    fun stopTimer() {
+    private fun stopTimer() {
         timerJob.cancel()
     }
 

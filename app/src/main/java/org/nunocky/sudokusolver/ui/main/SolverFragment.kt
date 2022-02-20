@@ -15,7 +15,6 @@ import androidx.navigation.fragment.navArgs
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.nunocky.sudokulib.Cell
@@ -44,7 +43,7 @@ class SolverFragment : Fragment() {
     private lateinit var currentBackStackEntry: NavBackStackEntry
     private lateinit var savedStateHandle: SavedStateHandle
 
-    private var solverJob: Job = Job().apply { cancel() }
+//    private var solverJob: Job = Job().apply { cancel() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,65 +96,73 @@ class SolverFragment : Fragment() {
         }
 
         binding.btnStart.setOnClickListener {
-            startSolve()
+            viewModel.startSolve(Dispatchers.IO) { cells ->
+                drawSudokuBoard(cells)
+            }
         }
 
         binding.btnReset.setOnClickListener {
-            reset()
+            viewModel.entityId.value?.let {
+                loadSudoku(it)
+            }
         }
 
         binding.btnStop.setOnClickListener {
-            stopSolve()
+            viewModel.stopSolver()
         }
 
         lifecycleScope.launch {
+            viewModel.solverStatus
+                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .collect { status ->
+                    when (status) {
+                        SolverStatus.INIT -> {}
 
-            viewModel.solverStatus.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).collect { status ->
-                when (status) {
-                    SolverStatus.INIT -> {}
-
-                    SolverStatus.READY -> {
-                        syncBoard()
-                    }
-
-                    SolverStatus.WORKING -> {}
-
-                    SolverStatus.SUCCESS -> {
-                        val difficulty = viewModel.solver.difficulty
-
-                        val difficultyStr =
-                            requireActivity().resources.getStringArray(R.array.difficulty).let {
-                                it[difficulty]
-                            }
-
-                        // 難易度をデータベースに反映する (総当り方法だけのときは行わない)
-                        when (viewModel.solverMethod.value) {
-                            // TODO enum に修正
-                            0, 1 -> {
-                                viewModel.updateDifficulty(difficulty)
-                            }
+                        SolverStatus.READY -> {
+                            syncBoard()
                         }
 
-                        val message =
-                            requireActivity().resources.getString(R.string.solver_success, difficultyStr)
-                        showSnackbar(true, message)
+                        SolverStatus.WORKING -> {}
+
+                        SolverStatus.SUCCESS -> {
+                            val difficulty = viewModel.solver.difficulty
+
+                            val difficultyStr =
+                                requireActivity().resources.getStringArray(R.array.difficulty).let {
+                                    it[difficulty]
+                                }
+
+                            // 難易度をデータベースに反映する (総当り方法だけのときは行わない)
+                            when (viewModel.solverMethod.value) {
+                                // TODO enum に修正
+                                0, 1 -> {
+                                    viewModel.updateDifficulty(difficulty)
+                                }
+                            }
+
+                            val message =
+                                requireActivity().resources.getString(
+                                    R.string.solver_success,
+                                    difficultyStr
+                                )
+                            showSnackbar(true, message)
+                        }
+
+                        SolverStatus.FAILED -> {
+                            showSnackbar(false, "FAILED")
+                        }
+
+                        SolverStatus.INTERRUPTED -> {
+                            showSnackbar(false, "INTERRUPTED")
+                        }
+
+                        SolverStatus.ERROR -> {
+                            showSnackbar(false, "ERROR")
+                        }
                     }
 
-                    SolverStatus.FAILED -> {
-                        showSnackbar(false, "FAILED")
-                    }
-
-                    SolverStatus.INTERRUPTED -> {
-                        showSnackbar(false, "INTERRUPTED")
-                    }
-
-                    SolverStatus.ERROR -> {
-                        showSnackbar(false, "ERROR")
-                    }
+                    requireActivity().invalidateOptionsMenu()
                 }
-
-                requireActivity().invalidateOptionsMenu()
-            }
         }
 
         viewModel.stepSpeed.observe(viewLifecycleOwner) {
@@ -179,7 +186,6 @@ class SolverFragment : Fragment() {
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
         menu.findItem(R.id.action_edit).apply {
-            //isEnabled = (viewModel.canReset.value == true)
             isVisible = (viewModel.canReset.value == true)
         }
     }
@@ -221,27 +227,6 @@ class SolverFragment : Fragment() {
             }
         }
         binding.sudokuBoard.updated = false
-    }
-
-    private fun startSolve() {
-        if (solverJob.isActive) {
-            return
-        }
-
-        solverJob = viewModel.startSolve(Dispatchers.IO) { cells ->
-            drawSudokuBoard(cells)
-        }
-    }
-
-    private fun stopSolve() {
-        solverJob.cancel()
-        viewModel.stopSolver()
-    }
-
-    private fun reset() {
-        viewModel.entityId.value?.let {
-            loadSudoku(it)
-        }
     }
 
     /**
