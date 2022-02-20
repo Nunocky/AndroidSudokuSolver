@@ -134,9 +134,8 @@ class SolverFragment : Fragment() {
                             }
                         }
 
-                        // TODO フォーマット付き文字列リソースにする
                         val message =
-                            requireActivity().resources.getString(R.string.solver_success) + " ($difficultyStr)"
+                            requireActivity().resources.getString(R.string.solver_success, difficultyStr)
                         showSnackbar(true, message)
                     }
 
