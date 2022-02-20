@@ -20,28 +20,30 @@ class SolverViewModel @Inject constructor(
     private val preference: Preference
 ) : ViewModel() {
 
-    val elapsedTime = MutableLiveData(0L)
+    // 解読状態
+    // 注 : solverStatusと solverStatusFlowは同時に変化するわけではない
+    private var _solverStatus: SolverStatus = SolverStatus.INIT
+    val solverStatus = MutableStateFlow(SolverStatus.INIT)
 
-    // solverStatusと solverStatusFlowは同時に変化するわけではない
-    private var solverStatus: SolverStatus = SolverStatus.INIT
-    val solverStatusFlow = MutableStateFlow(SolverStatus.INIT)
+    // 解析ステップ数
+    private val _steps = MutableStateFlow(0)
+    val steps = _steps.asLiveData()
+
+    // 解析に要した時間
+    private val _elapsedTime = MutableStateFlow(0L)
+    val elapsedTime = _elapsedTime.asLiveData()
 
     // リセットボタンの enable状態
-    private val _canResetFlow = solverStatusFlow.map {
+    private val _canResetFlow = solverStatus.map {
         it != SolverStatus.INIT && it != SolverStatus.WORKING
     }
-
     val canReset = _canResetFlow.asLiveData()
 
     // スタートボタンの enable状態
-    private val _canStartFlow = solverStatusFlow.map {
+    private val _canStartFlow = solverStatus.map {
         it == SolverStatus.READY
     }
-
     val canStart = _canStartFlow.asLiveData()
-
-    val stepsFlow = MutableStateFlow(0)
-    val steps = stepsFlow.asLiveData()
 
     val entityId = savedStateHandle.getLiveData("entityId", 0L)
     val stepSpeed = savedStateHandle.getLiveData("stepSpeed", preference.stepSpeed)
@@ -54,17 +56,39 @@ class SolverViewModel @Inject constructor(
 
     val solver = SudokuSolver()
 
-    fun loadSudoku(id: Long) {
-        solverStatus = SolverStatus.INIT
-        solverStatusFlow.value = solverStatus
-        val entity = repository.findById(id)
-        if (entity != null) {
-            solver.load(entity.cells)
-            solverStatus = SolverStatus.READY
-            solverStatusFlow.value = solverStatus
-        } else {
-            solverStatus = SolverStatus.ERROR
-            solverStatusFlow.value = solverStatus
+    /**
+     * 指定 id の問題をロードする (非同期処理)
+     *
+     * @param id entity is of sudoku]
+     * @param dispatcher コルーチンを実行するコンテキスト
+     * @param callback 処理完了時に実行するコールバック
+     *
+     */
+    fun loadSudoku(id: Long, dispatcher: CoroutineDispatcher, callback: () -> Unit) {
+        if (id == 0L) {
+            return
+        }
+
+        viewModelScope.launch(dispatcher) {
+            _solverStatus = SolverStatus.INIT
+            _elapsedTime.value = 0
+            _steps.value = 0
+
+            solverStatus.value = _solverStatus
+
+            val entity = repository.findById(id)
+            if (entity != null) {
+                solver.load(entity.cells)
+                _solverStatus = SolverStatus.READY
+                solverStatus.value = _solverStatus
+            } else {
+                _solverStatus = SolverStatus.ERROR
+                solverStatus.value = _solverStatus
+            }
+
+            withContext(Dispatchers.Main) {
+                callback()
+            }
         }
     }
 
@@ -77,7 +101,7 @@ class SolverViewModel @Inject constructor(
             val flow = solverFlow()
                 .buffer(Channel.UNLIMITED)
                 .onCompletion {
-                    solverStatusFlow.value = solverStatus
+                    solverStatus.value = _solverStatus
                 }
 
             flow.collect { cellStr ->
@@ -93,7 +117,7 @@ class SolverViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     callback(cells)
                 }
-                stepsFlow.value += 1
+                _steps.value += 1
 
                 //val tm = max(30L, viewModel.stepSpeed.value!! * 50L)
                 val tm = stepSpeed.value!! * 50L
@@ -108,28 +132,28 @@ class SolverViewModel @Inject constructor(
 
         solver.callback = object : SudokuSolver.ProgressCallback {
             override fun onProgress(cells: List<Cell>) {
-                if (solverStatus != SolverStatus.WORKING) {
-                    solverStatus = SolverStatus.WORKING
-                    solverStatusFlow.value = SolverStatus.WORKING
+                if (_solverStatus != SolverStatus.WORKING) {
+                    _solverStatus = SolverStatus.WORKING
+                    solverStatus.value = SolverStatus.WORKING
                 }
                 trySend(cells.joinToString(""))
             }
 
             override fun onComplete(success: Boolean) {
                 stopTimer()
-                solverStatus = SolverStatus.SUCCESS
+                _solverStatus = SolverStatus.SUCCESS
                 channel.close()
             }
 
             override fun onInterrupted() {
                 stopTimer()
-                solverStatus = SolverStatus.INTERRUPTED
+                _solverStatus = SolverStatus.INTERRUPTED
                 channel.close()
             }
 
             override fun onSolverError() {
                 stopTimer()
-                solverStatus = SolverStatus.ERROR
+                _solverStatus = SolverStatus.ERROR
                 channel.close()
             }
         }
@@ -169,11 +193,11 @@ class SolverViewModel @Inject constructor(
         timerJob = viewModelScope.launch(Dispatchers.IO) {
             startTime = System.currentTimeMillis()
             currentTime = System.currentTimeMillis()
-            elapsedTime.postValue(0L)
+            _elapsedTime.value = 0L
 
             while (isActive) {
                 currentTime = System.currentTimeMillis()
-                elapsedTime.postValue((currentTime - startTime))
+                _elapsedTime.value = currentTime - startTime
                 delay(100)
             }
         }

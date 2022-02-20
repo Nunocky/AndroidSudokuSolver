@@ -16,7 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.nunocky.sudokulib.Cell
 import org.nunocky.sudokusolver.NavigationMainDirections
 import org.nunocky.sudokusolver.Preference
@@ -109,8 +108,7 @@ class SolverFragment : Fragment() {
 
         lifecycleScope.launch {
 
-            viewModel.solverStatusFlow.collect { status ->
-                //.observe(viewLifecycleOwner) { status ->
+            viewModel.solverStatus.collect { status ->
                 when (status) {
                     SolverStatus.INIT -> {}
 
@@ -130,6 +128,7 @@ class SolverFragment : Fragment() {
 
                         // 難易度をデータベースに反映する (総当り方法だけのときは行わない)
                         when (viewModel.solverMethod.value) {
+                            // TODO enum に修正
                             0, 1 -> {
                                 viewModel.updateDifficulty(difficulty)
                             }
@@ -151,10 +150,6 @@ class SolverFragment : Fragment() {
 
                     SolverStatus.ERROR -> {
                         showSnackbar(false, "ERROR")
-                    }
-
-                    else -> {
-                        throw RuntimeException("unknown status")
                     }
                 }
 
@@ -257,19 +252,11 @@ class SolverFragment : Fragment() {
             return
         }
 
-        // TODO ViewModelに移動
         // 非同期で viewModel.loadSudokuを行い、それが終わったらセルの設定をおこなう。
-        lifecycleScope.launch(Dispatchers.IO) {
-            viewModel.elapsedTime.postValue(0L)
-            viewModel.stepsFlow.value = 0
-            viewModel.loadSudoku(id)
-
-            withContext(Dispatchers.Main) {
-                syncBoard()
-            }
+        viewModel.loadSudoku(id, Dispatchers.IO) {
+            syncBoard()
+            binding.sudokuBoard.updated = false
         }
-
-        binding.sudokuBoard.updated = false
     }
 
     private fun drawSudokuBoard(cells: List<Cell>) {

@@ -1,6 +1,9 @@
 package org.nunocky.sudokusolver.ui.main
 
-// 解析機の状態
+/**
+ * 解析機の状態
+ * TODO これはライブラリに移動すべき
+ */
 enum class SolverStatus {
     INIT, // 初期状態、データをロードしていない
     READY, // データをロードして解析が可能な状態
