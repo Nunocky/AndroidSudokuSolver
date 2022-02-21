@@ -188,13 +188,18 @@ class SudokuSolver {
             }
             else -> {
                 // standard + DFS
-                retVal = algorithm.trySolve()
-
+                difficulty = DIFFICULTY_EASY
+                retVal = algorithmEasy.trySolve()
                 if (!retVal) {
-                    difficulty = DIFFICULTY_EXTREME
-                    retVal = algorithmDFS.trySolve()
+                    //difficulty = DIFFICULTY_MEDIUM
+                    retVal = algorithm.trySolve()
+
                     if (!retVal) {
-                        difficulty = DIFFICULTY_IMPOSSIBLE
+                        difficulty = DIFFICULTY_EXTREME
+                        retVal = algorithmDFS.trySolve()
+                        if (!retVal) {
+                            difficulty = DIFFICULTY_IMPOSSIBLE
+                        }
                     }
                 }
             }

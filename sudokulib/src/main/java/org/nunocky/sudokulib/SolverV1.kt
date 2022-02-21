@@ -66,7 +66,7 @@ class SolverV1(
 
     override fun trySolve(): Boolean {
 
-        for (difficulty in DIFFICULTY_EASY..DIFFICULTY_HARD) {
+        for (difficulty in DIFFICULTY_MEDIUM..DIFFICULTY_HARD) {
             parent.difficulty = difficulty
 
             var valueChanged = true
@@ -76,7 +76,7 @@ class SolverV1(
                 valueChanged = false
 
                 // EASY
-                execEasyFilter()
+//                execEasyFilter()
 
                 // MEDIUM
                 if (DIFFICULTY_EASY < difficulty) {
