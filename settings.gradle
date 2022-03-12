@@ -1,3 +1,4 @@
 rootProject.name = "SudokuSolver"
 include ':app'
 include ':sudokulib'
+include ':opencv'

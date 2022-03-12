@@ -1,0 +1,1 @@
+/Users/nunokawa/Desktop/AndroidSudokuSolver/opencv/build/intermediates/cxx/RelWithDebInfo/665r2o5q/obj/arm64-v8a
