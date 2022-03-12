@@ -1,12 +1,16 @@
 package org.nunocky.sudokusolver.ui.main
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.view.*
 import android.widget.CompoundButton
+import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -164,6 +168,14 @@ class EditFragment : Fragment() {
                 onBackButtonClicked()
                 true
             }
+            R.id.action_camera -> {
+                if (allPermissionsGranted()) {
+                    startCamera()
+                } else {
+                    requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+                }
+                true
+            }
             R.id.action_save -> {
                 saveSudoku()
                 true
@@ -304,8 +316,29 @@ class EditFragment : Fragment() {
         }
     }
 
+    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
+        ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                startCamera()
+            } else {
+                Toast.makeText(requireActivity(), "denied", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    private fun startCamera() {
+        Toast.makeText(context, "TODO カメラ起動", Toast.LENGTH_SHORT).show()
+    }
 
     companion object {
+        private val REQUIRED_PERMISSIONS =
+            mutableListOf(
+                Manifest.permission.CAMERA,
+            ).toTypedArray()
+
         const val KEY_SAVED = "saved"
     }
 }
