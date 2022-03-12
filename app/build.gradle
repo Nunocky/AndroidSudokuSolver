@@ -138,6 +138,9 @@ dependencies {
     implementation 'org.pytorch:pytorch_android_lite:1.9.0'
     implementation 'org.pytorch:pytorch_android_torchvision:1.9.0'
 
+    // Timber
+    implementation 'com.jakewharton.timber:timber:4.7.1'
+
     // test
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

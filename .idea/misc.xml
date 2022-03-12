@@ -19,6 +19,7 @@
         <entry key="app/src/main/res/drawable/save.xml" value="0.1935185185185185" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="app/src/main/res/layout/dialog_filter.xml" value="0.31875" />
+        <entry key="app/src/main/res/layout/fragment_camera.xml" value="0.19293478260869565" />
         <entry key="app/src/main/res/layout/fragment_edit.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_export_sudoku.xml" value="0.15438950554994954" />
         <entry key="app/src/main/res/layout/fragment_import_sudoku.xml" value="0.15438950554994954" />

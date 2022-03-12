@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.IBinder
 import dagger.hilt.android.HiltAndroidApp
 import org.nunocky.sudokusolver.service.CleanupService
+import timber.log.Timber
 import java.io.File
 import javax.inject.Singleton
 
@@ -24,7 +25,8 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks {
         val imageDir = File("${filesDir}/images")
         imageDir.mkdir()
 
-        if(!BuildConfig.DEBUG) {
+        if (!BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
             registerActivityLifecycleCallbacks(this)
             startService(Intent(this, DestroyingService::class.java))
         }

@@ -13,6 +13,7 @@ import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -104,6 +105,13 @@ class EditFragment : Fragment() {
             }
             viewModel.sudokuSolver.load(list)
             updateBackgroundColor()
+        }
+
+        setFragmentResultListener("camera") { key, bundle ->
+            val sudoku = bundle.getString("sudoku")
+            if (sudoku?.isNotBlank() == true) {
+                Toast.makeText(this@EditFragment.context, "$sudoku}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -320,6 +328,10 @@ class EditFragment : Fragment() {
         ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
     }
 
+    private fun startCamera() {
+        findNavController().navigate(R.id.cameraFragment)
+    }
+
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) {
@@ -328,10 +340,6 @@ class EditFragment : Fragment() {
                 Toast.makeText(requireActivity(), "denied", Toast.LENGTH_SHORT).show()
             }
         }
-
-    private fun startCamera() {
-        Toast.makeText(context, "TODO カメラ起動", Toast.LENGTH_SHORT).show()
-    }
 
     companion object {
         private val REQUIRED_PERMISSIONS =

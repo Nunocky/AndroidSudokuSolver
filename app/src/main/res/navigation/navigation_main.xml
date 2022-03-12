@@ -6,17 +6,10 @@
     <action
         android:id="@+id/action_global_editFragment"
         app:destination="@id/editFragment" />
-    <fragment
-        android:id="@+id/editFragment"
-        android:name="org.nunocky.sudokusolver.ui.main.EditFragment"
-        android:label="{title}">
-        <argument
-            android:name="title"
-            app:argType="string" />
-        <argument
-            android:name="entityId"
-            app:argType="long" />
-    </fragment>
+    <dialog
+        android:id="@+id/filterDialogFragment"
+        android:name="org.nunocky.sudokusolver.ui.dialog.FilterDialogFragment"
+        android:label="FilterDialogFragment" />
     <fragment
         android:id="@+id/solverFragment"
         android:name="org.nunocky.sudokusolver.ui.main.SolverFragment"
@@ -57,8 +50,22 @@
             android:id="@+id/action_sudokuListFragment_to_filterDialogFragment"
             app:destination="@id/filterDialogFragment" />
     </fragment>
-    <dialog
-        android:id="@+id/filterDialogFragment"
-        android:name="org.nunocky.sudokusolver.ui.dialog.FilterDialogFragment"
-        android:label="FilterDialogFragment" />
+    <fragment
+        android:id="@+id/editFragment"
+        android:name="org.nunocky.sudokusolver.ui.main.EditFragment"
+        android:label="{title}">
+        <action
+            android:id="@+id/action_editFragment_to_cameraFragment"
+            app:destination="@id/cameraFragment" />
+        <argument
+            android:name="entityId"
+            app:argType="long" />
+        <argument
+            android:name="title"
+            app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/cameraFragment"
+        android:name="org.nunocky.sudokusolver.ui.main.CameraFragment"
+        android:label="Image Capture" />
 </navigation>
