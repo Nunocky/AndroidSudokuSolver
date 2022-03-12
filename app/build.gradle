@@ -49,6 +49,10 @@ android {
     buildFeatures {
         dataBinding true
     }
+
+    packagingOptions {
+        pickFirst '**/*.so'
+    }
 }
 
 dependencies {
