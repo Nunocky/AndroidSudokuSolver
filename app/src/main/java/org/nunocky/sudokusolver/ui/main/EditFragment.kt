@@ -18,7 +18,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -259,12 +258,12 @@ class EditFragment : Fragment() {
             previousSavedStateHandle.set("entityId", newId)
 
             // SnackBarを表示して前画面に戻る
-            val snackBar = Snackbar.make(
-                binding.root,
-                resources.getString(R.string.saved),
-                Snackbar.LENGTH_SHORT
-            )
-            snackBar.show()
+//            val snackBar = Snackbar.make(
+//                binding.root,
+//                resources.getString(R.string.saved),
+//                Snackbar.LENGTH_SHORT
+//            )
+//            snackBar.show()
 
             findNavController().popBackStack()
         }

@@ -23,8 +23,12 @@ class CameraViewModel @Inject constructor(
         MutableStateFlow<Result<Pair<Bitmap?, String?>>?>(Result.success(null to ""))
     val result = _result.asLiveData()
 
+    private val _processing = MutableStateFlow(false)
+    val processing = _processing.asLiveData()
+
     fun process(path: String) {
         viewModelScope.launch(Dispatchers.IO) {
+            _processing.value = true
             var srcBitmap = BitmapFactory.decodeFile(path)
             srcBitmap = srcBitmap.rotate(90)
             val length = min(srcBitmap.width, srcBitmap.height)
@@ -40,6 +44,8 @@ class CameraViewModel @Inject constructor(
                 .onFailure {
                     _result.value = Result.failure(it)
                 }
+
+            _processing.value = false
         }
     }
 

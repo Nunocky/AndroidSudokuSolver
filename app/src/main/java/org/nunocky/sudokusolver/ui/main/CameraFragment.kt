@@ -2,7 +2,6 @@ package org.nunocky.sudokusolver.ui.main
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -46,7 +45,7 @@ class CameraFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentCameraBinding.inflate(inflater, container, false)
-        //binding.viewModel = viewModel
+        binding.viewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
         return binding.root
     }
@@ -78,7 +77,8 @@ class CameraFragment : Fragment() {
                     "couldn't find sudoku board",
                     Toast.LENGTH_SHORT
                 ).show()
-//                findNavController().popBackStack()
+                startCamera()
+                // findNavController().popBackStack()
             }
         }
     }
@@ -92,12 +92,15 @@ class CameraFragment : Fragment() {
         ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
     }
 
+    private var cameraProvider: ProcessCameraProvider? = null
+
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireActivity())
 
         cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+            cameraProvider = cameraProviderFuture.get()
+//            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
             // Preview
             val preview = Preview.Builder()
@@ -113,10 +116,10 @@ class CameraFragment : Fragment() {
 
             try {
                 // Unbind use cases before rebinding
-                cameraProvider.unbindAll()
+                cameraProvider?.unbindAll()
 
                 // Bind use cases to camera
-                cameraProvider.bindToLifecycle(
+                cameraProvider?.bindToLifecycle(
                     viewLifecycleOwner, cameraSelector, preview, imageCapture
                 )
 
@@ -143,10 +146,8 @@ class CameraFragment : Fragment() {
             ContextCompat.getMainExecutor(requireContext()),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                    cameraProvider?.unbindAll()
                     viewModel.process(outputFile.absolutePath)
-//                    var srcBitmap = BitmapFactory.decodeFile(outputFile.absolutePath)
-//                    srcBitmap = srcBitmap.rotate(90)
-//                    viewModel.process(srcBitmap)
                 }
 
                 override fun onError(exception: ImageCaptureException) {
