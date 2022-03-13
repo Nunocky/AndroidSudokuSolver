@@ -1,15 +1,16 @@
 package org.nunocky.sudokusolver
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
 import dagger.hilt.android.AndroidEntryPoint
 import org.nunocky.sudokusolver.databinding.ActivityMainBinding
+import org.opencv.android.OpenCVLoader
 
 
 @AndroidEntryPoint
@@ -27,6 +28,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupToolbar()
+
+        if (OpenCVLoader.initDebug()) {
+            Log.d("Check", "OpenCv configured successfully");
+        } else {
+            Log.d("Check", "OpenCv doesn't configured successfully");
+        }
     }
 
     private fun setupToolbar() {

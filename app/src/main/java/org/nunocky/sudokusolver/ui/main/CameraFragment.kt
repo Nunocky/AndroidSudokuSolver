@@ -2,6 +2,7 @@ package org.nunocky.sudokusolver.ui.main
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +18,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
 import org.nunocky.sudokusolver.databinding.FragmentCameraBinding
@@ -28,7 +30,6 @@ import java.util.concurrent.Executors
 @AndroidEntryPoint
 class CameraFragment : Fragment() {
     companion object {
-        //        private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =
             mutableListOf(
                 Manifest.permission.CAMERA,
@@ -36,6 +37,7 @@ class CameraFragment : Fragment() {
     }
 
     private lateinit var binding: FragmentCameraBinding
+    private val viewModel: CameraViewModel by viewModels()
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
 
@@ -44,6 +46,7 @@ class CameraFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentCameraBinding.inflate(inflater, container, false)
+        //binding.viewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
         return binding.root
     }
@@ -60,11 +63,23 @@ class CameraFragment : Fragment() {
         if (allPermissionsGranted()) {
             startCamera()
         } else {
-//            requireActivity().requestPermissions(
-//                REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
-//            )
-
             requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+
+        viewModel.result.observe(viewLifecycleOwner) { result ->
+            result?.onSuccess {
+                if (it.second?.isNotBlank() == true) {
+                    setFragmentResult("camera", bundleOf("sudoku" to it.second))
+                    findNavController().popBackStack()
+                }
+            }?.onFailure {
+                Toast.makeText(
+                    this@CameraFragment.context,
+                    "couldn't find sudoku board",
+                    Toast.LENGTH_SHORT
+                ).show()
+                findNavController().popBackStack()
+            }
         }
     }
 
@@ -72,25 +87,6 @@ class CameraFragment : Fragment() {
         super.onPause()
         cameraExecutor.shutdown()
     }
-
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int, permissions: Array<String>, grantResults:
-//        IntArray
-//    ) {
-//        if (requestCode == REQUEST_CODE_PERMISSIONS) {
-//            if (allPermissionsGranted()) {
-//                startCamera()
-//            } else {
-//                Toast.makeText(
-//                    requireContext(),
-//                    "Permissions not granted by the user.",
-//                    Toast.LENGTH_SHORT
-//                ).show()
-//
-//                findNavController().popBackStack()
-//            }
-//        }
-//    }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
@@ -147,11 +143,9 @@ class CameraFragment : Fragment() {
             ContextCompat.getMainExecutor(requireContext()),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    setFragmentResult("camera", bundleOf("sudoku" to "00000000"))
-                    findNavController().popBackStack()
-
-//                    val action = CameraFragmentDirections.actionCameraFragmentToViewerFragment()
-//                    findNavController().navigate(action)
+                    var srcBitmap = BitmapFactory.decodeFile(outputFile.absolutePath)
+                    srcBitmap = srcBitmap.rotate(90)
+                    viewModel.process(srcBitmap)
                 }
 
                 override fun onError(exception: ImageCaptureException) {
@@ -170,6 +164,13 @@ class CameraFragment : Fragment() {
         }
 }
 
-
-// TODO 保存時に正しい方向に回転された状態になっていてほしい
-//      もしくは、Bitmapデコード時に回転情報を反映してほしい
+//fun Uri.getBitmapOrNull(contentResolver: ContentResolver): Bitmap? {
+//    return kotlin.runCatching {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//            val source = ImageDecoder.createSource(contentResolver, this)
+//            ImageDecoder.decodeBitmap(source)
+//        } else {
+//            MediaStore.Images.Media.getBitmap(contentResolver, this)
+//        }
+//    }.getOrNull()
+//}
