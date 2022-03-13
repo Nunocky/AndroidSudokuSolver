@@ -143,9 +143,10 @@ class CameraFragment : Fragment() {
             ContextCompat.getMainExecutor(requireContext()),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    var srcBitmap = BitmapFactory.decodeFile(outputFile.absolutePath)
-                    srcBitmap = srcBitmap.rotate(90)
-                    viewModel.process(srcBitmap)
+                    viewModel.process(outputFile.absolutePath)
+//                    var srcBitmap = BitmapFactory.decodeFile(outputFile.absolutePath)
+//                    srcBitmap = srcBitmap.rotate(90)
+//                    viewModel.process(srcBitmap)
                 }
 
                 override fun onError(exception: ImageCaptureException) {
