@@ -42,7 +42,8 @@ class CameraViewModel @Inject constructor(
                     _result.value = Result.success(it)
                 }
                 .onFailure {
-                    _result.value = Result.failure(it)
+                    //_result.value = Result.failure(it)
+                    _result.value = Result.success(Pair(srcBitmap, null))
                 }
 
             _processing.value = false

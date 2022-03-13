@@ -1,8 +1,12 @@
 package org.nunocky.sudokusolver.ui.main
 
 import android.Manifest
+import android.content.ContentValues
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,6 +27,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import org.nunocky.sudokusolver.databinding.FragmentCameraBinding
 import timber.log.Timber
 import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -68,17 +75,23 @@ class CameraFragment : Fragment() {
         viewModel.result.observe(viewLifecycleOwner) { result ->
             result?.onSuccess {
                 if (it.second?.isNotBlank() == true) {
+                    it.first?.let { bmp ->
+                        saveBitmap("success", bmp)
+                    }
+
                     setFragmentResult("camera", bundleOf("sudoku" to it.second))
                     findNavController().popBackStack()
+                } else {
+                    Toast.makeText(
+                        context, "couldn't find sudoku board", Toast.LENGTH_SHORT
+                    ).show()
+
+                    it.first?.let { bmp ->
+                        saveBitmap("fail", bmp)
+                    }
+
+                    startCamera()
                 }
-            }?.onFailure {
-                Toast.makeText(
-                    this@CameraFragment.context,
-                    "couldn't find sudoku board",
-                    Toast.LENGTH_SHORT
-                ).show()
-                startCamera()
-                // findNavController().popBackStack()
             }
         }
     }
@@ -164,6 +177,44 @@ class CameraFragment : Fragment() {
                 Toast.makeText(requireActivity(), "denied", Toast.LENGTH_SHORT).show()
             }
         }
+
+    private fun saveBitmap(prefix: String, bmp: Bitmap) {
+        val d = Date() // 現在時刻
+        val sdf = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
+        val date = sdf.format(d)
+        val filename = "Sudoku-$prefix-$date.jpg"
+
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, filename)
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            if (Build.VERSION_CODES.Q <= Build.VERSION.SDK_INT) {
+                put(MediaStore.Images.Media.IS_PENDING, 1)
+            }
+        }
+
+        val resolver = requireContext().contentResolver
+
+        if (Build.VERSION_CODES.Q <= Build.VERSION.SDK_INT) {
+            val collection =
+                MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            val item = resolver.insert(collection, contentValues)
+
+            try {
+                val outputStream = resolver.openOutputStream(item!!)
+                bmp.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            } catch (e: IOException) {
+                Timber.d(e)
+            }
+
+            contentValues.clear()
+            contentValues.put(MediaStore.Images.Media.IS_PENDING, 0);
+            resolver.update(item!!, contentValues, null, null);
+        } else {
+            TODO("Q未満での保存処理")
+        }
+    }
+
+
 }
 
 //fun Uri.getBitmapOrNull(contentResolver: ContentResolver): Bitmap? {
