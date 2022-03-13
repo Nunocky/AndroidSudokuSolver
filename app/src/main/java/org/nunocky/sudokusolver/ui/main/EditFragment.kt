@@ -40,6 +40,9 @@ class EditFragment : Fragment() {
     private var currentCell: NumberCellView? = null
     private var shouldReturnToList = true
 
+    // 次の画面(数独画面撮影)から戻ってきたときにセットされる文字列
+    private var returnedSudoku = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
@@ -64,7 +67,16 @@ class EditFragment : Fragment() {
 
         viewModel.entityId.observe(viewLifecycleOwner) { entity ->
             entity?.let {
-                loadSudoku(it)
+                if (returnedSudoku.isBlank()) {
+                    loadSudoku(it)
+                } else {
+                    // 結果をボードに反映
+                    binding.sudokuBoardView.cellViews.forEachIndexed { n, numberCellView ->
+                        numberCellView.fixedNum = returnedSudoku[n].digitToInt()
+                    }
+                    returnedSudoku = ""
+                }
+
                 shouldReturnToList = (it == 0L)
             }
         }
@@ -110,7 +122,7 @@ class EditFragment : Fragment() {
         setFragmentResultListener("camera") { key, bundle ->
             val sudoku = bundle.getString("sudoku")
             if (sudoku?.isNotBlank() == true) {
-                Toast.makeText(this@EditFragment.context, "$sudoku}", Toast.LENGTH_SHORT).show()
+                returnedSudoku = sudoku
             }
         }
     }
@@ -228,28 +240,33 @@ class EditFragment : Fragment() {
      *
      */
     private fun saveSudoku() {
-        lifecycleScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch(Dispatchers.Main) {
+
             val cells =
                 binding.sudokuBoardView.cellViews.joinToString("") { it.fixedNum.toString() }
 
             val thumbnail = createImage()
-            val newId = viewModel.saveSudoku(args.entityId, cells, thumbnail)
-
-            withContext(Dispatchers.Main) {
-                shouldReturnToList = false
-                previousSavedStateHandle.set(KEY_SAVED, true)
-                previousSavedStateHandle.set("entityId", newId)
-
-                // SnackBarを表示して前画面に戻る
-                val snackBar = Snackbar.make(
-                    binding.root,
-                    resources.getString(R.string.saved),
-                    Snackbar.LENGTH_SHORT
+            val newId = withContext(Dispatchers.IO) {
+                viewModel.saveSudoku(
+                    args.entityId,
+                    cells,
+                    thumbnail
                 )
-                snackBar.show()
-
-                findNavController().popBackStack()
             }
+
+            shouldReturnToList = false
+            previousSavedStateHandle.set(KEY_SAVED, true)
+            previousSavedStateHandle.set("entityId", newId)
+
+            // SnackBarを表示して前画面に戻る
+            val snackBar = Snackbar.make(
+                binding.root,
+                resources.getString(R.string.saved),
+                Snackbar.LENGTH_SHORT
+            )
+            snackBar.show()
+
+            findNavController().popBackStack()
         }
     }
 

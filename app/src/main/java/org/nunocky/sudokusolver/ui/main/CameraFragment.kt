@@ -78,7 +78,7 @@ class CameraFragment : Fragment() {
                     "couldn't find sudoku board",
                     Toast.LENGTH_SHORT
                 ).show()
-                findNavController().popBackStack()
+//                findNavController().popBackStack()
             }
         }
     }
