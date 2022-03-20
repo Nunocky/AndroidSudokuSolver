@@ -6,6 +6,7 @@ import android.graphics.Color
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
+import org.opencv.imgproc.Imgproc.*
 import org.pytorch.IValue
 import org.pytorch.LiteModuleLoader
 import org.pytorch.Tensor
@@ -80,29 +81,32 @@ class SudokuImageProcessor constructor(
         // ARGB -> HSVに変換
         val srcMat = Mat()
         Utils.bitmapToMat(srcBitmap, srcMat)
+
         val hsvMat = Mat()
-        Imgproc.cvtColor(srcMat, hsvMat, Imgproc.COLOR_RGB2HSV) //  COLOR_BGR2HSV)
+        cvtColor(srcMat, hsvMat, COLOR_RGB2HSV) //  COLOR_BGR2HSV)
+
         val gaussMat = Mat()
-        Imgproc.GaussianBlur(hsvMat, gaussMat, Size(9.0, 9.0), 3.0)
+        GaussianBlur(hsvMat, gaussMat, Size(9.0, 9.0), 3.0)
 
         // S成分だけ見る
         val hsvMatArray = mutableListOf<Mat>()
         Core.split(gaussMat, hsvMatArray)
+
         val sMat = hsvMatArray[1]
 
         // 二値化
         val binMat = Mat()
-        Imgproc.threshold(sMat, binMat, 60.0, 255.0, Imgproc.THRESH_BINARY)
+        threshold(sMat, binMat, 40.0, 255.0, Imgproc.THRESH_BINARY)
 
         // 物体検出、頂点数の多い順に並べ替え
         val contours = mutableListOf<MatOfPoint>()
         val hierarchy = Mat()
-        Imgproc.findContours(
+        findContours(
             binMat,
             contours,
             hierarchy,
-            Imgproc.RETR_LIST,
-            Imgproc.CHAIN_APPROX_NONE
+            RETR_LIST,
+            CHAIN_APPROX_NONE
         )
         contours.sortByDescending { it.total() }
 
@@ -134,12 +138,11 @@ class SudokuImageProcessor constructor(
             Point(0.0, boardImageSize),
             Point(boardImageSize, boardImageSize)
         )
-        val projectMatrix = Imgproc.getPerspectiveTransform(frameRect, transformDstRect)
+        val projectMatrix = getPerspectiveTransform(frameRect, transformDstRect)
 
-        // val epsilon = 0.1 * arcLength(frameRect, true)
         val warpedMat = Mat()
 
-        Imgproc.warpPerspective(
+        warpPerspective(
             binMat,
             warpedMat,
             projectMatrix,
@@ -152,7 +155,6 @@ class SudokuImageProcessor constructor(
             Bitmap.Config.ARGB_8888
         )
         Utils.matToBitmap(warpedMat, warpedBmp)
-        // _bitmap.value = warpedBmp
 
         return warpedBmp
     }
@@ -165,14 +167,14 @@ class SudokuImageProcessor constructor(
         squares.clear()
         val curve = MatOfPoint2f(*contours.toArray())
 
-        val arcLen = Imgproc.arcLength(curve, true)
+        val arcLen = arcLength(curve, true)
         val approx = MatOfPoint2f()
-        Imgproc.approxPolyDP(curve, approx, arcLen * 0.02, true)
+        approxPolyDP(curve, approx, arcLen * 0.02, true)
 
-        val area = kotlin.math.abs(Imgproc.contourArea(approx))
+        val area = kotlin.math.abs(contourArea(approx))
 
         val sz = approx.size().area()
-        val convex = Imgproc.isContourConvex(MatOfPoint(*approx.toArray()))
+        val convex = isContourConvex(MatOfPoint(*approx.toArray()))
         if (sz == 4.0 && areaThreshold < area && convex) {
             var maxCosine = 0.0
             for (j in 2 until 5) {
@@ -242,5 +244,4 @@ class SudokuImageProcessor constructor(
         }
         return Tensor.fromBlob(floatArray, longArrayOf(1, 1, width.toLong(), height.toLong()))
     }
-
 }
