@@ -52,7 +52,8 @@ class SudokuSolver {
         for (i in 0 until 9) {
             val p = i * 9
             val group = Group(
-                setOf(
+                id = groupId++,
+                cells = setOf(
                     cells[p + 0],
                     cells[p + 1],
                     cells[p + 2],
@@ -63,16 +64,15 @@ class SudokuSolver {
                     cells[p + 7],
                     cells[p + 8]
                 )
-            ).apply {
-                id = groupId++
-            }
+            )
             groups.add(group)
         }
 
         // 縦方向のグループ
         for (i in 0 until 9) {
             val group = Group(
-                setOf(
+                id = groupId++,
+                cells = setOf(
                     cells[9 * 0 + i],
                     cells[9 * 1 + i],
                     cells[9 * 2 + i],
@@ -83,11 +83,8 @@ class SudokuSolver {
                     cells[9 * 7 + i],
                     cells[9 * 8 + i]
                 )
-            ).apply {
-                id = groupId++
-            }
+            )
             groups.add(group)
-
         }
 
         // 3x3のグループ
@@ -95,7 +92,8 @@ class SudokuSolver {
             for (x in 0 until 3) {
                 val leftTop = y * 27 + x * 3
                 val group = Group(
-                    setOf(
+                    id = groupId++,
+                    cells = setOf(
                         cells[leftTop + 9 * 0],
                         cells[leftTop + 9 * 0 + 1],
                         cells[leftTop + 9 * 0 + 2],
@@ -106,9 +104,7 @@ class SudokuSolver {
                         cells[leftTop + 9 * 2 + 1],
                         cells[leftTop + 9 * 2 + 2]
                     )
-                ).apply {
-                    id = groupId++
-                }
+                )
                 groups.add(group)
             }
         }
