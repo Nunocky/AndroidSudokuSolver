@@ -1,8 +1,5 @@
 package org.nunocky.sudokulib
 
-import org.nunocky.sudokulib.SudokuSolver.Companion.DIFFICULTY_EASY
-import org.nunocky.sudokulib.SudokuSolver.Companion.DIFFICULTY_HARD
-import org.nunocky.sudokulib.SudokuSolver.Companion.DIFFICULTY_MEDIUM
 import java.util.*
 
 class SolverV1(
@@ -66,7 +63,7 @@ class SolverV1(
 
     override fun trySolve(): Boolean {
 
-        for (difficulty in DIFFICULTY_MEDIUM..DIFFICULTY_HARD) {
+        for (difficulty in arrayOf(DIFFICULTY.MEDIUM, DIFFICULTY.HARD)) {
             parent.difficulty = difficulty
 
             var valueChanged = true
@@ -79,7 +76,7 @@ class SolverV1(
 //                execEasyFilter()
 
                 // MEDIUM
-                if (DIFFICULTY_EASY < difficulty) {
+                if (DIFFICULTY.EASY < difficulty) {
                     shouldRefresh = true
                     for (filter in mediumFilters) {
                         if (shouldRefresh) {
@@ -96,7 +93,7 @@ class SolverV1(
                 }
 
                 // HARD
-                if (DIFFICULTY_MEDIUM < difficulty) {
+                if (DIFFICULTY.MEDIUM < difficulty) {
                     shouldRefresh = true
                     for (filter in hardFilters) {
                         if (shouldRefresh) {

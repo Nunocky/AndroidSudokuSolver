@@ -80,10 +80,6 @@ class SolverDFS(
 
             // 矛盾がなければ進む
             if (parent.isValid) {
-//                Log.d(
-//                    TAG,
-//                    "${depth}/${cellList.size} [$maxDepth]: set cell ${cell.id} (${cell.id % 9}, ${cell.id / 9}) to $v"
-//                )
                 callback?.onProgress(cells)
                 val solved = depthFirstSearch(depth + 1)
 
@@ -97,28 +93,27 @@ class SolverDFS(
             cell.candidates = candidatesBak.toMutableSet()
         }
 
-//        Log.d(TAG, "${depth}/${cellList.size} : fail")
         return false
     }
 
-    /**
-     * 確定セルをもとに不要な候補を除外する
-     */
-    private fun sweepCandidateForCell(cell: Cell, n: Int): Boolean {
-        var changed = false
-        for (g in cell.groups) {
-            for (c in g.cells) {
-                if (c == cell) {
-                    continue
-                }
-
-                if (c.candidates.contains(n)) {
-                    c.candidates.remove(n)
-                    changed = true
-                }
-            }
-        }
-
-        return changed
-    }
+//    /**
+//     * 確定セルをもとに不要な候補を除外する
+//     */
+//    private fun sweepCandidateForCell(cell: Cell, n: Int): Boolean {
+//        var changed = false
+//        for (g in cell.groups) {
+//            for (c in g.cells) {
+//                if (c == cell) {
+//                    continue
+//                }
+//
+//                if (c.candidates.contains(n)) {
+//                    c.candidates.remove(n)
+//                    changed = true
+//                }
+//            }
+//        }
+//
+//        return changed
+//    }
 }

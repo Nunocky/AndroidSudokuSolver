@@ -1,14 +1,6 @@
 package org.nunocky.sudokulib
 
 class SudokuSolver {
-    companion object {
-        const val DIFFICULTY_IMPOSSIBLE = 0
-        const val DIFFICULTY_UNDEF = 1
-        const val DIFFICULTY_EASY = 2
-        const val DIFFICULTY_MEDIUM = 3
-        const val DIFFICULTY_HARD = 4
-        const val DIFFICULTY_EXTREME = 5
-    }
 
     class SolverError : IllegalStateException()
 
@@ -34,7 +26,7 @@ class SudokuSolver {
     private var elapsedTime: Long = 0
     fun getElapsedTime() = elapsedTime
 
-    var difficulty = DIFFICULTY_UNDEF
+    var difficulty = DIFFICULTY.UNDEF
     var callback: ProgressCallback? = null
     val cells = ArrayList<Cell>()
     val groups = ArrayList<Group>()
@@ -158,55 +150,55 @@ class SudokuSolver {
      * 問題を最後まで自動で解く
      *
      */
-    fun trySolve(m: Int = 2): Boolean {
+    fun trySolve(method : METHOD = METHOD.STANDARD_AND_DFS): Boolean {
         val tmStart = System.currentTimeMillis()
+        try {
 
-        val algorithmEasy = SolverEasy(this, cells, groups, callback)
-        val algorithm = SolverV1(this, cells, groups, callback)
-        val algorithmDFS = SolverDFS(this, cells, groups, callback)
+            val algorithmEasy = SolverEasy(this, cells, groups, callback)
+            val algorithm = SolverV1(this, cells, groups, callback)
+            val algorithmDFS = SolverDFS(this, cells, groups, callback)
 
-        var retVal: Boolean
+            var retVal: Boolean
 
-        when (m) {
-            0 -> {
-                // only standard
-                retVal = algorithmEasy.trySolve()
-                if (retVal) {
-                    difficulty = DIFFICULTY_EASY
-                } else {
-                    retVal = algorithm.trySolve()
+            when (method) {
+                METHOD.ONLY_STANDARD -> {
+                    retVal = algorithmEasy.trySolve()
+                    if (retVal) {
+                        difficulty = DIFFICULTY.EASY
+                    } else {
+                        retVal = algorithm.trySolve()
+                    }
                 }
-            }
-            2 -> {
-                // only DFS
-                retVal = algorithmDFS.trySolve()
-                difficulty = DIFFICULTY_UNDEF // DFSだけ使ったときは判別できない
-            }
-            else -> {
-                // standard + DFS
-                difficulty = DIFFICULTY_EASY
-                retVal = algorithmEasy.trySolve()
-                if (!retVal) {
-                    //difficulty = DIFFICULTY_MEDIUM
-                    retVal = algorithm.trySolve()
-
+                METHOD.ONLY_DFS -> {
+                    retVal = algorithmDFS.trySolve()
+                    difficulty = DIFFICULTY.UNDEF // DFSだけ使ったときは判別できない
+                }
+                METHOD.STANDARD_AND_DFS -> {
+                    difficulty = DIFFICULTY.EASY
+                    retVal = algorithmEasy.trySolve()
                     if (!retVal) {
-                        difficulty = DIFFICULTY_EXTREME
-                        retVal = algorithmDFS.trySolve()
+                        //difficulty = DIFFICULTY_MEDIUM
+                        retVal = algorithm.trySolve()
+
                         if (!retVal) {
-                            difficulty = DIFFICULTY_IMPOSSIBLE
+                            difficulty = DIFFICULTY.EXTREME
+                            retVal = algorithmDFS.trySolve()
+                            if (!retVal) {
+                                difficulty = DIFFICULTY.IMPOSSIBLE
+                            }
                         }
                     }
                 }
             }
+
+            callback?.onComplete(retVal)
+            return retVal
+        } catch (e: SolverError) {
+            return false
+        }finally {
+            val tmEnd = System.currentTimeMillis()
+            elapsedTime = tmEnd - tmStart
         }
-
-        callback?.onComplete(retVal)
-
-        val tmEnd = System.currentTimeMillis()
-
-        elapsedTime = tmEnd - tmStart
-        return retVal
     }
 
     /**
