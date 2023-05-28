@@ -9,13 +9,13 @@ plugins {
 }
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
     buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "org.nunocky.sudokusolver"
         minSdkVersion 21
-        targetSdkVersion 31
+        targetSdkVersion 33
         versionCode 3
         versionName "1.0"
 
@@ -49,6 +49,7 @@ android {
     buildFeatures {
         dataBinding true
     }
+    namespace 'org.nunocky.sudokusolver'
 }
 
 dependencies {
