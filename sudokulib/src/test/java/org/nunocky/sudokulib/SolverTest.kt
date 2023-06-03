@@ -129,6 +129,49 @@ class SolverTest {
             println(sb.toString())
         }
     }
+
+    @Test
+    fun test20230603_difficult() {
+        // https://sudoku.com/jp/jokyu/ より
+        val target =
+            "009600100" +
+                    "010700080" +
+                    "350010000" +
+                    "500000600" +
+                    "000042001" +
+                    "003000070" +
+                    "005006010" +
+                    "006800304" +
+                    "081470200"
+        solver.load(target)
+        TestCase.assertTrue(solver.isValid)
+
+        val solved = solver.trySolve(METHOD.STANDARD_AND_DFS)
+        TestCase.assertTrue(solved)
+        TestCase.assertTrue(solver.isValid)
+    }
+
+    @Test
+    fun test20230603_difficult2() {
+        // https://sudoku.com/jp/jokyu/ より
+        val target =
+            "501304000" +
+                    "420000000" +
+                    "070000140" +
+                    "000490010" +
+                    "000010036" +
+                    "106000000" +
+                    "000031760" +
+                    "200040000" +
+                    "613000059"
+        solver.load(target)
+        TestCase.assertTrue(solver.isValid)
+
+        val solved = solver.trySolve(METHOD.STANDARD_AND_DFS)
+        TestCase.assertTrue(solved)
+        TestCase.assertTrue(solver.isValid)
+    }
+
 }
 
 private const val targetEasy =
@@ -174,3 +217,4 @@ private const val targetNoSolution =
             "001007900" +
             "060103508" +
             "703090002"
+

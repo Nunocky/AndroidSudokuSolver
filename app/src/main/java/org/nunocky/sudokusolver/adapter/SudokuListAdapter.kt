@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import org.nunocky.sudokulib.DIFFICULTY
+import org.nunocky.sudokulib.toInt
 import org.nunocky.sudokusolver.IMAGEDIR
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.database.SudokuEntity
@@ -71,7 +72,7 @@ class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
         binding.text1.apply {
             val textArray = context.resources.getTextArray(R.array.difficulty)
-            this.text = textArray[difficulty.value]
+            this.text = textArray[difficulty.toInt()]
 
             val text1Color = when (difficulty) {
                 DIFFICULTY.UNDEF -> R.color.difficulty_undef

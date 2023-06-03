@@ -27,7 +27,7 @@ class Preference @Inject constructor(
 
     var solverMethod: METHOD
         get() =
-            (sharedPreference.getInt("solverMethod", 0)).toMETHOD()
+            (sharedPreference.getInt("solverMethod", 1)).toMETHOD()
         set(value) {
             sharedPreference.edit()
                 .putInt("solverMethod", value.toInt())
