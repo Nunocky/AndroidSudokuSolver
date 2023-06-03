@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.nunocky.sudokulib.Cell
+import org.nunocky.sudokulib.METHOD
 import org.nunocky.sudokusolver.NavigationMainDirections
 import org.nunocky.sudokusolver.Preference
 import org.nunocky.sudokusolver.R
@@ -129,13 +130,13 @@ class SolverFragment : Fragment() {
 
                             val difficultyStr =
                                 requireActivity().resources.getStringArray(R.array.difficulty).let {
-                                    it[difficulty]
+                                    it[difficulty.value]
                                 }
 
                             // 難易度をデータベースに反映する (総当り方法だけのときは行わない)
                             when (viewModel.solverMethod.value) {
                                 // TODO enum に修正
-                                0, 1 -> {
+                                METHOD.ONLY_STANDARD, METHOD.ONLY_DFS -> {
                                     viewModel.updateDifficulty(difficulty)
                                 }
                             }

@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "68386a847edc3249b5c41f622ec8996e",
+    "identityHash": "d4ee91743809f2a87f6c554bde7d04e1",
     "entities": [
       {
         "tableName": "sudoku",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `cells` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `difficulty` INTEGER, `thumbnail` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `cells` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `difficulty` TEXT, `thumbnail` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -29,7 +29,7 @@
           {
             "fieldPath": "difficulty",
             "columnName": "difficulty",
-            "affinity": "INTEGER",
+            "affinity": "TEXT",
             "notNull": false
           },
           {
@@ -52,7 +52,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '68386a847edc3249b5c41f622ec8996e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd4ee91743809f2a87f6c554bde7d04e1')"
     ]
   }
 }

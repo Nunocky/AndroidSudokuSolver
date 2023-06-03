@@ -1,5 +1,6 @@
 package org.nunocky.sudokusolver.ui.main
 
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
@@ -10,7 +11,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import org.nunocky.sudokulib.Cell
+import org.nunocky.sudokulib.DIFFICULTY
+import org.nunocky.sudokulib.METHOD
 import org.nunocky.sudokulib.SudokuSolver
+import org.nunocky.sudokulib.toInt
 import org.nunocky.sudokusolver.Preference
 import org.nunocky.sudokusolver.database.SudokuRepository
 import javax.inject.Inject
@@ -50,6 +54,13 @@ class SolverViewModel @Inject constructor(
     val entityId = savedStateHandle.getLiveData("entityId", 0L)
     val stepSpeed = savedStateHandle.getLiveData("stepSpeed", preference.stepSpeed)
     val solverMethod = savedStateHandle.getLiveData("solverMethod", preference.solverMethod)
+
+    // 画面表示用
+    val solverMethodIndex = MediatorLiveData<Int>().apply {
+        addSource(solverMethod) {
+            value = it.toInt()
+        }
+    }
 
     private var startTime = 0L
     private var currentTime = 0L
@@ -183,7 +194,7 @@ class SolverViewModel @Inject constructor(
         }
 
 //        runCatching {
-        solver.trySolve(solverMethod.value ?: 0)
+        solver.trySolve(solverMethod.value ?: METHOD.ONLY_STANDARD)
 //        }.onFailure {
 //            when (it) {
 //                is SudokuSolver.SolverError -> {
@@ -249,7 +260,7 @@ class SolverViewModel @Inject constructor(
     /**
      * 難易度の更新
      */
-    fun updateDifficulty(difficulty: Int) = viewModelScope.launch(Dispatchers.IO) {
+    fun updateDifficulty(difficulty: DIFFICULTY) = viewModelScope.launch(Dispatchers.IO) {
         repository.findById(entityId.value!!)?.let { entity ->
             entity.difficulty = difficulty
             repository.update(entity)
