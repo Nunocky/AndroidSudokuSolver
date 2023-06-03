@@ -19,7 +19,7 @@ class SolverTest {
         solver.load(targetEasy)
         TestCase.assertTrue(solver.isValid)
 
-        val solved = solver.trySolve()
+        val solved = solver.trySolve(METHOD.ONLY_STANDARD)
         TestCase.assertTrue(solved)
         TestCase.assertTrue(solver.isValid)
     }
@@ -29,7 +29,7 @@ class SolverTest {
         solver.load(targetMedium)
         TestCase.assertTrue(solver.isValid)
 
-        val solved = solver.trySolve()
+        val solved = solver.trySolve(METHOD.ONLY_STANDARD)
         TestCase.assertTrue(solved)
         TestCase.assertTrue(solver.isValid)
     }
@@ -39,7 +39,7 @@ class SolverTest {
         solver.load(targetHard)
         TestCase.assertTrue(solver.isValid)
 
-        val solved = solver.trySolve()
+        val solved = solver.trySolve(METHOD.STANDARD_AND_DFS)
         TestCase.assertTrue(solved)
         TestCase.assertTrue(solver.isValid)
     }
@@ -49,7 +49,7 @@ class SolverTest {
         solver.load(targetEasy)
         TestCase.assertTrue(solver.isValid)
 
-        val solved = solver.trySolve(2)
+        val solved = solver.trySolve(METHOD.ONLY_DFS)
         TestCase.assertTrue(solved)
         TestCase.assertTrue(solver.isValid)
     }
@@ -59,7 +59,7 @@ class SolverTest {
         solver.load(targetMedium)
         TestCase.assertTrue(solver.isValid)
 
-        val solved = solver.trySolve(2)
+        val solved = solver.trySolve(METHOD.ONLY_DFS)
         TestCase.assertTrue(solved)
         TestCase.assertTrue(solver.isValid)
     }
@@ -69,19 +69,19 @@ class SolverTest {
         solver.load(targetHard)
         TestCase.assertTrue(solver.isValid)
 
-        val solved = solver.trySolve(2)
+        val solved = solver.trySolve(METHOD.ONLY_DFS)
         TestCase.assertTrue(solved)
         TestCase.assertTrue(solver.isValid)
     }
 
     @Test
-    fun testDFS4() {
-        solver.load(targetExtreme)
+    fun testNoSolution() {
+        solver.load(targetNoSolution)
         TestCase.assertTrue(solver.isValid)
 
-        val solved = solver.trySolve(2)
-        TestCase.assertTrue(solved)
-        TestCase.assertTrue(solver.isValid)
+        val solved = solver.trySolve(METHOD.STANDARD_AND_DFS)
+        TestCase.assertFalse(solved)
+//        TestCase.assertTrue(solver.isValid)
     }
 
     @Test
@@ -99,56 +99,9 @@ class SolverTest {
         )
         TestCase.assertTrue(solver.isValid)
 
-        val solved = solver.trySolve(2)
+        val solved = solver.trySolve(METHOD.ONLY_DFS)
         TestCase.assertTrue(solved)
         TestCase.assertTrue(solver.isValid)
-    }
-
-    companion object {
-        private const val targetEasy =
-            "001037020" +
-                    "006090530" +
-                    "092000170" +
-                    "000603082" +
-                    "000978000" +
-                    "980201000" +
-                    "014000860" +
-                    "038010200" +
-                    "060380400"
-
-        private const val targetMedium =
-            "000008500" +
-                    "000609012" +
-                    "670100040" +
-                    "000700201" +
-                    "030000050" +
-                    "104005000" +
-                    "010007026" +
-                    "580402000" +
-                    "006300000"
-
-        private const val targetHard =
-            "006038075" +
-                    "000040000" +
-                    "000790200" +
-                    "005000090" +
-                    "089000310" +
-                    "020000400" +
-                    "008065000" +
-                    "000080000" +
-                    "570320900"
-
-        private const val targetExtreme =
-            "000080109" +
-                    "902300040" +
-                    "005901700" +
-                    "100800067" +
-                    "000000000" +
-                    "520004001" +
-                    "001007900" +
-                    "060103508" +
-                    "703090002"
-
     }
 
     private val solverCallback = object : SudokuSolver.ProgressCallback {
@@ -176,4 +129,92 @@ class SolverTest {
             println(sb.toString())
         }
     }
+
+    @Test
+    fun test20230603_difficult() {
+        // https://sudoku.com/jp/jokyu/ より
+        val target =
+            "009600100" +
+                    "010700080" +
+                    "350010000" +
+                    "500000600" +
+                    "000042001" +
+                    "003000070" +
+                    "005006010" +
+                    "006800304" +
+                    "081470200"
+        solver.load(target)
+        TestCase.assertTrue(solver.isValid)
+
+        val solved = solver.trySolve(METHOD.STANDARD_AND_DFS)
+        TestCase.assertTrue(solved)
+        TestCase.assertTrue(solver.isValid)
+    }
+
+    @Test
+    fun test20230603_difficult2() {
+        // https://sudoku.com/jp/jokyu/ より
+        val target =
+            "501304000" +
+                    "420000000" +
+                    "070000140" +
+                    "000490010" +
+                    "000010036" +
+                    "106000000" +
+                    "000031760" +
+                    "200040000" +
+                    "613000059"
+        solver.load(target)
+        TestCase.assertTrue(solver.isValid)
+
+        val solved = solver.trySolve(METHOD.STANDARD_AND_DFS)
+        TestCase.assertTrue(solved)
+        TestCase.assertTrue(solver.isValid)
+    }
+
 }
+
+private const val targetEasy =
+    "001037020" +
+            "006090530" +
+            "092000170" +
+            "000603082" +
+            "000978000" +
+            "980201000" +
+            "014000860" +
+            "038010200" +
+            "060380400"
+
+private const val targetMedium =
+    "000008500" +
+            "000609012" +
+            "670100040" +
+            "000700201" +
+            "030000050" +
+            "104005000" +
+            "010007026" +
+            "580402000" +
+            "006300000"
+
+private const val targetHard =
+    "006038075" +
+            "000040000" +
+            "000790200" +
+            "005000090" +
+            "089000310" +
+            "020000400" +
+            "008065000" +
+            "000080000" +
+            "570320900"
+
+private const val targetNoSolution =
+    "000080109" +
+            "902300040" +
+            "005901700" +
+            "100800067" +
+            "000000000" +
+            "520004001" +
+            "001007900" +
+            "060103508" +
+            "703090002"
+

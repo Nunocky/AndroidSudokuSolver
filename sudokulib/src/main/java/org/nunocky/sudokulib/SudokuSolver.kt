@@ -1,14 +1,6 @@
 package org.nunocky.sudokulib
 
 class SudokuSolver {
-    companion object {
-        const val DIFFICULTY_IMPOSSIBLE = 0
-        const val DIFFICULTY_UNDEF = 1
-        const val DIFFICULTY_EASY = 2
-        const val DIFFICULTY_MEDIUM = 3
-        const val DIFFICULTY_HARD = 4
-        const val DIFFICULTY_EXTREME = 5
-    }
 
     class SolverError : IllegalStateException()
 
@@ -34,7 +26,7 @@ class SudokuSolver {
     private var elapsedTime: Long = 0
     fun getElapsedTime() = elapsedTime
 
-    var difficulty = DIFFICULTY_UNDEF
+    var difficulty = DIFFICULTY.UNDEF
     var callback: ProgressCallback? = null
     val cells = ArrayList<Cell>()
     val groups = ArrayList<Group>()
@@ -52,7 +44,8 @@ class SudokuSolver {
         for (i in 0 until 9) {
             val p = i * 9
             val group = Group(
-                setOf(
+                id = groupId++,
+                cells = setOf(
                     cells[p + 0],
                     cells[p + 1],
                     cells[p + 2],
@@ -63,16 +56,15 @@ class SudokuSolver {
                     cells[p + 7],
                     cells[p + 8]
                 )
-            ).apply {
-                id = groupId++
-            }
+            )
             groups.add(group)
         }
 
         // 縦方向のグループ
         for (i in 0 until 9) {
             val group = Group(
-                setOf(
+                id = groupId++,
+                cells = setOf(
                     cells[9 * 0 + i],
                     cells[9 * 1 + i],
                     cells[9 * 2 + i],
@@ -83,11 +75,8 @@ class SudokuSolver {
                     cells[9 * 7 + i],
                     cells[9 * 8 + i]
                 )
-            ).apply {
-                id = groupId++
-            }
+            )
             groups.add(group)
-
         }
 
         // 3x3のグループ
@@ -95,7 +84,8 @@ class SudokuSolver {
             for (x in 0 until 3) {
                 val leftTop = y * 27 + x * 3
                 val group = Group(
-                    setOf(
+                    id = groupId++,
+                    cells = setOf(
                         cells[leftTop + 9 * 0],
                         cells[leftTop + 9 * 0 + 1],
                         cells[leftTop + 9 * 0 + 2],
@@ -106,9 +96,7 @@ class SudokuSolver {
                         cells[leftTop + 9 * 2 + 1],
                         cells[leftTop + 9 * 2 + 2]
                     )
-                ).apply {
-                    id = groupId++
-                }
+                )
                 groups.add(group)
             }
         }
@@ -162,55 +150,55 @@ class SudokuSolver {
      * 問題を最後まで自動で解く
      *
      */
-    fun trySolve(m: Int = 2): Boolean {
+    fun trySolve(method : METHOD = METHOD.STANDARD_AND_DFS): Boolean {
         val tmStart = System.currentTimeMillis()
+        try {
 
-        val algorithmEasy = SolverEasy(this, cells, groups, callback)
-        val algorithm = SolverV1(this, cells, groups, callback)
-        val algorithmDFS = SolverDFS(this, cells, groups, callback)
+            val algorithmEasy = SolverEasy(this, cells, groups, callback)
+            val algorithm = SolverV1(this, cells, groups, callback)
+            val algorithmDFS = SolverDFS(this, cells, groups, callback)
 
-        var retVal: Boolean
+            var retVal: Boolean
 
-        when (m) {
-            0 -> {
-                // only standard
-                retVal = algorithmEasy.trySolve()
-                if (retVal) {
-                    difficulty = DIFFICULTY_EASY
-                } else {
-                    retVal = algorithm.trySolve()
+            when (method) {
+                METHOD.ONLY_STANDARD -> {
+                    retVal = algorithmEasy.trySolve()
+                    if (retVal) {
+                        difficulty = DIFFICULTY.EASY
+                    } else {
+                        retVal = algorithm.trySolve()
+                    }
                 }
-            }
-            2 -> {
-                // only DFS
-                retVal = algorithmDFS.trySolve()
-                difficulty = DIFFICULTY_UNDEF // DFSだけ使ったときは判別できない
-            }
-            else -> {
-                // standard + DFS
-                difficulty = DIFFICULTY_EASY
-                retVal = algorithmEasy.trySolve()
-                if (!retVal) {
-                    //difficulty = DIFFICULTY_MEDIUM
-                    retVal = algorithm.trySolve()
-
+                METHOD.ONLY_DFS -> {
+                    retVal = algorithmDFS.trySolve()
+                    difficulty = DIFFICULTY.UNDEF // DFSだけ使ったときは判別できない
+                }
+                METHOD.STANDARD_AND_DFS -> {
+                    difficulty = DIFFICULTY.EASY
+                    retVal = algorithmEasy.trySolve()
                     if (!retVal) {
-                        difficulty = DIFFICULTY_EXTREME
-                        retVal = algorithmDFS.trySolve()
+                        //difficulty = DIFFICULTY_MEDIUM
+                        retVal = algorithm.trySolve()
+
                         if (!retVal) {
-                            difficulty = DIFFICULTY_IMPOSSIBLE
+                            difficulty = DIFFICULTY.EXTREME
+                            retVal = algorithmDFS.trySolve()
+                            if (!retVal) {
+                                difficulty = DIFFICULTY.IMPOSSIBLE
+                            }
                         }
                     }
                 }
             }
+
+            callback?.onComplete(retVal)
+            return retVal
+        } catch (e: SolverError) {
+            return false
+        }finally {
+            val tmEnd = System.currentTimeMillis()
+            elapsedTime = tmEnd - tmStart
         }
-
-        callback?.onComplete(retVal)
-
-        val tmEnd = System.currentTimeMillis()
-
-        elapsedTime = tmEnd - tmStart
-        return retVal
     }
 
     /**

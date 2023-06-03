@@ -9,6 +9,7 @@ import com.squareup.moshi.Types
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.nunocky.sudokulib.DIFFICULTY
 import org.nunocky.sudokulib.SudokuSolver
 import org.nunocky.sudokusolver.adapter.CalenderJsonAdapter
 import org.nunocky.sudokusolver.adapter.SudokuJsonAdapterFactory
@@ -78,7 +79,7 @@ class ImportSudokuViewModel @Inject constructor(
             list?.let {
                 list.forEach { entity ->
                     entity.id = 0
-                    entity.difficulty = SudokuSolver.DIFFICULTY_UNDEF
+                    entity.difficulty = DIFFICULTY.UNDEF
                     entity.createdAt = Calendar.getInstance()
                 }
 
@@ -102,7 +103,7 @@ class ImportSudokuViewModel @Inject constructor(
                             SudokuEntity(
                                 id = 0,
                                 cells = line,
-                                difficulty = 1
+                                difficulty = DIFFICULTY.UNDEF
 
                             )
                         )

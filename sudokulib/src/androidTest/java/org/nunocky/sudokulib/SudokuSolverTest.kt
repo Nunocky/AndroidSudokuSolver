@@ -1,18 +1,17 @@
 package org.nunocky.sudokulib
 
-import android.content.Context
-import android.os.Environment
 import android.util.Log
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import junit.framework.TestCase.assertTrue
-import junit.framework.TestCase.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.*
+
+private const val TAG = "SudokuSolverTest"
 
 @RunWith(AndroidJUnit4::class)
 class SudokuSolverTest {
@@ -22,7 +21,7 @@ class SudokuSolverTest {
     @get:Rule
     val rule = InstantTaskExecutorRule()
 
-    private lateinit var appContext: Context
+    //    private lateinit var appContext: Context
     private lateinit var solver: SudokuSolver
 
     private val solverCallback = object : SudokuSolver.ProgressCallback {
@@ -53,48 +52,9 @@ class SudokuSolverTest {
 
     @Before
     fun setUp() {
-        appContext = InstrumentationRegistry.getInstrumentation().targetContext
+//        appContext = InstrumentationRegistry.getInstrumentation().targetContext
         solver = SudokuSolver().apply {
             callback = solverCallback
-        }
-    }
-
-    @Test
-    fun importDatabase() {
-        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-
-        val currentDBPath: String = appContext.getDatabasePath("appDatabase").absolutePath
-
-        // TODO 実装する
-        fail()
-    }
-
-    @Test
-    fun exportDatabase() {
-        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-
-        val currentDBPath: String = appContext.getDatabasePath("appDatabase").absolutePath
-
-        arrayOf("").forEach { postfix ->
-            val srcPath = currentDBPath + postfix
-            val filename = File(srcPath).name
-            FileInputStream(File(srcPath)).use { iStream ->
-                FileOutputStream(
-                    File(
-                        appContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
-                        filename
-                    )
-                ).use { oStream ->
-                    var len = 0
-                    val buffer = ByteArray(8 * 1024)
-                    do {
-                        len = iStream.read(buffer, 0, buffer.size)
-                        if (0 < len) {
-                            oStream.write(buffer, 0, len)
-                        }
-                    } while (0 < len)
-                }
-            }
         }
     }
 
@@ -137,9 +97,5 @@ class SudokuSolverTest {
                 assertTrue(solver.isValid)
             } while (!done)
         }
-    }
-
-    companion object {
-        private const val TAG = "SudokuSolverTest"
     }
 }

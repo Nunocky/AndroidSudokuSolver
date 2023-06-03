@@ -14,6 +14,8 @@ import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import org.nunocky.sudokulib.DIFFICULTY
+import org.nunocky.sudokulib.toInt
 import org.nunocky.sudokusolver.IMAGEDIR
 import org.nunocky.sudokusolver.R
 import org.nunocky.sudokusolver.database.SudokuEntity
@@ -66,18 +68,18 @@ class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         binding.sudokuEntity = entity
 
         val difficulty =
-            entity.difficulty ?: org.nunocky.sudokulib.SudokuSolver.DIFFICULTY_UNDEF
+            entity.difficulty ?: DIFFICULTY.UNDEF
 
         binding.text1.apply {
             val textArray = context.resources.getTextArray(R.array.difficulty)
-            this.text = textArray[difficulty]
+            this.text = textArray[difficulty.toInt()]
 
             val text1Color = when (difficulty) {
-                1 -> R.color.difficulty_undef
-                2 -> R.color.difficulty_easy
-                3 -> R.color.difficulty_medium
-                4 -> R.color.difficulty_hard
-                5 -> R.color.difficulty_extreme
+                DIFFICULTY.UNDEF -> R.color.difficulty_undef
+                DIFFICULTY.EASY -> R.color.difficulty_easy
+                DIFFICULTY.MEDIUM -> R.color.difficulty_medium
+                DIFFICULTY.HARD -> R.color.difficulty_hard
+                DIFFICULTY.EXTREME -> R.color.difficulty_extreme
                 else -> R.color.difficulty_impossible
             }
 

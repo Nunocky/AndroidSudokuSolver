@@ -2,6 +2,9 @@ package org.nunocky.sudokusolver
 
 import android.app.Application
 import android.content.Context
+import org.nunocky.sudokulib.METHOD
+import org.nunocky.sudokulib.toInt
+import org.nunocky.sudokulib.toMETHOD
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,12 +25,12 @@ class Preference @Inject constructor(
                 .apply()
         }
 
-    var solverMethod: Int
+    var solverMethodIndex: Int
         get() =
-            sharedPreference.getInt("solverMethod", 1)
+            sharedPreference.getInt("solverMethodIndex", 1)
         set(value) {
             sharedPreference.edit()
-                .putInt("solverMethod", value)
+                .putInt("solverMethodIndex", value)
                 .apply()
         }
 }
