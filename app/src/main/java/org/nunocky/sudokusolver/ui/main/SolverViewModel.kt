@@ -14,14 +14,13 @@ import org.nunocky.sudokulib.Cell
 import org.nunocky.sudokulib.DIFFICULTY
 import org.nunocky.sudokulib.METHOD
 import org.nunocky.sudokulib.SudokuSolver
-import org.nunocky.sudokulib.toInt
 import org.nunocky.sudokusolver.Preference
 import org.nunocky.sudokusolver.database.SudokuRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class SolverViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    val savedStateHandle: SavedStateHandle,
     private val repository: SudokuRepository,
     private val preference: Preference
 ) : ViewModel() {
@@ -53,12 +52,23 @@ class SolverViewModel @Inject constructor(
 
     val entityId = savedStateHandle.getLiveData("entityId", 0L)
     val stepSpeed = savedStateHandle.getLiveData("stepSpeed", preference.stepSpeed)
-    val solverMethod = savedStateHandle.getLiveData("solverMethod", preference.solverMethod)
+    val solverMethodIndex =
+        savedStateHandle.getLiveData("solverMethodIndex", preference.solverMethodIndex)
 
-    // 画面表示用
-    val solverMethodIndex = MediatorLiveData<Int>().apply {
-        addSource(solverMethod) {
-            value = it.toInt()
+    val solverMethod = MediatorLiveData<METHOD>().apply {
+        fun update(index: Int) {
+            this.value = when (index) {
+                0 -> METHOD.ONLY_STANDARD
+                1 -> METHOD.STANDARD_AND_DFS
+                else -> METHOD.ONLY_DFS
+            }
+        }
+
+        // 画面遷移直後に値がセットされないのでこんな実装をしているがどうにかならないのか
+        update(preference.solverMethodIndex)
+
+        addSource(solverMethodIndex) {
+            update(it)
         }
     }
 
@@ -179,34 +189,9 @@ class SolverViewModel @Inject constructor(
                 }
                 channel.close()
             }
-
-//            override fun onInterrupted() {
-//                stopTimer()
-//                _solverStatus = SolverStatus.INTERRUPTED
-//                channel.close()
-//            }
-//
-//            override fun onSolverError() {
-//                stopTimer()
-//                _solverStatus = SolverStatus.ERROR
-//                channel.close()
-//            }
         }
 
-//        runCatching {
         solver.trySolve(solverMethod.value ?: METHOD.ONLY_STANDARD)
-//        }.onFailure {
-//            when (it) {
-//                is SudokuSolver.SolverError -> {
-//                    channel.close()
-//                }
-//
-//                is InterruptedException -> {
-//                    _solverStatus = SolverStatus.INTERRUPTED
-//                    channel.close()
-//                }
-//            }
-//        }
 
         awaitClose {
             solver.callback = null

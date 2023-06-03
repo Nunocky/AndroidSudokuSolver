@@ -136,8 +136,7 @@ class SolverFragment : Fragment() {
 
                             // 難易度をデータベースに反映する (総当り方法だけのときは行わない)
                             when (viewModel.solverMethod.value) {
-                                // TODO enum に修正
-                                METHOD.ONLY_STANDARD, METHOD.ONLY_DFS -> {
+                                METHOD.ONLY_STANDARD, METHOD.STANDARD_AND_DFS -> {
                                     viewModel.updateDifficulty(difficulty)
                                 }
                             }
@@ -171,8 +170,8 @@ class SolverFragment : Fragment() {
             preference.stepSpeed = viewModel.stepSpeed.value!!
         }
 
-        viewModel.solverMethod.observe(viewLifecycleOwner) {
-            preference.solverMethod = viewModel.solverMethod.value!!
+        viewModel.solverMethodIndex.observe(viewLifecycleOwner) {
+            preference.solverMethodIndex = it
         }
 
         viewModel.canReset.observe(viewLifecycleOwner) {

@@ -25,12 +25,12 @@ class Preference @Inject constructor(
                 .apply()
         }
 
-    var solverMethod: METHOD
+    var solverMethodIndex: Int
         get() =
-            (sharedPreference.getInt("solverMethod", 1)).toMETHOD()
+            sharedPreference.getInt("solverMethodIndex", 1)
         set(value) {
             sharedPreference.edit()
-                .putInt("solverMethod", value.toInt())
+                .putInt("solverMethodIndex", value)
                 .apply()
         }
 }
