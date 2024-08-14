@@ -1,11 +1,8 @@
 package org.nunocky.sudokulib
 
-import android.util.Log
-
 class SolverDFS(
     private val parent: SudokuSolver,
     private val cells: ArrayList<Cell>,
-    private val groups: ArrayList<Group>,
     private val callback: SudokuSolver.ProgressCallback?
 ) : SudokuSolver.Algorithm {
     companion object {
@@ -70,13 +67,11 @@ class SolverDFS(
         }
 
         val cell = cellList[depth]
-        val candidatesBak = cell.candidates.toSet()
 
         val ary = cell.candidates.toIntArray()
         for (v in ary) {
-
             // 候補を置いてみる
-            cell.value = v
+            cell.push(v)
 
             // 矛盾がなければ進む
             if (parent.isValid) {
@@ -89,8 +84,7 @@ class SolverDFS(
             }
 
             // だめならもとに戻して次の候補を試す
-            cell.value = 0
-            cell.candidates = candidatesBak.toMutableSet()
+            cell.pop()
         }
 
         return false

@@ -3,13 +3,13 @@ package org.nunocky.sudokulib
 import java.util.*
 
 class SolverV1(
-    private val parent: SudokuSolver,
+    private val sudokuSolver: SudokuSolver,
     private val cells: ArrayList<Cell>,
-    private val groups: ArrayList<Group>,
+    groups: ArrayList<Group>,
     private val callback: SudokuSolver.ProgressCallback?
 ) : SudokuSolver.Algorithm {
 
-    private fun isSolved() = parent.isSolved()
+    private fun isSolved() = sudokuSolver.isSolved()
 
     private val basicFilters = ArrayList<SudokuFilter>()
     private val mediumFilters = ArrayList<SudokuFilter>()
@@ -17,27 +17,42 @@ class SolverV1(
 
     init {
         for (cell in cells) {
-            basicFilters.add(Filter0(this, cell))
+            basicFilters.add(Filter0(sudokuSolver, cell))
         }
 
         for (cell in cells) {
-            basicFilters.add(FilterOneCandidate(this, cell))
+            basicFilters.add(FilterOneCandidate(sudokuSolver, cell))
         }
 
         for (group in groups) {
-            basicFilters.add(FilterLastOneCellInGroup(this, group))
+            basicFilters.add(FilterLastOneCellInGroup(sudokuSolver, group))
         }
 
-        mediumFilters.add(Filter3Lines(this, listOf(groups[0], groups[1], groups[2])))
-        mediumFilters.add(Filter3Lines(this, listOf(groups[3], groups[4], groups[5])))
-        mediumFilters.add(Filter3Lines(this, listOf(groups[6], groups[7], groups[8])))
-        mediumFilters.add(Filter3Lines(this, listOf(groups[9], groups[10], groups[11])))
-        mediumFilters.add(Filter3Lines(this, listOf(groups[12], groups[13], groups[14])))
-        mediumFilters.add(Filter3Lines(this, listOf(groups[15], groups[16], groups[17])))
+        mediumFilters.add(Filter3Lines(sudokuSolver, listOf(groups[0], groups[1], groups[2])))
+        mediumFilters.add(Filter3Lines(sudokuSolver, listOf(groups[3], groups[4], groups[5])))
+        mediumFilters.add(Filter3Lines(sudokuSolver, listOf(groups[6], groups[7], groups[8])))
+        mediumFilters.add(
+            Filter3Lines(
+                sudokuSolver,
+                listOf(groups[9], groups[10], groups[11])
+            )
+        )
+        mediumFilters.add(
+            Filter3Lines(
+                sudokuSolver,
+                listOf(groups[12], groups[13], groups[14])
+            )
+        )
+        mediumFilters.add(
+            Filter3Lines(
+                sudokuSolver,
+                listOf(groups[15], groups[16], groups[17])
+            )
+        )
 
         for (group in groups) {
             for (n in 2..7) {
-                hardFilters.add(FilterCombination(this, group, n))
+                hardFilters.add(FilterCombination(sudokuSolver, group, n))
             }
         }
     }
@@ -51,7 +66,7 @@ class SolverV1(
                 shouldRepeat = filter.exec()
                 changed = changed or shouldRepeat
 
-                if (!parent.isValid) {
+                if (!sudokuSolver.isValid) {
                     throw SudokuSolver.SolverError()
                 }
             }
@@ -64,7 +79,7 @@ class SolverV1(
     override fun trySolve(): Boolean {
 
         for (difficulty in arrayOf(DIFFICULTY.MEDIUM, DIFFICULTY.HARD)) {
-            parent.difficulty = difficulty
+            sudokuSolver.difficulty = difficulty
 
             var valueChanged = true
             var shouldRefresh: Boolean
@@ -85,7 +100,7 @@ class SolverV1(
                         shouldRefresh = filter.exec()
                         valueChanged = valueChanged or shouldRefresh
 
-                        if (!parent.isValid) {
+                        if (!sudokuSolver.isValid) {
                             throw SudokuSolver.SolverError()
                         }
                     }
@@ -102,7 +117,7 @@ class SolverV1(
                         shouldRefresh = filter.exec()
                         valueChanged = valueChanged or shouldRefresh
 
-                        if (!parent.isValid) {
+                        if (!sudokuSolver.isValid) {
                             throw SudokuSolver.SolverError()
                         }
                     }
@@ -123,14 +138,17 @@ class SolverV1(
 /**
  * フィルタの基本クラス
  */
-private abstract class SudokuFilter(protected val parent: SolverV1) {
+private abstract class SudokuFilter(
+    protected val sudokuSolver: SudokuSolver
+) {
     abstract fun exec(): Boolean
 }
 
 /**
  * 対象セルの値が nに確定していたら、そのセルが所属する他グループの未確定セルから要素 nを削除する
  */
-private class Filter0(parent: SolverV1, private val cell: Cell) : SudokuFilter(parent) {
+private class Filter0(sudokuSolver: SudokuSolver, private val cell: Cell) :
+    SudokuFilter(sudokuSolver) {
     override fun exec(): Boolean {
         var changed = false
 
@@ -139,10 +157,11 @@ private class Filter0(parent: SolverV1, private val cell: Cell) : SudokuFilter(p
             shouldRepeat = false
             if (cell.isFixed) {
                 val n = cell.value
-                cell.groups.forEach { g ->
+                sudokuSolver.groupOfCells(cell.id).forEach { g ->
+                    //cell.groups.forEach { g ->
                     g.cells.forEach { c ->
                         if (c.candidates.contains(n)) {
-                            c.candidates.remove(n)
+                            c.removeCandidate(n)
                             changed = true
                         }
 
@@ -162,7 +181,10 @@ private class Filter0(parent: SolverV1, private val cell: Cell) : SudokuFilter(p
 /**
  * あるセルについて、候補が一つだけのときは値が確定する
  */
-private class FilterOneCandidate(parent: SolverV1, private val cell: Cell) : SudokuFilter(parent) {
+private class FilterOneCandidate(
+    sudokuSolver: SudokuSolver,
+    private val cell: Cell
+) : SudokuFilter(sudokuSolver) {
     override fun exec(): Boolean {
         var changed = false
 
@@ -177,8 +199,11 @@ private class FilterOneCandidate(parent: SolverV1, private val cell: Cell) : Sud
 /**
  * あるグループについて、グループ内で未確定のセルが一つだけのとき、そのセルの値は確定する
  */
-private class FilterLastOneCellInGroup(parent: SolverV1, private val group: Group) :
-    SudokuFilter(parent) {
+private class FilterLastOneCellInGroup(
+    sudokuSolver: SudokuSolver,
+    private val group: Group
+) :
+    SudokuFilter(sudokuSolver) {
     override fun exec(): Boolean {
         var changed = false
 
@@ -209,8 +234,11 @@ private class FilterLastOneCellInGroup(parent: SolverV1, private val group: Grou
  *  あるグループにおいて、同一の n個の候補を持つセルが n個存在するなら、それら
  *  のセルでその候補値を専有できる → グループ内のそれら以外のセルで、候補値は除外できる
  */
-private class FilterCombination(parent: SolverV1, private val group: Group, private val n: Int) :
-    SudokuFilter(parent) {
+private class FilterCombination(
+    sudokuSolver: SudokuSolver,
+    private val group: Group,
+    private val n: Int
+) : SudokuFilter(sudokuSolver) {
     override fun exec(): Boolean {
         var changed = false
 
@@ -244,7 +272,7 @@ private class FilterCombination(parent: SolverV1, private val group: Group, priv
 
                 cellAry.first().candidates.forEach { v ->
                     if (cell.candidates.contains(v)) {
-                        cell.candidates.remove(v)
+                        cell.removeCandidate(v)
                         changed = true
                     }
                 }
@@ -262,10 +290,9 @@ private class FilterCombination(parent: SolverV1, private val group: Group, priv
  * 上記を満たすとき、そのセルは nで確定する
  */
 private class Filter3Lines(
-    parent: SolverV1,
+    sudokuSolver: SudokuSolver,
     private val group: List<Group>
-) :
-    SudokuFilter(parent) {
+) : SudokuFilter(sudokuSolver) {
     override fun exec(): Boolean {
         arrayOf(
             Triple(0, 1, 2),
