@@ -67,13 +67,11 @@ class SolverDFS(
         }
 
         val cell = cellList[depth]
-        val candidatesBak = cell.candidates.toSet()
 
         val ary = cell.candidates.toIntArray()
         for (v in ary) {
-
             // 候補を置いてみる
-            cell.value = v
+            cell.push(v)
 
             // 矛盾がなければ進む
             if (parent.isValid) {
@@ -86,8 +84,7 @@ class SolverDFS(
             }
 
             // だめならもとに戻して次の候補を試す
-            cell.value = 0
-            cell.setCandidates(candidatesBak)
+            cell.pop()
         }
 
         return false

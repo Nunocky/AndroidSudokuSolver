@@ -21,6 +21,10 @@ class Cell(
     private var _candidates: MutableSet<Int> = mutableSetOf(1, 2, 3, 4, 5, 6, 7, 8, 9)
     val candidates: Set<Int> = _candidates
 
+    // 値の仮置き時の退避用スタック
+    private val valueStack = mutableListOf<Int>()
+    private val candidatesStack = mutableListOf<Set<Int>>()
+
     /**
      * 候補から指定した値を削除する
      */
@@ -29,11 +33,23 @@ class Cell(
     }
 
     /**
-     * 候補をセットする
+     * 値を仮置きする
      */
-    fun setCandidates(values: Set<Int>) {
-        _candidates.clear()
-        _candidates.addAll(values)
+    fun push(v: Int) {
+        valueStack.add(value)
+        candidatesStack.add(_candidates.toSet())
+        value = v
+    }
+
+    /**
+     * 仮置きした値を取り消す
+     */
+    fun pop() {
+        candidatesStack.removeAt(candidatesStack.size - 1).let {
+            _candidates.clear()
+            _candidates.addAll(it)
+        }
+        value = valueStack.removeAt(valueStack.size - 1)
     }
 
     val isFixed: Boolean
