@@ -33,9 +33,7 @@ class SudokuSolver {
 
     init {
         repeat(81) { n ->
-            val cell = Cell().apply {
-                id = n
-            }
+            val cell = Cell(id = n)
             cells.add(cell)
         }
 
@@ -100,16 +98,6 @@ class SudokuSolver {
                 groups.add(group)
             }
         }
-
-        cells.forEach { cell ->
-            // cellにグループを関連付ける
-            cell.groups = groups.filter { group ->
-                group.cells.contains(cell)
-            }.toSet()
-
-            // cellに自分自身を関連付ける
-            cell.parent = this
-        }
     }
 
     /**
@@ -127,11 +115,8 @@ class SudokuSolver {
             if (numbers[n] !in 0..9) {
                 throw IllegalArgumentException()
             }
-            cells[n].candidates = mutableSetOf(1, 2, 3, 4, 5, 6, 7, 8, 9)
             cells[n].value = numbers[n] // 1~9なら candidatesは空集合にセットされる
         }
-
-//        _isValid.postValue(calcIsValid())
     }
 
     /**
@@ -150,13 +135,13 @@ class SudokuSolver {
      * 問題を最後まで自動で解く
      *
      */
-    fun trySolve(method : METHOD = METHOD.STANDARD_AND_DFS): Boolean {
+    fun trySolve(method: METHOD = METHOD.STANDARD_AND_DFS): Boolean {
         val tmStart = System.currentTimeMillis()
         try {
 
-            val algorithmEasy = SolverEasy(this, cells, groups, callback)
+            val algorithmEasy = SolverEasy(this, cells, callback)
             val algorithm = SolverV1(this, cells, groups, callback)
-            val algorithmDFS = SolverDFS(this, cells, groups, callback)
+            val algorithmDFS = SolverDFS(this, cells, callback)
 
             var retVal: Boolean
 
@@ -169,10 +154,12 @@ class SudokuSolver {
                         retVal = algorithm.trySolve()
                     }
                 }
+
                 METHOD.ONLY_DFS -> {
                     retVal = algorithmDFS.trySolve()
                     difficulty = DIFFICULTY.UNDEF // DFSだけ使ったときは判別できない
                 }
+
                 METHOD.STANDARD_AND_DFS -> {
                     difficulty = DIFFICULTY.EASY
                     retVal = algorithmEasy.trySolve()
@@ -195,7 +182,7 @@ class SudokuSolver {
             return retVal
         } catch (e: SolverError) {
             return false
-        }finally {
+        } finally {
             val tmEnd = System.currentTimeMillis()
             elapsedTime = tmEnd - tmStart
         }
@@ -214,12 +201,16 @@ class SudokuSolver {
         return true
     }
 
-    // 数の配置が正しいか
-//    private val _isValid = MutableLiveData(false)
-
-    // TODO private val _isValid = calcIsValid() みたいに書けない?
-
-//    val isValid: LiveData<Boolean> = _isValid
+    /**
+     * セルが所属するグループのリストを取得
+     *
+     * @param cellId セルのID
+     * @return グループのリスト
+     */
+    fun groupOfCells(cellId: Int): List<Group> {
+        val cell = cells[cellId]
+        return groups.filter { group -> group.cells.contains(cell) }
+    }
 
     val isValid: Boolean
         get() = calcIsValid()
