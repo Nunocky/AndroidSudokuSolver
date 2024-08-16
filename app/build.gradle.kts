@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.devtools.ksp)
 
     id("kotlin-kapt")
     id("kotlin-parcelize")
@@ -96,7 +97,7 @@ dependencies {
 
     // Room
     implementation(libs.androidx.room.runtime)
-    kapt(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     testImplementation(libs.androidx.room.testing)
 
@@ -109,7 +110,7 @@ dependencies {
 
     // Kotshi
     implementation(libs.kotshiApi)
-    kapt(libs.kotshiCompiler)
+    ksp(libs.kotshiCompiler)
 
     // test
     testImplementation(libs.junit)

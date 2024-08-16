@@ -1,6 +1,7 @@
 [versions]
 agp = "8.5.1"
-kotlin = "1.9.25"
+kotlin = "1.9.24"
+ksp = "1.9.24-1.0.20"
 
 activityKtx = "1.9.1"
 kotshi = "3.0.0"
@@ -66,9 +67,13 @@ play-services-oss-licenses = { module = "com.google.android.gms:play-services-os
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
 android-tools-build-gradle = { id = "com.android.tools.build:gradle", version.ref = "agp" }
 jetbrains-kotlin-gradle = { id = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 dagger-hilt-android-gradle = { id = "com.google.dagger:hilt-android-gradle-plugin", version.ref = "hiltAndroid" }
 androidx-navigation-safe-args = { id = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "androidxNavigation" }
 gms-oss-licenses = { id = "com.google.android.gms:oss-licenses-plugin", version.ref = "ossLicense" }
+
+
+
