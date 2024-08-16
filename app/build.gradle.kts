@@ -59,66 +59,61 @@ android {
 dependencies {
     implementation(project(":sudokulib"))
 
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
 
-    implementation("com.google.dagger:hilt-android:2.52")
-    kapt("com.google.dagger:hilt-android-compiler:2.52")
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
 
-    implementation("androidx.activity:activity-ktx:1.9.1")
-    implementation("androidx.fragment:fragment-ktx:1.8.2")
+    implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.fragment.ktx)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // ViewModel
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4")
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
     // LiveData
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.4")
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.legacy.support.v4)
 
-    implementation("androidx.cardview:cardview:1.0.0")
+    implementation(libs.androidx.cardview)
 
     // RecyclerView
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("androidx.recyclerview:recyclerview-selection:1.1.0")
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.recyclerview.selection)
 
     // Navigation
-    val nav_version = "2.4.1"
-    implementation("androidx.navigation:navigation-fragment-ktx:$nav_version")
-    implementation("androidx.navigation:navigation-ui-ktx:$nav_version")
-    implementation("androidx.navigation:navigation-dynamic-features-fragment:$nav_version")
-    androidTestImplementation("androidx.navigation:navigation-testing:$nav_version")
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+    implementation(libs.androidx.navigation.dynamic.features.fragment)
+    androidTestImplementation(libs.androidx.navigation.testing)
 
     // Room
-    val room_version = "2.6.1"
-    implementation("androidx.room:room-runtime:$room_version")
-    kapt("androidx.room:room-compiler:$room_version")
-    implementation("androidx.room:room-ktx:$room_version")
-    testImplementation("androidx.room:room-testing:$room_version")
+    implementation(libs.androidx.room.runtime)
+    kapt(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
+    testImplementation(libs.androidx.room.testing)
 
     // Copyright
-    implementation("com.google.android.gms:play-services-oss-licenses:17.1.0")
-
-    // CoroutineAutoDispose
-    // implementation 'com.github.satoshun.coroutine.autodispose:autodispose:0.3.1'
+    implementation(libs.play.services.oss.licenses)
 
     // Moshi
-    implementation("com.squareup.moshi:moshi:1.9.3")
-    implementation("com.squareup.moshi:moshi-kotlin:1.9.3")
+    implementation(libs.moshi)
+    implementation(libs.moshi.kotlin)
 
     // Kotshi
-    implementation("se.ansman.kotshi:api:3.0.0")
-    kapt("se.ansman.kotshi:compiler:3.0.0")
+    implementation(libs.kotshiApi)
+    kapt(libs.kotshiCompiler)
 
     // test
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.core.testing)
 }
