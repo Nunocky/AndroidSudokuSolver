@@ -21,5 +21,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "SudokuSolver"
-include ':app'
-include ':sudokulib'
+include(":app")
+include(":sudokulib")

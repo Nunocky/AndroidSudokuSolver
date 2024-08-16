@@ -1,58 +1,63 @@
 plugins {
-    id 'com.android.application'
-    id 'kotlin-android'
-    id 'kotlin-kapt'
-    id "kotlin-parcelize"
-    id "androidx.navigation.safeargs.kotlin"
-    id "com.google.android.gms.oss-licenses-plugin"
-    id 'dagger.hilt.android.plugin'
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.jetbrains.kotlin.android)
+
+    id("kotlin-kapt")
+    id("kotlin-parcelize")
+    id("androidx.navigation.safeargs.kotlin")
+    id("com.google.android.gms.oss-licenses-plugin")
+    id("dagger.hilt.android.plugin")
 }
 
 android {
-    compileSdk 34
+    namespace = "org.nunocky.sudokusolver"
+    compileSdk = 34
 
     defaultConfig {
-        applicationId "org.nunocky.sudokusolver"
-        minSdk 21
-        targetSdk 34
-        versionCode 3
-        versionName "1.0"
+        applicationId = "org.nunocky.sudokusolver"
+        minSdk = 21
+        targetSdk = 34
+        versionCode = 3
+        versionName = "1.0"
 
         javaCompileOptions {
             annotationProcessorOptions {
-                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+                arguments["room.schemaLocation"] = "$projectDir/schemas"
             }
         }
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '17'
-        freeCompilerArgs += [
-                '-opt-in=kotlin.RequiresOptIn'
-        ]
+        jvmTarget = "17"
+        freeCompilerArgs += listOf(
+            "-opt-in=kotlin.RequiresOptIn"
+        )
     }
 
     buildFeatures {
-        buildConfig true
-        dataBinding true
+        buildConfig = true
+        dataBinding = true
     }
-    namespace 'org.nunocky.sudokusolver'
 }
 
 dependencies {
+    implementation(project(":sudokulib"))
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
@@ -84,21 +89,21 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview-selection:1.1.0")
 
     // Navigation
-    def nav_version = "2.4.1"
+    val nav_version = "2.4.1"
     implementation("androidx.navigation:navigation-fragment-ktx:$nav_version")
     implementation("androidx.navigation:navigation-ui-ktx:$nav_version")
     implementation("androidx.navigation:navigation-dynamic-features-fragment:$nav_version")
     androidTestImplementation("androidx.navigation:navigation-testing:$nav_version")
 
     // Room
-    def room_version = "2.6.1"
+    val room_version = "2.6.1"
     implementation("androidx.room:room-runtime:$room_version")
     kapt("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     testImplementation("androidx.room:room-testing:$room_version")
 
     // Copyright
-    implementation "com.google.android.gms:play-services-oss-licenses:17.1.0"
+    implementation("com.google.android.gms:play-services-oss-licenses:17.1.0")
 
     // CoroutineAutoDispose
     // implementation 'com.github.satoshun.coroutine.autodispose:autodispose:0.3.1'
@@ -110,8 +115,6 @@ dependencies {
     // Kotshi
     implementation("se.ansman.kotshi:api:3.0.0")
     kapt("se.ansman.kotshi:compiler:3.0.0")
-
-    implementation project(path: ':sudokulib')
 
     // test
     testImplementation("junit:junit:4.13.2")
