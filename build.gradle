@@ -10,7 +10,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 //        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21'
 
-        classpath 'com.google.dagger:hilt-android-gradle-plugin:2.40.1'
+        classpath 'com.google.dagger:hilt-android-gradle-plugin:2.52'
         classpath 'androidx.navigation:navigation-safe-args-gradle-plugin:2.5.3'
         classpath("com.google.android.gms:oss-licenses-plugin:0.10.6")
         // NOTE: Do not place your application dependencies here; they belong
@@ -19,6 +19,9 @@ buildscript {
 }
 
 plugins {
+    id 'com.android.application' version '8.0.0' apply false
+    id 'com.android.library' version '8.0.0' apply false
+    id 'org.jetbrains.kotlin.android' version '1.8.10' apply false
 }
 
 tasks.register('clean', Delete) {
