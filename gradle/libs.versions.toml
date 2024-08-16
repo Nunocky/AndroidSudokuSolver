@@ -1,6 +1,6 @@
 [versions]
 agp = "8.5.1"
-kotlin = "1.9.0"
+kotlin = "1.9.25"
 
 activityKtx = "1.9.1"
 kotshi = "3.0.0"
