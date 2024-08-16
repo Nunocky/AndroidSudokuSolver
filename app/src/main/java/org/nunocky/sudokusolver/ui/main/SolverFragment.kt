@@ -139,6 +139,7 @@ class SolverFragment : Fragment() {
                                 METHOD.ONLY_STANDARD, METHOD.STANDARD_AND_DFS -> {
                                     viewModel.updateDifficulty(difficulty)
                                 }
+                                else -> {}
                             }
 
                             val message =

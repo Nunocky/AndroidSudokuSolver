@@ -47,15 +47,14 @@ class SudokuListViewModel @Inject constructor(
         }
     }
 
-    val sudokuList =
-        Transformations.switchMap(filter) {
-            if (it != null) {
-                val difficulties = it.toIntArray()
-                repository.findByDifficulties(difficulties)
-            } else {
-                repository.findAllAsLiveData()
-            }
+    val sudokuList = filter.switchMap {
+        if (it != null) {
+            val difficulties = it.toIntArray()
+            repository.findByDifficulties(difficulties)
+        } else {
+            repository.findAllAsLiveData()
         }
+    }
 
     private var deletedItems: List<SudokuEntity>? = null
 

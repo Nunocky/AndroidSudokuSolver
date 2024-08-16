@@ -113,12 +113,8 @@ class NumberCellView : View {
         candidatesPaint.textSize = targetHeight
     }
 
-    override fun draw(canvas: Canvas?) {
+    override fun draw(canvas: Canvas) {
         super.draw(canvas)
-
-        if (canvas == null) {
-            return
-        }
 
         // draw borders
         borderPaint.strokeWidth = calcBorderWidth(topBorderStyle, canvasWidth)
@@ -323,9 +319,11 @@ class NumberCellView : View {
             1 -> {
                 (maxLength * 0.01f).coerceAtLeast(1f).coerceAtMost(4f)
             }
+
             2 -> {
                 (maxLength * 0.08f).coerceAtLeast(1f).coerceAtMost(8f)
             }
+
             else -> {
                 0f
             }

@@ -66,7 +66,7 @@ class ImportSudokuViewModel @Inject constructor(
             val jsonString = out.toString("UTF-8")
 
             val builder = Moshi.Builder()
-                .add(SudokuJsonAdapterFactory.INSTANCE)
+                .add(SudokuJsonAdapterFactory)
                 .add(Calendar::class.java, CalenderJsonAdapter())
                 .build()
 
@@ -95,7 +95,7 @@ class ImportSudokuViewModel @Inject constructor(
 
                 val list = ArrayList<SudokuEntity>()
 
-                var line: String? = ""
+                var line: String?
                 do {
                     line = reader.readLine()?.trim()
                     if (line?.length == 81) {

@@ -52,7 +52,7 @@ class ExportSudokuViewModel @Inject constructor(
             oStream?.bufferedWriter()?.use { writer ->
 
                 val builder = Moshi.Builder()
-                    .add(SudokuJsonAdapterFactory.INSTANCE)
+                    .add(SudokuJsonAdapterFactory)
                     .add(Calendar::class.java, CalenderJsonAdapter())
                     .build()
 
